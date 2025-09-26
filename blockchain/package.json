@@ -43,5 +43,8 @@
     "prettier-plugin-solidity": "^1.4.2",
     "solhint": "^5.0.4",
     "typescript-eslint": "^8.20.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0"
   }
 }

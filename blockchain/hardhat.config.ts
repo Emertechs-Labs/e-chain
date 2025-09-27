@@ -30,12 +30,18 @@ const config: HardhatUserConfig = {
       url: web3Url,
       accounts: [deployerPrivateKey],
     },
+    'base-testnet': {
+      url: web3Url,
+      accounts: [deployerPrivateKey],
+      chainId: 84532,
+      gasPrice: 'auto',
+    },
   },
   mbConfig: {
     apiKey: adminApiKey,
     host: deploymentEndpoint,
-    allowUpdateAddress: ['development', 'testing'],
-    allowUpdateContract: ['development'],
+    allowUpdateAddress: ['development', 'testing', 'base-testnet'],
+    allowUpdateContract: ['development', 'base-testnet'],
   },
   solidity: {
     compilers: [

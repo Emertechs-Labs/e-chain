@@ -1,31 +1,33 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { EventFactory, EventTicket } from "../typechain-types";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 describe("EventFactory", function () {
   let eventFactory: EventFactory;
   let eventTicketTemplate: EventTicket;
-  let owner: SignerWithAddress;
-  let organizer: SignerWithAddress;
-  let user: SignerWithAddress;
-  let treasury: SignerWithAddress;
+  let owner: HardhatEthersSigner;
+  let organizer: HardhatEthersSigner;
+  let user: HardhatEthersSigner;
+  let treasury: HardhatEthersSigner;
 
   beforeEach(async function () {
     [owner, organizer, user, treasury] = await ethers.getSigners();
 
     // Deploy EventTicket template
     const EventTicket = await ethers.getContractFactory("EventTicket");
-    eventTicketTemplate = await EventTicket.deploy();
-    await eventTicketTemplate.waitForDeployment();
+    const deployedTicket = await EventTicket.deploy();
+    await deployedTicket.waitForDeployment();
+    eventTicketTemplate = deployedTicket as unknown as EventTicket;
 
     // Deploy EventFactory
     const EventFactory = await ethers.getContractFactory("EventFactory");
-    eventFactory = await EventFactory.deploy(
+    const deployedFactory = await EventFactory.deploy(
       await eventTicketTemplate.getAddress(),
       treasury.address
     );
-    await eventFactory.waitForDeployment();
+    await deployedFactory.waitForDeployment();
+    eventFactory = deployedFactory as unknown as EventFactory;
   });
 
   describe("Deployment", function () {
@@ -35,7 +37,7 @@ describe("EventFactory", function () {
     });
 
     it("Should verify the owner as organizer", async function () {
-      expect(await eventFactory.isVerifiedOrganizer(owner.address)).to.be.true;
+      expect(await eventFactory.isVerifiedOrganizer(owner.address)).to.equal(true);
     });
 
     it("Should start with zero events", async function () {
@@ -46,13 +48,13 @@ describe("EventFactory", function () {
   describe("Organizer Management", function () {
     it("Should allow owner to verify organizers", async function () {
       await eventFactory.verifyOrganizer(organizer.address);
-      expect(await eventFactory.isVerifiedOrganizer(organizer.address)).to.be.true;
+      expect(await eventFactory.isVerifiedOrganizer(organizer.address)).to.equal(true);
     });
 
     it("Should allow owner to unverify organizers", async function () {
       await eventFactory.verifyOrganizer(organizer.address);
       await eventFactory.unverifyOrganizer(organizer.address);
-      expect(await eventFactory.isVerifiedOrganizer(organizer.address)).to.be.false;
+      expect(await eventFactory.isVerifiedOrganizer(organizer.address)).to.equal(false);
     });
 
     it("Should emit events when verifying/unverifying", async function () {
@@ -126,7 +128,7 @@ describe("EventFactory", function () {
       expect(event.maxTickets).to.equal(maxTickets);
       expect(event.startTime).to.equal(startTime);
       expect(event.endTime).to.equal(endTime);
-      expect(event.isActive).to.be.true;
+      expect(event.isActive).to.equal(true);
     });
 
     it("Should track organizer's events", async function () {
@@ -267,7 +269,7 @@ describe("EventFactory", function () {
         .withArgs(1, false);
 
       const event = await eventFactory.events(1);
-      expect(event.isActive).to.be.false;
+      expect(event.isActive).to.equal(false);
     });
 
     it("Should reject updates from non-organizers", async function () {
@@ -302,7 +304,7 @@ describe("EventFactory", function () {
       expect(eventIds[1]).to.equal(2);
       expect(eventIds[2]).to.equal(3);
       // Since we have 5 events total and requesting first 3, there should be more
-      expect(hasMore).to.be.true;
+      expect(hasMore).to.equal(true);
     });
 
     it("Should handle pagination correctly", async function () {
@@ -311,7 +313,7 @@ describe("EventFactory", function () {
       expect(eventIds).to.have.lengthOf(2); // Only 2 remaining events
       expect(eventIds[0]).to.equal(4);
       expect(eventIds[1]).to.equal(5);
-      expect(hasMore).to.be.false;
+      expect(hasMore).to.equal(false);
     });
   });
 

@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../interfaces/IEventTicket.sol";
 
 /**
@@ -20,6 +21,7 @@ contract EventTicket is
     ERC721Burnable,
     Pausable,
     Ownable,
+    ReentrancyGuard,
     IEventTicket,
     IERC2981
 {
@@ -88,6 +90,7 @@ contract EventTicket is
         address _factory
     ) external override {
         require(!_initialized, "Already initialized");
+        require(msg.sender == _factory || factory == address(0), "Only factory can initialize");
         require(_organizer != address(0), "Invalid organizer");
         require(_factory != address(0), "Invalid factory");
 
@@ -176,7 +179,9 @@ contract EventTicket is
         );
         require(to.length > 0, "Empty arrays");
         require(_totalSold + to.length <= maxSupply, "Would exceed max supply");
-        require(msg.value >= ticketPrice * to.length, "Insufficient payment");
+        uint256 totalCost = ticketPrice * to.length;
+        require(totalCost / to.length == ticketPrice, "Overflow detected");
+        require(msg.value >= totalCost, "Insufficient payment");
 
         tokenIds = new uint256[](to.length);
 
@@ -211,7 +216,6 @@ contract EventTicket is
         }
 
         // Refund excess payment
-        uint256 totalCost = ticketPrice * to.length;
         if (msg.value > totalCost) {
             payable(msg.sender).transfer(msg.value - totalCost);
         }
@@ -280,8 +284,10 @@ contract EventTicket is
         uint96 feeBps
     ) external onlyOwner {
         require(feeBps <= 1000, "Royalty fee too high"); // Max 10%
+        require(recipient != address(0), "Invalid recipient");
         _royaltyRecipient = recipient;
         _royaltyFeeBps = feeBps;
+        emit RoyaltyInfoUpdated(recipient, feeBps);
     }
 
     function royaltyInfo(
@@ -309,10 +315,13 @@ contract EventTicket is
         _unpause();
     }
 
-    function withdraw() external onlyOwner {
+    function withdraw() external onlyOwner nonReentrant {
         uint256 balance = address(this).balance;
         require(balance > 0, "No funds to withdraw");
-        payable(owner()).transfer(balance);
+        
+        (bool success, ) = payable(owner()).call{value: balance}("");
+        require(success, "Transfer failed");
+        emit FundsWithdrawn(owner(), balance);
     }
 
     // ============ Override Functions ============

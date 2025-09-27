@@ -37,6 +37,8 @@ interface IEventTicket is IERC721 {
     );
 
     event TicketTransferRestricted(uint256 indexed tokenId, bool restricted);
+    event RoyaltyInfoUpdated(address indexed recipient, uint96 feeBps);
+    event FundsWithdrawn(address indexed owner, uint256 amount);
 
     // ============ Core Functions ============
 

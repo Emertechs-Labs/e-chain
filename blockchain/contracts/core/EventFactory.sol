@@ -120,11 +120,13 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
         onlyVerifiedOrganizer
         returns (uint256 eventId)
     {
-        require(bytes(name).length > 0, "Empty event name");
-        require(bytes(metadataURI).length > 0, "Empty metadata URI");
-        require(maxTickets > 0, "Invalid max tickets");
-        require(startTime > block.timestamp, "Start time in past");
+        require(bytes(name).length > 0 && bytes(name).length <= 100, "Invalid event name length");
+        require(bytes(metadataURI).length > 0 && bytes(metadataURI).length <= 200, "Invalid metadata URI length");
+        require(maxTickets > 0 && maxTickets <= 100000, "Invalid max tickets range");
+        require(ticketPrice <= 1000 ether, "Ticket price too high");
+        require(startTime > block.timestamp + 3600, "Start time must be at least 1 hour in future");
         require(endTime > startTime, "End time before start");
+        require(endTime <= startTime + 365 days, "Event duration too long");
 
         // Increment event counter
         _eventIdCounter++;
@@ -281,14 +283,23 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
         uint256 returnedCount = 0;
         uint256[] memory tempIds = new uint256[](limit);
 
-        // First pass: count all active events and collect the requested range
-        for (uint256 i = 1; i <= eventCount; i++) {
+        // Single pass: count active events and collect requested range efficiently
+        for (uint256 i = 1; i <= eventCount && returnedCount < limit; i++) {
             if (events[i].isActive && events[i].endTime > block.timestamp) {
-                if (totalActiveCount >= offset && returnedCount < limit) {
+                if (totalActiveCount >= offset) {
                     tempIds[returnedCount] = i;
                     returnedCount++;
                 }
                 totalActiveCount++;
+            }
+        }
+        
+        // Continue counting remaining active events for hasMore calculation
+        if (returnedCount == limit) {
+            for (uint256 i = 1; i <= eventCount; i++) {
+                if (events[i].isActive && events[i].endTime > block.timestamp) {
+                    totalActiveCount++;
+                }
             }
         }
 

@@ -3,20 +3,19 @@ pragma solidity ^0.8.24;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 
-interface IEventTicket {
-    function getTicketCount(
-        uint256 eventId,
-        address user
-    ) external view returns (uint256);
-    function getTotalTickets(uint256 eventId) external view returns (uint256);
+interface IEventTicketForIncentives {
+    function balanceOf(address owner) external view returns (uint256);
+    function totalSold() external view returns (uint256);
+    function eventId() external view returns (uint256);
 }
 
 interface IPOAPAttendance {
     function balanceOf(address owner) external view returns (uint256);
 }
 
-contract IncentiveManager is ERC721, Ownable {
+contract IncentiveManager is ERC721, Ownable, Pausable {
     struct Reward {
         uint256 rewardId;
         address user;
@@ -59,22 +58,24 @@ contract IncentiveManager is ERC721, Ownable {
         address _eventTicket,
         address _poapAttendance
     ) ERC721("Incentive Reward", "INC") Ownable(msg.sender) {
+        require(_eventFactory != address(0), "Invalid event factory");
+        require(_eventTicket != address(0), "Invalid event ticket");
+        require(_poapAttendance != address(0), "Invalid POAP attendance");
+        
         eventFactory = _eventFactory;
         eventTicket = _eventTicket;
         poapAttendance = _poapAttendance;
     }
 
-    // Early bird claim
-    function claimEarlyBird(uint256 eventId) external {
+    // Early bird claim - requires event-specific ticket contract address
+    function claimEarlyBird(uint256 eventId, address ticketContract) external whenNotPaused {
         require(!earlyBirdClaimed[eventId][msg.sender], "Already claimed");
-        uint256 ticketCount = IEventTicket(eventTicket).getTicketCount(
-            eventId,
-            msg.sender
-        );
+        require(IEventTicketForIncentives(ticketContract).eventId() == eventId, "Invalid ticket contract");
+        
+        uint256 ticketCount = IEventTicketForIncentives(ticketContract).balanceOf(msg.sender);
         require(ticketCount > 0, "No tickets purchased");
-        uint256 totalTickets = IEventTicket(eventTicket).getTotalTickets(
-            eventId
-        );
+        
+        uint256 totalTickets = IEventTicketForIncentives(ticketContract).totalSold();
         require(totalTickets <= earlyBirdLimit, "Early bird period ended");
 
         earlyBirdClaimed[eventId][msg.sender] = true;
@@ -148,6 +149,15 @@ contract IncentiveManager is ERC721, Ownable {
 
     function setEarlyBirdLimit(uint256 _limit) external onlyOwner {
         earlyBirdLimit = _limit;
+    }
+
+    // Pause / unpause contract (emergency)
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
     }
 
     // View functions

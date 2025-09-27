@@ -181,7 +181,7 @@ describe("EventFactory", function () {
           validStartTime,
           validEndTime
         )
-      ).to.be.revertedWith("Empty event name");
+      ).to.be.revertedWith("Invalid event name length");
 
       // Empty metadata URI
       await expect(
@@ -193,7 +193,7 @@ describe("EventFactory", function () {
           validStartTime,
           validEndTime
         )
-      ).to.be.revertedWith("Empty metadata URI");
+      ).to.be.revertedWith("Invalid metadata URI length");
 
       // Zero max tickets
       await expect(
@@ -205,7 +205,7 @@ describe("EventFactory", function () {
           validStartTime,
           validEndTime
         )
-      ).to.be.revertedWith("Invalid max tickets");
+      ).to.be.revertedWith("Invalid max tickets range");
 
       // Start time in past
       await expect(
@@ -217,7 +217,7 @@ describe("EventFactory", function () {
           Math.floor(Date.now() / 1000) - 86400, // Past time
           validEndTime
         )
-      ).to.be.revertedWith("Start time in past");
+      ).to.be.revertedWith("Start time must be at least 1 hour in future");
 
       // End time before start
       await expect(

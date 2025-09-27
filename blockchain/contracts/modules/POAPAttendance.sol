@@ -27,6 +27,9 @@ contract POAPAttendance is ERC721, Ownable {
 
     // Mapping from tokenId to Attendance data
     mapping(uint256 => Attendance) public attendances;
+    
+    // Nonce mapping to prevent signature replay attacks
+    mapping(address => uint256) public nonces;
 
     address public eventFactory;
 
@@ -58,16 +61,21 @@ contract POAPAttendance is ERC721, Ownable {
     function mintAttendance(
         uint256 eventId,
         address attendee,
+        uint256 nonce,
         bytes memory signature
     ) external {
         if (hasClaimed[eventId][attendee]) revert AlreadyClaimed();
+        require(nonce == nonces[attendee], "Invalid nonce");
 
-        // Verify signature (assuming signed by event organizer or EventFactory)
-        bytes32 messageHash = keccak256(abi.encodePacked(eventId, attendee));
+        // Verify signature with nonce to prevent replay attacks
+        bytes32 messageHash = keccak256(abi.encodePacked(eventId, attendee, nonce));
         bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
         address signer = ethSignedMessageHash.recover(signature);
         if (signer != owner() && signer != eventFactory)
             revert InvalidSignature();
+            
+        // Increment nonce to prevent replay
+        nonces[attendee]++;
 
         // Optionally, query EventFactory for validation (assuming it has a function)
         // if (!IEventFactory(eventFactory).isAttendeeRegistered(eventId, attendee)) revert NotRegistered();

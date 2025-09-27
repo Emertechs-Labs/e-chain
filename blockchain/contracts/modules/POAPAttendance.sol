@@ -3,10 +3,12 @@ pragma solidity ^0.8.24;
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract POAPAttendance is ERC721, Ownable {
     using ECDSA for bytes32;
+    using MessageHashUtils for bytes32;
 
     error SoulboundTransfer();
     error AlreadyClaimed();
@@ -43,21 +45,13 @@ contract POAPAttendance is ERC721, Ownable {
     }
 
     // Soulbound: Disable transfers
-    function transferFrom(address, address, uint256) public pure override {
-        revert SoulboundTransfer();
-    }
-
-    function safeTransferFrom(address, address, uint256) public pure override {
-        revert SoulboundTransfer();
-    }
-
-    function safeTransferFrom(
-        address,
-        address,
-        uint256,
-        bytes memory
-    ) public pure override {
-        revert SoulboundTransfer();
+    function _update(
+        address to,
+        uint256 tokenId,
+        address auth
+    ) internal override returns (address from) {
+        from = super._update(to, tokenId, auth);
+        if (from != address(0) && to != address(0)) revert SoulboundTransfer();
     }
 
     // Mint function with signature verification

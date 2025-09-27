@@ -28,9 +28,23 @@ const mockEvents: Event[] = [
     ticketPrice: BigInt("50000000000000000"), // 0.05 ETH in wei
     saleEndTime: Math.floor(Date.now() / 1000) + 86400 * 60, // 60 days from now
     isActive: true,
-    description: "Three-day music festival with international artists",
-    venue: "Outdoor Amphitheater",
+    description: "Epic music festival with top artists from around the world",
+    venue: "Music Park",
     category: "Music"
+  },
+  {
+    id: 3,
+    name: "Blockchain Summit",
+    symbol: "BLOCK24",
+    organizer: "0x3456789012345678901234567890123456789012",
+    ticketContract: "0x3333333333333333333333333333333333333333",
+    maxTickets: 200,
+    ticketPrice: BigInt("20000000000000000"), // 0.02 ETH in wei
+    saleEndTime: Math.floor(Date.now() / 1000) + 86400 * 45, // 45 days from now
+    isActive: true,
+    description: "Learn about the latest blockchain technologies and trends",
+    venue: "Innovation Hub",
+    category: "Technology"
   }
 ];
 
@@ -38,11 +52,10 @@ export const useEvents = () => {
   return useQuery({
     queryKey: ['events'],
     queryFn: async (): Promise<Event[]> => {
-      // Return mock data for now
-      // Once contracts are deployed, this will fetch from the blockchain
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       return mockEvents;
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
   });
 };
 

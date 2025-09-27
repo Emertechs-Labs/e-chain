@@ -1,13 +1,30 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import "@rainbow-me/rainbowkit/styles.css";
-import { Providers } from "./providers";
-import Header from "./components/layout/Header";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { Providers } from './providers';
+import Header from './components/layout/Header';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Echain - Decentralized Event Ticketing",
-  description: "Create, sell, and manage event tickets on the blockchain with NFT technology and POAP integration.",
-  keywords: ["blockchain", "NFT", "tickets", "events", "POAP", "Web3"],
+  title: 'Echain Events - Blockchain Event Ticketing',
+  description: 'Create and attend blockchain-powered events with NFT tickets and POAP rewards',
+  keywords: ['blockchain', 'events', 'NFT', 'tickets', 'POAP', 'Web3'],
+  authors: [{ name: 'Echain Team' }],
+  creator: 'Echain',
+  publisher: 'Echain',
+  robots: 'index, follow',
+  openGraph: {
+    title: 'Echain Events - Blockchain Event Ticketing',
+    description: 'Create and attend blockchain-powered events with NFT tickets and POAP rewards',
+    type: 'website',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Echain Events',
+    description: 'Blockchain-powered event ticketing platform',
+  },
 };
 
 export default function RootLayout({
@@ -17,18 +34,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased bg-gray-50 min-h-screen">
+      <body className={inter.className}>
         <Providers>
-          <div className="flex flex-col min-h-screen">
+          <div className="min-h-screen flex flex-col">
             <Header />
             <main className="flex-1">
               {children}
             </main>
-            <footer className="bg-white border-t border-gray-200 py-8">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center text-gray-500">
-                  <p>&copy; 2025 Echain. Decentralized Event Ticketing Platform.</p>
-                </div>
+            <footer className="bg-slate-900 border-t border-slate-800 text-gray-400 py-8">
+              <div className="container mx-auto px-4 text-center">
+                <p>&copy; 2025 Echain Events. Powered by blockchain technology.</p>
               </div>
             </footer>
           </div>

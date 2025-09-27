@@ -12,53 +12,69 @@ const Home: React.FC = () => {
   const featuredEvents = events.slice(0, 3); // Show first 3 events as featured
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-900">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-6">Welcome to Echain Events</h1>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Discover, create, and manage blockchain-powered events with NFT tickets and POAP rewards
-          </p>
+      <section className="relative py-20 overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0 bg-slate-900"></div>
+        
+        {/* Content */}
+        <div className="relative mx-auto max-w-7xl px-6">
+          {/* Top label */}
+          <div className="mb-12 text-center">
+            <div className="inline-flex items-center gap-2 text-cyan-400">
+              <span className="text-red-500">🔗</span>
+              <span className="text-sm font-medium">Blockchain-Native Events</span>
+            </div>
+          </div>
+          
+          {/* Large gradient rectangle - exactly matching the image */}
+          <div className="h-48 w-full mb-12 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 shadow-2xl"></div>
+          
+          {/* Description */}
+          <div className="text-center text-gray-300 max-w-4xl mx-auto mb-12">
+            <p className="text-xl leading-relaxed">
+              Join blockchain-verified events with NFT tickets, community rewards, and full transparency. Experience the future of event participation.
+            </p>
+          </div>
+          
+          {/* CTA buttons */}
           <div className="flex gap-4 justify-center">
             <Link
               href="/events"
-              className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              className="bg-cyan-500 text-black px-8 py-3 rounded-lg font-semibold hover:bg-cyan-400 transition-colors flex items-center gap-2"
             >
-              Browse Events
+              ⚡ Explore Events
             </Link>
-            <Link
-              href="/events/create"
-              className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
-            >
-              Create Event
-            </Link>
+            <div className="border border-gray-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2 cursor-pointer">
+              ⭕ Connect Wallet
+            </div>
           </div>
         </div>
       </section>
 
       {/* Featured Events */}
-      <section className="py-16">
+      <section className="py-16 bg-slate-900">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Featured Events</h2>
+          <h2 className="text-3xl font-bold text-center mb-12 text-white">Featured Events</h2>
           {loading ? (
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading events...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto"></div>
+              <p className="mt-4 text-gray-400">Loading events...</p>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredEvents.map((event) => (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {featuredEvents.map((event: Event) => (
                 <EventCard key={event.id} event={event} />
               ))}
             </div>
           )}
           {!loading && featuredEvents.length === 0 && (
             <div className="text-center">
-              <p className="text-gray-600 mb-4">No events available yet.</p>
+              <p className="text-gray-400 mb-4">No events available yet.</p>
               <Link
                 href="/events/create"
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-2 rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200"
               >
                 Create the First Event
               </Link>
@@ -68,35 +84,36 @@ const Home: React.FC = () => {
       </section>
 
       {/* Features Section */}
-      <section className="bg-white py-16">
+      <section className="py-16 bg-slate-900">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Choose Echain Events?</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-blue-600 text-2xl">🎫</span>
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="text-center bg-slate-800/50 backdrop-blur-sm p-8 rounded-2xl border border-slate-700">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center mx-auto mb-6">
+                <span className="text-2xl">🛡️</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">NFT Tickets</h3>
-              <p className="text-gray-600">
-                Every ticket is a unique NFT that proves ownership and can be traded on secondary markets.
+              <h3 className="text-xl font-semibold mb-4 text-white">Blockchain Verified</h3>
+              <p className="text-gray-400 leading-relaxed">
+                All events are verified on-chain with immutable records and transparent operations.
               </p>
             </div>
-            <div className="text-center">
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-purple-600 text-2xl">🏆</span>
+            
+            <div className="text-center bg-slate-800/50 backdrop-blur-sm p-8 rounded-2xl border border-slate-700">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center mx-auto mb-6">
+                <span className="text-2xl">⚡</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">POAP Rewards</h3>
-              <p className="text-gray-600">
-                Collect proof of attendance NFTs for events you've attended to build your event history.
+              <h3 className="text-xl font-semibold mb-4 text-white">Earn Rewards & Rewards</h3>
+              <p className="text-gray-400 leading-relaxed">
+                Get rewarded for participation with tokens, NFTs, and exclusive community benefits.
               </p>
             </div>
-            <div className="text-center">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-green-600 text-2xl">🎁</span>
+            
+            <div className="text-center bg-slate-800/50 backdrop-blur-sm p-8 rounded-2xl border border-slate-700">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-6">
+                <span className="text-2xl">👥</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Incentive System</h3>
-              <p className="text-gray-600">
-                Earn rewards for attending events regularly and being an active community member.
+              <h3 className="text-xl font-semibold mb-4 text-white">Community Driven</h3>
+              <p className="text-gray-400 leading-relaxed">
+                Connect with like-minded individuals in a decentralized event ecosystem.
               </p>
             </div>
           </div>

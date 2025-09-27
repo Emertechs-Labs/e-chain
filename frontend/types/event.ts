@@ -8,7 +8,6 @@ export interface Event {
   ticketPrice: bigint;
   saleEndTime: number;
   isActive: boolean;
-  totalSupply?: number;
   description?: string;
   imageUrl?: string;
   venue?: string;

@@ -1,5 +1,7 @@
 import { ethers } from "hardhat";
-import { EventFactory, EventTicket, IncentiveManager, POAPAttendance } from "../typechain-types";
+import { EventFactory, IncentiveManager, POAPAttendance } from "../typechain-types";
+import * as fs from "fs";
+import * as path from "path";
 
 async function main() {
   console.log("🚀 Starting Echain deployment to Base Testnet...");
@@ -113,8 +115,6 @@ async function main() {
     // 7. Save deployment results
     console.log("\n💾 Saving deployment results...");
     
-    const fs = require('fs');
-    const path = require('path');
     const deploymentsDir = path.join(__dirname, '..', 'deployments');
     
     if (!fs.existsSync(deploymentsDir)) {

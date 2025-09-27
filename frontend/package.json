@@ -1,31 +1,49 @@
 {
-  "name": "frontend",
+  "name": "echain-frontend",
   "version": "0.1.0",
+  "description": "Echain Event Ticketing Platform - Frontend",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@curvegrid/multibaas-sdk": "^1.0.0-beta21",
+    "@headlessui/react": "^1.7.17",
+    "@heroicons/react": "^2.0.18",
     "@rainbow-me/rainbowkit": "^2.2.0",
     "@tanstack/react-query": "^5.59.15",
-    "next": "^14.2.24",
-    "react": "^18",
-    "react-dom": "^18",
-    "viem": "^2.36.0",
-    "wagmi": "^2.16.8"
-  },
-  "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.16",
+    "clsx": "^2.0.0",
+    "ethers": "^6.8.1",
+    "next": "^14.2.24",
+    "postcss": "^8",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-hot-toast": "^2.4.1",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5",
+    "viem": "^2.36.0",
+    "wagmi": "^2.16.8",
+    "zustand": "^4.4.6"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.4",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.5.1",
+    "@types/jest": "^29.5.7",
     "eslint": "^8",
     "eslint-config-next": "14.2.15",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "prettier": "^3.0.3"
   }
 }

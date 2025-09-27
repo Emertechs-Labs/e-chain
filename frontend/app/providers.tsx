@@ -105,9 +105,9 @@ const chainList = [
 const selectedChain = chainList.find(chain => chain.id === Number(process.env.NEXT_PUBLIC_MULTIBAAS_CHAIN_ID)) || curvegridTestnet;
 
 const config = getDefaultConfig({
-  appName: 'Simple Voting DApp',
+  appName: 'Echain',
   projectId,
-  chains: [selectedChain],
+  chains: [baseSepolia], // Focus on Base Sepolia for our event ticketing platform
 });
 const queryClient = new QueryClient();
 

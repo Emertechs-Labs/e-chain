@@ -11,95 +11,97 @@ interface EventCardProps {
 export default function EventCard({ event }: EventCardProps) {
   const isEventEnded = event.saleEndTime * 1000 < Date.now();
   const ticketPriceInEth = formatEther(event.ticketPrice);
+  
+  // Calculate ticket sales progress (mock data for demo)
+  const ticketsSold = Math.floor(Math.random() * event.maxTickets);
+  const soldPercentage = (ticketsSold / event.maxTickets) * 100;
 
   return (
-    <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 hover:border-slate-600 transition-all duration-300 overflow-hidden hover:shadow-xl hover:shadow-cyan-500/10">
-      {/* Event Image Placeholder */}
-      <div className="h-48 bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-500 flex items-center justify-center relative">
-        <div className="text-white/30 text-6xl font-bold">
-          {event.name.charAt(0).toUpperCase()}
+    <div className="bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-700 overflow-hidden hover:border-cyan-500/50 transition-all duration-300 hover:scale-[1.02]">
+      {/* Event Image/Banner */}
+      <div className="h-48 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-blue-500/20 to-purple-500/20"></div>
+        <div className="absolute top-4 left-4 flex gap-2">
+          <span className="bg-green-500/90 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+            ✓ Verified
+          </span>
+          <span className="bg-slate-800/80 text-cyan-400 px-3 py-1 rounded-full text-xs font-medium">
+            {event.category || 'Conference'}
+          </span>
+          <span className="bg-slate-800/80 text-purple-400 px-3 py-1 rounded-full text-xs font-medium">
+            Limited NFT
+          </span>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
+        <div className="absolute top-4 right-4">
+          <span className="bg-cyan-500 text-slate-900 px-3 py-1 rounded-full text-sm font-bold">
+            {ticketPriceInEth} ETH
+          </span>
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-6xl">🎪</div>
+        </div>
       </div>
 
       <div className="p-6">
-        {/* Event Header */}
-        <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xl font-semibold text-white truncate">
-            {event.name}
-          </h3>
-          <span
-            className={`px-3 py-1 text-xs font-medium rounded-full ${
-              event.isActive && !isEventEnded
-                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                : 'bg-red-500/20 text-red-400 border border-red-500/30'
-            }`}
-          >
-            {event.isActive && !isEventEnded ? 'Active' : 'Ended'}
-          </span>
-        </div>
-
+        <h3 className="text-xl font-bold text-white mb-2">{event.name}</h3>
+        <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+          {event.description || 'A premier blockchain development conference featuring the latest in DeFi, NFTs, and decentralized technologies.'}
+        </p>
+        
         {/* Event Details */}
-        <div className="space-y-3 mb-4">
-          <div className="flex items-center text-gray-300">
-            <span className="text-sm mr-2">🎫</span>
-            <span className="text-sm">
-              {ticketPriceInEth} ETH per ticket
-            </span>
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center text-sm text-gray-400">
+            <span className="text-cyan-400 mr-2">📅</span>
+            {new Date(event.saleEndTime * 1000).toLocaleDateString()} at 09:00 AM
           </div>
-
-          <div className="flex items-center text-gray-300">
-            <span className="text-sm mr-2">👥</span>
-            <span className="text-sm">
-              Max {event.maxTickets.toLocaleString()} tickets
-            </span>
+          <div className="flex items-center text-sm text-gray-400">
+            <span className="text-cyan-400 mr-2">�</span>
+            {event.venue || 'San Francisco, CA'}
           </div>
-
-          <div className="flex items-center text-gray-300">
-            <span className="text-sm mr-2">📅</span>
-            <span className="text-sm">
-              Sales end: {new Date(event.saleEndTime * 1000).toLocaleDateString()}
-            </span>
+          <div className="flex items-center text-sm text-gray-400">
+            <span className="text-cyan-400 mr-2">�</span>
+            {event.maxTickets.toLocaleString()} expected attendees
           </div>
-
-          {event.venue && (
-            <div className="flex items-center text-gray-300">
-              <span className="text-sm mr-2">📍</span>
-              <span className="text-sm">{event.venue}</span>
-            </div>
-          )}
-
-          {event.category && (
-            <div className="flex items-center">
-              <span className="text-sm mr-2">🏷️</span>
-              <span className="text-xs px-2 py-1 bg-cyan-500/20 text-cyan-400 rounded-full border border-cyan-500/30">
-                {event.category}
-              </span>
-            </div>
-          )}
         </div>
-
-        {/* Description */}
-        {event.description && (
-          <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-            {event.description}
-          </p>
-        )}
-
-        {/* Organizer */}
+        
+        {/* Ticket Sales Progress */}
         <div className="mb-4">
-          <p className="text-sm text-gray-500">
-            Organizer: {event.organizer.slice(0, 6)}...{event.organizer.slice(-4)}
-          </p>
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm text-gray-400">Tickets sold</span>
+            <span className="text-sm font-bold text-cyan-400">
+              {ticketsSold.toLocaleString()}/{event.maxTickets.toLocaleString()}
+            </span>
+          </div>
+          <div className="w-full bg-slate-700 rounded-full h-2">
+            <div 
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${Math.min(soldPercentage, 100)}%` }}
+            ></div>
+          </div>
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>{Math.round(soldPercentage)}% sold</span>
+            <span>{Math.round(100 - soldPercentage)}% left</span>
+          </div>
         </div>
-
-        {/* Action Button */}
-        <Link
-          href={`/events/${event.id}`}
-          className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 px-4 rounded-lg font-medium text-center block hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 shadow-lg shadow-cyan-500/25"
-        >
-          View Event
-        </Link>
+        
+        {/* Organizer */}
+        <div className="mb-4 pb-4 border-b border-slate-700">
+          <span className="text-xs text-gray-500">Organized by</span>
+          <div className="text-sm text-white font-medium">BlockchainEvents LLC</div>
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <Link
+            href={`/events/${event.id}`}
+            className="flex-1 bg-cyan-500 text-slate-900 text-center py-3 rounded-lg hover:bg-cyan-400 transition-colors font-bold flex items-center justify-center gap-2"
+          >
+            🎫 Get NFT Ticket
+          </Link>
+          <button className="p-3 border border-slate-600 rounded-lg hover:bg-slate-700 transition-colors">
+            <span className="text-gray-400">↗</span>
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -2,9 +2,24 @@
 
 **A Web3-native event management platform built on Base using Curvegrid MultiBaas**
 
-Echain is a blockchain-enabled events platform similar to Luma, but enhanced with **NFTs and incentives** to create a more engaging and rewarding experience for both organizers and attendees. The platform leverages blockchain technology to provide transparency, gamified participation, and on-chain identity building through event attendance.
+Echain is a blockchain-enabled events platform that combines the convenience of traditional event management with the transparency, security, and incentive mechanisms of Web3 technology. Built on Base (Ethereum L2) with Curvegrid MultiBaas for seamless blockchain integration, it features NFT tickets, POAP attendance certificates, and gamified participation to create engaging experiences for organizers and attendees.
 
-![Screenshot](screenshots/homepage.png)
+<!-- Screenshot placeholder - Add actual project screenshot here -->
+<!-- ![Screenshot](screenshots/homepage.png) -->
+
+## 🛠️ Tech Stack & Tools
+
+### Blockchain Layer
+🔷 **Base** (Ethereum L2) • 💎 **Solidity** • 🛡️ **OpenZeppelin** • ⚡ **Hardhat**
+
+### Frontend Layer
+⚛️ **Next.js 14** • ⚛️ **React** • 🎨 **Tailwind CSS** • 🔐 **RainbowKit**
+
+### Infrastructure & APIs
+🌐 **Curvegrid MultiBaas** • 📡 **REST APIs** • 🔗 **Web3.js** • 📦 **IPFS**
+
+### Development & Testing
+📝 **TypeScript** • 🧪 **Hardhat Testing** • 🔍 **Sourcify** • 📊 **BaseScan**
 
 ## 🎟 Core Platform Features
 
@@ -22,12 +37,6 @@ Echain is a blockchain-enabled events platform similar to Luma, but enhanced wit
 - **Early Bird Rewards**: First 10 attendees receive exclusive NFT badges
 - **Loyalty System**: Multiple event attendance earns layered NFT collectibles
 - **Gamified Participation**: Token rewards for referrals, check-ins, and engagement
-- **FOMO-driven Exclusivity**: Limited edition rewards drive early sign-ups
-
-### 4. Community & Identity Building
-- NFT badges become part of attendee's **on-chain identity** (experience resume)
-- Organizers can airdrop perks to verified badge holders
-- Secondary market for rare event NFTs with organizer royalties
 
 ## 💡 Value Beyond Traditional Platforms
 
@@ -37,17 +46,77 @@ Echain is a blockchain-enabled events platform similar to Luma, but enhanced wit
 - **🏆 Gamified Exclusivity**: "First 10" or "Top 1%" status drives participation
 - **📜 Digital Identity**: Permanent on-chain record of event participation
 
-## 🚀 Example User Flow
+---
 
-1. **Event Launch**: New event goes live on the platform
-2. **Early Bird Incentive**: First 10 ticket buyers automatically receive rare "Founding Supporter" NFT badge
-3. **Exclusive Benefits**: Badge holders unlock:
-   - VIP perks (front-row seats, private speaker access)
-   - Higher loyalty points for future events
-   - Collectible value appreciation
-4. **Ongoing Engagement**: Badge holders receive exclusive airdrops and community access
+## 🏗 Current Implementation Status
+
+### ✅ Smart Contracts (Deployed & Verified)
+All core contracts are deployed on **Base Sepolia** and verified on both Sourcify and BaseScan:
+
+- **EventFactory** (`0xbE36039Bfe7f48604F73daD61411459B17fd2e85`): Main event creation and management
+- **EventTicket** (`0x127b53D8f29DcDe4DDfcCb24ad8b88B515D08180`): NFT ticket implementation
+- **POAPAttendance** (`0x405061e2ef1F748fA95A1e7725fc1a008e8c2196`): Proof-of-attendance certificates
+- **IncentiveManager** (`0x8290c12f874DF9D03FDadAbE10C7c6321B69Ded9`): Rewards and gamification system
+
+### ✅ Security & Testing
+- **Comprehensive Security Audit**: Complete with critical vulnerability fixes
+- **Automated Testing**: Full test suite with security validations
+- **OpenZeppelin Standards**: Industry-standard security patterns
 
 ---
+
+## 🚀 Quick Start
+
+### Prerequisites
+1. **MultiBaas Account**: Sign up at [console.curvegrid.com](https://console.curvegrid.com)
+2. **Wallet**: MetaMask or compatible Web3 wallet
+3. **Reown Project**: Create project at [cloud.reown.com](https://cloud.reown.com)
+
+### Installation
+```bash
+git clone https://github.com/polymathuniversata/Echain.git
+cd Echain
+npm install
+```
+
+### Development
+```bash
+# Start blockchain development environment
+cd blockchain
+npm run deploy:dev
+
+# Start frontend development server
+cd frontend
+npm run dev
+```
+
+Visit `http://localhost:3000` to interact with the platform.
+
+---
+
+## 📖 Documentation
+
+- **[📖 Full Documentation](./docs/README.md)**: Complete platform overview and guides
+- **[🚀 Deployment Guide](./docs/deployment/README.md)**: Step-by-step deployment instructions
+- **[🏗️ Smart Contracts](./docs/contracts/README.md)**: Technical contract documentation
+- **[🔒 Security](./docs/security/README.md)**: Security audit reports and implementations
+
+---
+
+## 🔗 Links & Resources
+
+- **📖 Documentation**: [docs/README.md](./docs/README.md)
+- **🔗 BaseScan**: [View Contracts](https://sepolia-explorer.base.org)
+- **🔗 Sourcify**: [Contract Verification](https://sourcify.dev)
+- **🛠️ MultiBaas**: [API Documentation](https://docs.curvegrid.com/multibaas/)
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](./LICENSE) for details.
+
+**Ready to revolutionize event management with blockchain?** Check out our [comprehensive documentation](./docs/README.md) to start building with Echain!
 
 ## 📋 Development Task Breakdown
 

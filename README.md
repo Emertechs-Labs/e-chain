@@ -10,16 +10,25 @@ Echain is a blockchain-enabled events platform that combines the convenience of 
 ## 🛠️ Tech Stack & Tools
 
 ### Blockchain Layer
-🔷 **Base** (Ethereum L2) • 💎 **Solidity** • 🛡️ **OpenZeppelin** • ⚡ **Hardhat**
+[![Base](https://img.shields.io/badge/Base-Ethereum_L2-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)](https://base.org/)
+[![Solidity](https://img.shields.io/badge/Solidity-0.8.19-363636?style=for-the-badge&logo=solidity&logoColor=white)](https://soliditylang.org/)
+[![OpenZeppelin](https://img.shields.io/badge/OpenZeppelin-5.4.0-4E5EE4?style=for-the-badge&logo=ethereum&logoColor=white)](https://openzeppelin.com/)
+[![Hardhat](https://img.shields.io/badge/Hardhat-2.22.18-FFDB1E?style=for-the-badge&logo=ethereum&logoColor=black)](https://hardhat.org/)
 
 ### Frontend Layer
-⚛️ **Next.js 14** • ⚛️ **React** • 🎨 **Tailwind CSS** • 🔐 **RainbowKit**
+[![Next.js](https://img.shields.io/badge/Next.js-14.0.0-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-18.2.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.3.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![RainbowKit](https://img.shields.io/badge/RainbowKit-1.0.0-FF6B6B?style=for-the-badge&logo=rainbow&logoColor=white)](https://www.rainbowkit.com/)
 
 ### Infrastructure & APIs
-🌐 **Curvegrid MultiBaas** • 📡 **REST APIs** • 🔗 **Web3.js** • 📦 **IPFS**
+[![Curvegrid MultiBaas](https://img.shields.io/badge/Curvegrid_MultiBaas-API-00AEEF?style=for-the-badge&logo=api&logoColor=white)](https://docs.curvegrid.com/multibaas/)
+[![IPFS](https://img.shields.io/badge/IPFS-0.18.0-65C2CB?style=for-the-badge&logo=ipfs&logoColor=white)](https://ipfs.io/)
 
 ### Development & Testing
-📝 **TypeScript** • 🧪 **Hardhat Testing** • 🔍 **Sourcify** • 📊 **BaseScan**
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Sourcify](https://img.shields.io/badge/Sourcify-Verified-FF6B35?style=for-the-badge&logo=ethereum&logoColor=white)](https://sourcify.dev/)
+[![BaseScan](https://img.shields.io/badge/BaseScan-Explorer-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)](https://basescan.org/)
 
 ## 🎟 Core Platform Features
 

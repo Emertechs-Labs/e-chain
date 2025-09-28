@@ -22,6 +22,9 @@ Welcome to the comprehensive documentation for Echain - a blockchain-enabled eve
 - **Security**: OpenZeppelin contracts, comprehensive testing
 
 ### 🚀 **Recent Updates**
+- **Lightweight System Optimization**: Removed 35+ unused dependencies, reducing bundle size by ~50MB
+- **Dependency Cleanup**: Eliminated unused Radix UI components, form libraries, and utility packages
+- **Bundle Size Reduction**: Streamlined frontend dependencies for faster load times
 - **Reown API Fix**: Resolved 403 Forbidden errors by updating project configuration
 - **Real Data Integration**: Replaced all mock data with live blockchain queries
 - **TypeScript Fixes**: Resolved contract interface conflicts and build errors

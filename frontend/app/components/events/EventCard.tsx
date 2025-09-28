@@ -74,8 +74,8 @@ export default function EventCard({ event }: EventCardProps) {
           </div>
           <div className="w-full bg-slate-700 rounded-full h-2">
             <div
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${Math.min(soldPercentage, 100)}%` }} // eslint-disable-line no-inline-styles
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all duration-300 progress-bar-fill"
+              style={{ '--progress-width': `${Math.min(soldPercentage, 100)}%` } as React.CSSProperties}
             ></div>
           </div>
           <div className="flex justify-between text-xs text-gray-500 mt-1">

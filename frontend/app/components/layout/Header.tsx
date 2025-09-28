@@ -1,13 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isConnected } = useAccount();
+  const pathname = usePathname();
+  const router = useRouter();
+  const isHomePage = pathname === '/';
+
+  // Redirect to dashboard after wallet connection
+  useEffect(() => {
+    if (isConnected && pathname === '/') {
+      router.push('/my-events');
+    }
+  }, [isConnected, pathname, router]);
 
   const navigation = [
     { name: 'Events', href: '/events' },
@@ -22,7 +33,7 @@ export default function Header() {
   );
 
   return (
-    <header className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -39,16 +50,18 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
-            <Link href="/events" className="text-gray-300 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-800">
+            <Link href={isHomePage ? "#events" : "/events"} className="text-gray-300 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-800">
               Events
             </Link>
-            <Link href="/events/create" className="text-gray-300 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-800">
-              Create Event
-            </Link>
-            <Link href="/marketplace" className="text-gray-300 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-800">
+            {isConnected && (
+              <Link href="/events/create" className="text-gray-300 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-800">
+                Create Event
+              </Link>
+            )}
+            <Link href={isHomePage ? "#features" : "/marketplace"} className="text-gray-300 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-800">
               Marketplace
             </Link>
-            <Link href="/transparency" className="text-gray-300 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-800">
+            <Link href={isHomePage ? "#features" : "/transparency"} className="text-gray-300 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-800">
               Transparency
             </Link>
           </nav>
@@ -66,14 +79,18 @@ export default function Header() {
 
           {/* Right side actions */}
           <div className="flex items-center space-x-4">
-            {/* Profile Icon */}
-            <button className="text-gray-300 hover:text-white p-2 rounded-md transition-colors">
-              <span className="text-lg">👤</span>
-              <span className="ml-2 text-sm hidden lg:inline">Profile</span>
-            </button>
+            {/* Profile Icon - only show when connected */}
+            {isConnected && (
+              <button className="text-gray-300 hover:text-white p-2 rounded-md transition-colors">
+                <span className="text-lg">👤</span>
+                <span className="ml-2 text-sm hidden lg:inline">Profile</span>
+              </button>
+            )}
             
-            {/* Connect Wallet Button */}
-            <ConnectButton />
+            {/* Connect Wallet Button - make it more prominent */}
+            <div className="bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg p-1">
+              <ConnectButton />
+            </div>
             
             {/* Mobile menu button */}
             <button
@@ -100,7 +117,7 @@ export default function Header() {
               {visibleNavigation.map((item) => (
                 <Link
                   key={item.name}
-                  href={item.href}
+                  href={isHomePage && item.name === 'Events' ? '#events' : item.href}
                   className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors hover:bg-slate-800"
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -108,14 +125,14 @@ export default function Header() {
                 </Link>
               ))}
               <Link
-                href="/marketplace"
+                href={isHomePage ? "#features" : "/marketplace"}
                 className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors hover:bg-slate-800"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Marketplace
               </Link>
               <Link
-                href="/transparency"
+                href={isHomePage ? "#features" : "/transparency"}
                 className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors hover:bg-slate-800"
                 onClick={() => setIsMenuOpen(false)}
               >

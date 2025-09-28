@@ -3,8 +3,13 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import Header from './components/layout/Header';
+import ErrorBoundary from './components/ErrorBoundary';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
+});
 
 export const metadata: Metadata = {
   title: 'Echain Events - Blockchain Event Ticketing',
@@ -39,7 +44,9 @@ export default function RootLayout({
           <div className="min-h-screen flex flex-col">
             <Header />
             <main className="flex-1">
-              {children}
+              <ErrorBoundary>
+                {children}
+              </ErrorBoundary>
             </main>
             <footer className="bg-slate-900 border-t border-slate-800 text-gray-400 py-8">
               <div className="container mx-auto px-4 text-center">

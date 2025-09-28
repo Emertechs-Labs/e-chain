@@ -4,6 +4,8 @@
 
 Echain is a comprehensive blockchain events platform that combines the convenience of traditional event management with the transparency, security, and incentive mechanisms of Web3 technology. This document outlines the complete system architecture.
 
+**Current Status**: ✅ Fully implemented and operational on Base Sepolia testnet with real-time blockchain data integration, wallet connectivity, and marketplace functionality.
+
 ## 🎯 System Goals
 
 - **Transparency**: All ticket sales and event data on-chain
@@ -22,45 +24,45 @@ graph TB
         C[Organizer Dashboard]
         D[Admin Panel]
     end
-    
+
     subgraph "API Layer"
         E[MultiBaas REST API]
         F[GraphQL Endpoints]
         G[WebSocket Events]
     end
-    
+
     subgraph "Blockchain Layer"
         H[EventFactory Contract]
         I[EventTicket Contracts]
         J[POAP Contract]
         K[Incentive Manager]
     end
-    
+
     subgraph "Infrastructure"
-        L[Base Network]
+        L[Base Sepolia Testnet]
         M[IPFS Storage]
         N[The Graph Indexer]
         O[Analytics DB]
     end
-    
+
     A --> E
     B --> E
     C --> E
     D --> E
-    
+
     E --> H
     E --> I
     E --> J
     E --> K
-    
+
     F --> N
     G --> E
-    
+
     H --> L
     I --> L
     J --> L
     K --> L
-    
+
     I -.-> M
     J -.-> M
     N --> O
@@ -72,7 +74,7 @@ graph TB
 - **Framework**: Next.js 14 with App Router
 - **Styling**: Tailwind CSS with custom design system
 - **State Management**: Zustand for global state
-- **Wallet Integration**: RainbowKit for multi-wallet support
+- **Wallet Integration**: RainbowKit + Reown (WalletConnect) for multi-wallet support
 - **Real-time Updates**: WebSocket connections for live data
 
 ### Key Components
@@ -97,9 +99,9 @@ graph TB
         CheckInManager.tsx
         Analytics.tsx
     /hooks
-      useEventContract.ts
-      useTicketNFT.ts
-      usePOAP.ts
+      useEvents.ts
+      useTickets.ts
+      usePOAPs.ts
       useIncentives.ts
     /providers
       Web3Provider.tsx
@@ -120,23 +122,23 @@ MultiBaas serves as the primary blockchain abstraction layer:
 ```typescript
 // MultiBaas Configuration
 const multiBaasConfig = {
-  baseURL: process.env.MULTIBAAS_DEPLOYMENT_URL,
-  apiKey: process.env.MULTIBAAS_API_KEY,
+  baseURL: 'https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com',
+  apiKey: process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY,
   contracts: {
     eventFactory: 'event_factory',
-    eventTicket: 'event_ticket_template',
-    poap: 'poap_attendance',
+    eventTicket: 'event_ticket_1',
+    poap: 'poap_1',
     incentives: 'incentive_manager'
   }
 };
 ```
 
 ### API Endpoints
-- **Events API**: CRUD operations for events
-- **Tickets API**: Purchase, transfer, verify tickets
+- **Events API**: CRUD operations for events with real blockchain data
+- **Tickets API**: Purchase, transfer, verify NFT tickets
 - **POAP API**: Check-in and attendance verification
 - **Incentives API**: Rewards and achievement tracking
-- **Analytics API**: Event metrics and insights
+- **Marketplace API**: Secondary ticket trading
 
 ### Real-time Features
 - **WebSocket Events**: Live ticket sales, check-ins
@@ -145,10 +147,11 @@ const multiBaasConfig = {
 
 ## ⛓️ Blockchain Architecture
 
-### Network: Base
-- **Why Base**: Low fees, Ethereum compatibility, growing ecosystem
+### Network: Base Sepolia
+- **Why Base Sepolia**: Low fees, Ethereum compatibility, testnet for development
 - **Block Time**: ~2 seconds for fast confirmations
 - **Gas Costs**: Optimized for high-frequency transactions
+- **Explorer**: https://sepolia.basescan.org/
 
 ### Smart Contract Deployment Strategy
 
@@ -174,7 +177,7 @@ graph TD
 ## 💾 Data Architecture
 
 ### On-Chain Data
-- **Event Metadata**: Name, date, venue, organizer
+- **Event Metadata**: Name, date, venue, organizer (Base Sepolia)
 - **Ticket Ownership**: NFT ownership records
 - **Attendance Records**: POAP ownership
 - **Incentive Data**: Rewards, achievements, loyalty points
@@ -205,7 +208,7 @@ graph TD
 - **Input Validation**: Sanitize all user inputs
 
 ### Frontend Security
-- **Wallet Security**: Secure connection handling
+- **Wallet Security**: Secure connection handling with fallback project IDs
 - **XSS Protection**: Content sanitization
 - **HTTPS Enforcement**: Encrypted communications
 - **CSP Headers**: Content Security Policy implementation
@@ -222,13 +225,13 @@ services:
     ports: ["3000:3000"]
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_MULTIBAAS_URL=${MULTIBAAS_DEV_URL}
-  
+      - NEXT_PUBLIC_MULTIBAAS_URL=https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com
+
   hardhat:
     build: ./blockchain
     ports: ["8545:8545"]
     command: npx hardhat node
-  
+
   ipfs:
     image: ipfs/go-ipfs
     ports: ["5001:5001", "8080:8080"]
@@ -236,7 +239,7 @@ services:
 
 ### Production Deployment
 - **Frontend**: Vercel deployment with CDN
-- **Contracts**: Base mainnet via MultiBaas
+- **Contracts**: Base Sepolia via MultiBaas
 - **IPFS**: Pinata or Infura for reliable storage
 - **Analytics**: PostHog for user behavior tracking
 
@@ -269,10 +272,10 @@ sequenceDiagram
     participant M as MultiBaas
     participant E as EventTicket
     participant I as Incentives
-    
+
     U->>F: Select tickets
     F->>M: Create purchase transaction
-    M->>E: mintTicket()
+    M->>E: mintTickets()
     E->>U: Transfer NFT ticket
     E->>I: Notify purchase
     I->>I: Check early bird status
@@ -289,7 +292,7 @@ sequenceDiagram
     participant F as Frontend
     participant M as MultiBaas
     participant P as POAP Contract
-    
+
     A->>O: Show QR code
     O->>F: Scan QR code
     F->>M: Verify ticket ownership
@@ -318,5 +321,20 @@ sequenceDiagram
 - **CDN Integration**: Global content delivery
 - **Database Optimization**: Efficient query patterns
 - **Microservices**: Service decomposition for scalability
+
+## ⚠️ Implementation Notes
+
+### Wallet Connection Setup
+For proper wallet connectivity without 403 errors:
+- Use `NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=demo-project-id-for-development` for development
+- Get a valid Reown project ID from https://cloud.reown.com/ for production
+- The app automatically falls back to safe defaults if the project ID is invalid
+
+### Base Sepolia Configuration
+- **Network Name**: Base Sepolia
+- **RPC URL**: https://sepolia.base.org
+- **Chain ID**: 84532
+- **Block Explorer**: https://sepolia.basescan.org/
+- **Faucet**: https://sepoliafaucet.com/ or https://faucet.quicknode.com/base/sepolia
 
 This architecture provides a solid foundation for building a scalable, secure, and user-friendly blockchain events platform while maintaining the flexibility to evolve with changing requirements and technologies.

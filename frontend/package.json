@@ -11,8 +11,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@rainbow-me/rainbowkit": "^2.1.0",
-    "@tanstack/react-query": "^5.83.0",
+    "@curvegrid/multibaas-sdk": "^1.0.12",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
@@ -40,6 +39,8 @@
     "@radix-ui/react-toggle": "^1.1.9",
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
+    "@rainbow-me/rainbowkit": "^2.1.0",
+    "@tanstack/react-query": "^5.83.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -64,6 +65,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/minimatch": "^6.0.0",
     "@types/node": "^20.8.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",

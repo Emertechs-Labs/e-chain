@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
+import '@typechain/hardhat';
 import 'hardhat-multibaas-plugin';
 import path from 'path';
 
@@ -42,6 +43,10 @@ const config: HardhatUserConfig = {
     host: deploymentEndpoint,
     allowUpdateAddress: ['development', 'testing', 'base-testnet'],
     allowUpdateContract: ['development', 'base-testnet'],
+  },
+  typechain: {
+    outDir: '../frontend/lib/typechain-types',
+    target: 'ethers-v6',
   },
   solidity: {
     compilers: [

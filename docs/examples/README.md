@@ -4,6 +4,8 @@
 
 This directory contains practical examples, code snippets, and real-world use cases for implementing the Echain blockchain events platform. These examples demonstrate how to integrate with the platform and implement common features.
 
+**Current Status**: ✅ All examples are based on the fully implemented Echain platform running on Base Sepolia testnet with real blockchain data integration.
+
 ## 🎯 Use Case Examples
 
 ### 1. Tech Meetup (50 attendees)
@@ -128,6 +130,24 @@ const festival = await echain.events.create({
 
 ## 💻 Code Examples
 
+### Wallet Connection Setup
+Before implementing any blockchain interactions, ensure proper wallet setup:
+
+```typescript
+// frontend/lib/wagmi.ts
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { baseSepolia } from 'wagmi/chains';
+
+const projectId = process.env.NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID || 'demo-project-id-for-development';
+
+export const config = getDefaultConfig({
+  appName: 'Echain',
+  projectId, // Use fallback if env var is missing
+  chains: [baseSepolia],
+  ssr: true,
+});
+```
+
 ### Smart Contract Integration
 
 #### Creating a Custom Event Contract
@@ -146,16 +166,16 @@ contract CustomEventTicket is ERC721, Ownable, IEventTicket {
         uint256 tier; // 0=General, 1=VIP, 2=Speaker
         bool isUsed;
     }
-    
+
     mapping(uint256 => TicketInfo) public tickets;
     uint256 private _nextTokenId = 1;
-    
+
     constructor(
         string memory name,
         string memory symbol,
         address organizer
     ) ERC721(name, symbol) Ownable(organizer) {}
-    
+
     function mintTicket(
         address to,
         uint256 eventId,
@@ -164,22 +184,22 @@ contract CustomEventTicket is ERC721, Ownable, IEventTicket {
     ) external onlyOwner returns (uint256) {
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
-        
+
         tickets[tokenId] = TicketInfo({
             eventId: eventId,
             seatNumber: seatNumber,
             tier: tier,
             isUsed: false
         });
-        
+
         emit TicketMinted(tokenId, to, eventId, seatNumber);
         return tokenId;
     }
-    
+
     function useTicket(uint256 tokenId) external onlyOwner {
         require(_exists(tokenId), "Ticket does not exist");
         require(!tickets[tokenId].isUsed, "Ticket already used");
-        
+
         tickets[tokenId].isUsed = true;
         emit TicketUsed(tokenId, ownerOf(tokenId));
     }
@@ -201,30 +221,30 @@ contract CustomIncentives is IIncentiveManager {
         uint256 pointsReward;
         bytes32 badgeId;
     }
-    
+
     mapping(address => uint256) public loyaltyPoints;
     mapping(address => mapping(bytes32 => bool)) public hasAchievement;
     mapping(bytes32 => Achievement) public achievements;
-    
+
     event AchievementUnlocked(
         address indexed user,
         bytes32 indexed achievementId,
         uint256 pointsAwarded
     );
-    
+
     function unlockAchievement(
         address user,
         bytes32 achievementId
     ) external override {
         require(!hasAchievement[user][achievementId], "Already unlocked");
-        
+
         Achievement memory achievement = achievements[achievementId];
         hasAchievement[user][achievementId] = true;
         loyaltyPoints[user] += achievement.pointsReward;
-        
+
         emit AchievementUnlocked(user, achievementId, achievement.pointsReward);
     }
-    
+
     function calculateEarlyBirdReward(
         uint256 position,
         uint256 totalTickets
@@ -254,7 +274,7 @@ export function useEventManagement() {
   const { address } = useAccount();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
-  
+
   const createEvent = async (eventData: EventCreateData) => {
     setLoading(true);
     try {
@@ -262,7 +282,7 @@ export function useEventManagement() {
         ...eventData,
         organizer: address
       });
-      
+
       setEvents(prev => [...prev, event]);
       return event;
     } catch (error) {
@@ -272,7 +292,7 @@ export function useEventManagement() {
       setLoading(false);
     }
   };
-  
+
   const purchaseTickets = async (eventId: string, quantity: number) => {
     setLoading(true);
     try {
@@ -280,13 +300,13 @@ export function useEventManagement() {
         quantity,
         buyer: address
       });
-      
+
       // Check for early bird rewards
       const rewards = await EchainSDK.incentives.checkEarlyBirdStatus(
         address,
         eventId
       );
-      
+
       return { tickets, rewards };
     } catch (error) {
       console.error('Ticket purchase failed:', error);
@@ -295,7 +315,7 @@ export function useEventManagement() {
       setLoading(false);
     }
   };
-  
+
   return {
     events,
     loading,
@@ -319,22 +339,22 @@ interface EventCardProps {
 
 export function EventCard({ event, onPurchase }: EventCardProps) {
   const { purchaseTickets, loading } = useEventManagement();
-  
+
   const handlePurchase = async () => {
     try {
       const result = await purchaseTickets(event.id, 1);
-      
+
       if (result.rewards.length > 0) {
         // Show reward notification
         toast.success(`🎉 Early bird reward earned: ${result.rewards[0].name}`);
       }
-      
+
       onPurchase?.(event.id);
     } catch (error) {
       toast.error('Purchase failed. Please try again.');
     }
   };
-  
+
   return (
     <div className="event-card">
       <div className="event-image">
@@ -345,20 +365,20 @@ export function EventCard({ event, onPurchase }: EventCardProps) {
           </div>
         )}
       </div>
-      
+
       <div className="event-details">
         <h3>{event.name}</h3>
         <p className="event-date">{formatDate(event.date)}</p>
         <p className="event-venue">{event.venue}</p>
-        
+
         <div className="ticket-info">
           <span className="price">{event.ticketPrice} ETH</span>
           <span className="availability">
             {event.ticketsRemaining} / {event.maxTickets} available
           </span>
         </div>
-        
-        <button 
+
+        <button
           onClick={handlePurchase}
           disabled={loading || event.ticketsRemaining === 0}
           className="purchase-button"
@@ -382,12 +402,12 @@ class EventService {
   constructor(apiKey) {
     this.api = new EchainAPI(apiKey);
   }
-  
+
   async createEvent(organizerId, eventData) {
     try {
       // Validate organizer permissions
       const organizer = await this.validateOrganizer(organizerId);
-      
+
       // Create event with incentive structure
       const event = await this.api.events.create({
         ...eventData,
@@ -405,17 +425,17 @@ class EventService {
           }
         }
       });
-      
+
       // Set up analytics tracking
       await this.setupEventAnalytics(event.id);
-      
+
       return event;
     } catch (error) {
       console.error('Event creation error:', error);
       throw new Error('Failed to create event');
     }
   }
-  
+
   async processCheckIn(eventId, attendeeAddress, signature) {
     try {
       // Verify attendee has valid ticket
@@ -423,23 +443,23 @@ class EventService {
         eventId,
         attendeeAddress
       );
-      
+
       if (!hasTicket) {
         throw new Error('No valid ticket found');
       }
-      
+
       // Process check-in and mint POAP
       const checkIn = await this.api.poap.checkIn(eventId, attendeeAddress, {
         signature,
         timestamp: Date.now()
       });
-      
+
       // Check for additional rewards
       const rewards = await this.api.incentives.processAttendance(
         attendeeAddress,
         eventId
       );
-      
+
       return { checkIn, rewards };
     } catch (error) {
       console.error('Check-in error:', error);
@@ -466,16 +486,16 @@ class EchainAnalytics:
             'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json'
         }
-    
+
     def get_event_metrics(self, event_id: str) -> Dict:
         """Get comprehensive event analytics"""
         response = requests.get(
             f'{self.base_url}/analytics/events/{event_id}',
             headers=self.headers
         )
-        
+
         data = response.json()
-        
+
         # Calculate additional metrics
         metrics = {
             'basic_stats': data,
@@ -483,19 +503,19 @@ class EchainAnalytics:
             'engagement_score': self._calculate_engagement_score(data),
             'reward_effectiveness': self._analyze_reward_impact(data)
         }
-        
+
         return metrics
-    
+
     def _calculate_conversion_rate(self, data: Dict) -> float:
         """Calculate view-to-purchase conversion rate"""
         views = data.get('page_views', 0)
         purchases = data.get('tickets_sold', 0)
-        
+
         if views == 0:
             return 0.0
-        
+
         return (purchases / views) * 100
-    
+
     def _calculate_engagement_score(self, data: Dict) -> float:
         """Calculate overall engagement score"""
         factors = {
@@ -504,11 +524,11 @@ class EchainAnalytics:
             'poap_claim_rate': data.get('poap_claims', 0) / data.get('attendees', 1),
             'return_attendee_rate': data.get('return_attendees', 0) / data.get('total_attendees', 1)
         }
-        
+
         # Weighted average
-        weights = {'early_bird_participation': 0.3, 'social_shares': 0.2, 
+        weights = {'early_bird_participation': 0.3, 'social_shares': 0.2,
                   'poap_claim_rate': 0.3, 'return_attendee_rate': 0.2}
-        
+
         score = sum(factors[key] * weights[key] for key in factors)
         return min(score * 100, 100)  # Cap at 100
 ```
@@ -579,5 +599,20 @@ class EchainAnalytics:
   "soulbound": true
 }
 ```
+
+## ⚠️ Implementation Notes
+
+### Wallet Connection Issues
+If you encounter "403 Forbidden" errors when connecting wallets:
+- Use `NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=demo-project-id-for-development` for development
+- Get a valid Reown project ID from https://cloud.reown.com/ for production
+- The app automatically falls back to safe defaults if the project ID is invalid
+
+### Base Sepolia Testnet
+All examples are configured for Base Sepolia testnet:
+- **Chain ID**: 84532
+- **RPC URL**: https://sepolia.base.org
+- **Block Explorer**: https://sepolia.basescan.org/
+- **Faucet**: https://sepoliafaucet.com/ or https://faucet.quicknode.com/base/sepolia
 
 These examples provide practical, implementable code that demonstrates the full capabilities of the Echain platform across different scales and use cases.

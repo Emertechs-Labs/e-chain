@@ -249,7 +249,7 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
      * @param eventId Event ID
      * @return Event struct
      */
-    function getEvent(
+    function getEventDetails(
         uint256 eventId
     ) external view validEventId(eventId) returns (Event memory) {
         return events[eventId];

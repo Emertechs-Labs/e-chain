@@ -4,6 +4,8 @@
 
 This directory contains comprehensive guides for different types of users interacting with the Echain blockchain events platform. Whether you're an event organizer, attendee, or developer, you'll find detailed instructions and best practices here.
 
+**Current Status**: ✅ All major features are fully implemented and operational on Base Sepolia testnet, including real-time blockchain data integration, wallet connectivity, and marketplace functionality.
+
 ## 👥 Guide Categories
 
 ### For Event Organizers
@@ -36,54 +38,54 @@ This directory contains comprehensive guides for different types of users intera
 ## 🚀 Quick Start Guides
 
 ### For New Users (5 minutes)
-1. **Connect Wallet**: Install MetaMask and connect to Base network
-2. **Browse Events**: Explore upcoming events on the platform
-3. **Buy First Ticket**: Purchase an NFT ticket with crypto
+1. **Connect Wallet**: Install MetaMask and connect to Base Sepolia testnet
+2. **Browse Events**: Explore upcoming events with real blockchain data
+3. **Buy First Ticket**: Purchase an NFT ticket with testnet ETH
 4. **Set Up Profile**: Complete your attendee profile
 
 ### For Event Organizers (15 minutes)
 1. **Create Account**: Sign up and verify organizer status
-2. **Create First Event**: Set up event details and ticketing
+2. **Create First Event**: Set up event details and ticketing (contracts auto-deploy)
 3. **Configure Incentives**: Set up early bird rewards and loyalty programs
 4. **Launch Event**: Go live and start selling tickets
 
 ### For Developers (30 minutes)
 1. **Environment Setup**: Install tools and configure development environment
-2. **Deploy Contracts**: Deploy smart contracts to testnet
-3. **Frontend Integration**: Connect your app to the blockchain
-4. **Test Integration**: Verify all functionality works correctly
+2. **Deploy Contracts**: Deploy smart contracts to Base Sepolia via Hardhat
+3. **Frontend Integration**: Connect your app to MultiBaas blockchain API
+4. **Test Integration**: Verify all functionality works with real blockchain data
 
 ## 🎯 Use Case Examples
 
 ### Small Meetup (10-50 people)
-- **Free Event with POAPs**: Issue attendance certificates
-- **Simple Check-in**: QR code scanning at the door
+- **Free Event with POAPs**: Issue attendance certificates via blockchain
+- **Simple Check-in**: QR code scanning at the door with NFT verification
 - **Basic Rewards**: First 10 attendees get special badges
 
 ### Conference (100-1000 people)
-- **Tiered Ticketing**: Different price levels and perks
-- **Early Bird Incentives**: Discounts for early purchasers
+- **Tiered Ticketing**: Different price levels and perks with NFT tiers
+- **Early Bird Incentives**: Smart contract-based discounts for early purchasers
 - **Networking Features**: Connect attendees with similar interests
 - **Sponsor Integration**: Branded NFTs and exclusive content
 
 ### Large Festival (1000+ people)
-- **Dynamic Pricing**: Prices adjust based on demand
+- **Dynamic Pricing**: Prices adjust based on demand via smart contracts
 - **VIP Experiences**: Exclusive areas and perks for special ticket holders
 - **Multi-day Events**: Different tickets for different days
-- **Secondary Market**: Secure ticket resale marketplace
+- **Secondary Market**: Secure ticket resale marketplace with royalties
 
 ## 🛠️ Tools and Resources
 
 ### Wallets
-- **MetaMask**: Most popular browser wallet
+- **MetaMask**: Most popular browser wallet (recommended)
 - **Coinbase Wallet**: User-friendly mobile wallet
-- **WalletConnect**: Connect mobile wallets to web apps
+- **WalletConnect/Reown**: Connect mobile wallets to web apps
 - **Hardware Wallets**: Ledger, Trezor for enhanced security
 
 ### Development Tools
 - **Hardhat**: Smart contract development framework
 - **OpenZeppelin**: Security-focused contract libraries
-- **MultiBaas**: Blockchain API and infrastructure
+- **MultiBaas**: Blockchain API and infrastructure (primary integration)
 - **The Graph**: Decentralized data indexing
 
 ### Design Resources
@@ -135,7 +137,7 @@ This directory contains comprehensive guides for different types of users intera
 - **Native Feel**: App-like experience in the browser
 
 ### Mobile Wallet Integration
-- **WalletConnect**: Connect mobile wallets seamlessly
+- **WalletConnect/Reown**: Connect mobile wallets seamlessly (use fallback project ID for development)
 - **Deep Links**: Direct links to wallet apps
 - **QR Code Support**: Easy wallet connection via QR codes
 - **Touch ID/Face ID**: Biometric authentication support
@@ -167,5 +169,20 @@ This directory contains comprehensive guides for different types of users intera
 - **Reward Progress**: Monitor badges and achievements
 - **Social Stats**: See your community involvement
 - **Portfolio Value**: Track NFT collection value
+
+## ⚠️ Known Issues & Solutions
+
+### Reown API 403 Errors
+If you encounter "403 Forbidden" errors when connecting wallets:
+- **Development**: Use `NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=demo-project-id-for-development`
+- **Production**: Obtain a valid Reown project ID from https://cloud.reown.com/
+- **Fallback**: The app automatically falls back to safe defaults if project ID is invalid
+
+### Base Sepolia Testnet Setup
+- **Network Name**: Base Sepolia
+- **RPC URL**: https://sepolia.base.org
+- **Chain ID**: 84532
+- **Block Explorer**: https://sepolia.basescan.org/
+- **Faucet**: https://sepoliafaucet.com/ or https://faucet.quicknode.com/base/sepolia
 
 This guide structure provides comprehensive coverage for all user types while maintaining clear navigation and practical, actionable information.

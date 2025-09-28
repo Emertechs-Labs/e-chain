@@ -46,9 +46,7 @@ const Home: React.FC = () => {
             >
               ⚡ Explore Events
             </Link>
-            <div className="border border-gray-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2 cursor-pointer">
-              ⭕ Connect Wallet
-            </div>
+            <ConnectButton />
           </div>
         </div>
       </section>

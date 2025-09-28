@@ -51,9 +51,6 @@ export default function Header() {
             <Link href="/transparency" className="text-gray-300 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-800">
               Transparency
             </Link>
-            <Link href="/transparency" className="text-gray-300 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-800">
-              Transparency
-            </Link>
           </nav>
           
           {/* Search Bar */}

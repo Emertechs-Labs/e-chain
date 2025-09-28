@@ -145,6 +145,7 @@ const TransparencyPage: React.FC = () => {
                   value={filterType}
                   onChange={(e) => setFilterType(e.target.value)}
                   className="bg-slate-800 text-white px-4 py-3 rounded-lg border border-slate-700 focus:border-cyan-500 focus:outline-none"
+                  aria-label="Filter transactions by type"
                 >
                   <option>All Transactions</option>
                   <option>Ticket Minted</option>

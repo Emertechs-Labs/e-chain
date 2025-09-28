@@ -2,6 +2,9 @@
 
 import React, { useState } from "react";
 import { useAccount } from "wagmi";
+import { useCreateEvent } from "../../hooks/useTransactions";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface EventForm {
   name: string;
@@ -18,6 +21,8 @@ interface EventForm {
 
 const CreateEventPage: React.FC = () => {
   const { isConnected } = useAccount();
+  const router = useRouter();
+  const createEventMutation = useCreateEvent();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<EventForm>({
     name: "",
@@ -43,20 +48,36 @@ const CreateEventPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isConnected) {
-      alert("Please connect your wallet first");
+      toast.error("Please connect your wallet first");
       return;
     }
 
-    setIsLoading(true);
-    
-    // Simulate contract interaction
-    setTimeout(() => {
-      alert("Event creation feature coming soon! This will integrate with smart contracts once deployed.");
-      setIsLoading(false);
-    }, 2000);
-  };
+    try {
+      // Convert form data to contract parameters
+      const eventData = {
+        name: formData.name,
+        metadataURI: formData.imageUrl || "ipfs://placeholder", // TODO: Upload to IPFS
+        ticketPrice: (parseFloat(formData.ticketPrice) * 1e18).toString(), // Convert ETH to wei
+        maxTickets: parseInt(formData.maxTickets),
+        startTime: Math.floor(new Date(formData.startDate).getTime() / 1000),
+        endTime: Math.floor(new Date(formData.endDate).getTime() / 1000)
+      };
 
-  if (!isConnected) {
+      toast.loading("Creating event on blockchain...");
+
+      // Create event via blockchain
+      await createEventMutation.mutateAsync(eventData);
+
+      toast.dismiss();
+      toast.success("Event created successfully!");
+
+      // Redirect to events page on success
+      router.push('/events');
+    } catch (error: any) {
+      toast.dismiss();
+      toast.error(error.message || "Failed to create event. Please try again.");
+    }
+  };  if (!isConnected) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center">
@@ -121,6 +142,7 @@ const CreateEventPage: React.FC = () => {
                       value={formData.category}
                       onChange={handleInputChange}
                       required
+                      aria-label="Event Category"
                       className="w-full bg-slate-700 text-white px-4 py-3 rounded-lg border border-slate-600 focus:border-cyan-500 focus:outline-none"
                     >
                       <option value="">Select Category</option>
@@ -181,6 +203,7 @@ const CreateEventPage: React.FC = () => {
                       value={formData.startDate}
                       onChange={handleInputChange}
                       required
+                      placeholder="Select event start date and time"
                       className="w-full bg-slate-700 text-white px-4 py-3 rounded-lg border border-slate-600 focus:border-cyan-500 focus:outline-none"
                     />
                   </div>
@@ -195,6 +218,7 @@ const CreateEventPage: React.FC = () => {
                       value={formData.endDate}
                       onChange={handleInputChange}
                       required
+                      placeholder="Select event end date and time"
                       className="w-full bg-slate-700 text-white px-4 py-3 rounded-lg border border-slate-600 focus:border-cyan-500 focus:outline-none"
                     />
                   </div>
@@ -209,6 +233,7 @@ const CreateEventPage: React.FC = () => {
                       value={formData.saleEndDate}
                       onChange={handleInputChange}
                       required
+                      placeholder="Select ticket sales end date and time"
                       className="w-full bg-slate-700 text-white px-4 py-3 rounded-lg border border-slate-600 focus:border-cyan-500 focus:outline-none"
                     />
                   </div>

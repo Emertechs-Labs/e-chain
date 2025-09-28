@@ -1,7 +1,8 @@
 const deploymentConfig = {
   // Private key of the deployer account, beginning with 0x
   // Set via environment variable: DEPLOYER_PRIVATE_KEY
-  deployerPrivateKey: process.env.DEPLOYER_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000',
+  deployerPrivateKey:
+    process.env.DEPLOYER_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000',
 
   // Full URL such as https://abc123.multibaas.com
   // Set via environment variable: MULTIBAAS_ENDPOINT
@@ -27,7 +28,7 @@ const deploymentConfig = {
   chainId: 84532, // Base Sepolia testnet chain ID
   networkName: 'base-sepolia',
   blockExplorer: 'https://sepolia-explorer.base.org',
-  
+
   // Gas configuration for Base
   gasPrice: 'auto',
   gasLimit: 'auto',

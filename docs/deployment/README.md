@@ -60,6 +60,8 @@ Add your frontend URLs to allowed origins:
 3. Copy the **Project ID**
 4. Configure allowed domains in project settings
 
+**Note**: For development/demo purposes, you can use `'demo-project-id-for-development'` as a fallback that won't cause API errors. The app will work with local wallet configurations.
+
 ## 📦 Local Development Setup
 
 ### 1. Clone and Install
@@ -109,16 +111,18 @@ cp .env.template .env.development
 
 Edit `.env.development`:
 ```bash
-# WalletConnect
-NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=your_reown_project_id
+# Reown (WalletConnect) - Use a valid project ID or fallback for development
+NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=demo-project-id-for-development
 
 # MultiBaas Configuration
-NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL=https://your-deployment-id.multibaas.com
-NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY=your_dapp_user_api_key
-NEXT_PUBLIC_MULTIBAAS_WEB3_API_KEY=your_web3_proxy_api_key
+NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL=https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com
+NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzU5MDUzNzQxLCJqdGkiOiI3ZmJhM2ZmZS03Y2NhLTRlM2ItODY2Ni00MTJmMDIwMmM0NjkifQ.5xoeq2EUzDE-NNC0R_mrMtQVAG2xWfDRoRz3RNkf_OY
+NEXT_PUBLIC_MULTIBAAS_WEB3_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzU5MDUzNDYxLCJqdGkiOiJkMDdhZTRjNC00OGQ0LTQ2NDItOTFmOC1iYmRjYjZhMWNkZDQifQ.FBsSW78nyYR_kWSmWYYW3iMqpCozu4L2SFl36Al_gr0
 
-# Contract Configuration
-NEXT_PUBLIC_MULTIBAAS_CHAIN_ID=2017072401
+# Network Configuration
+NEXT_PUBLIC_MULTIBAAS_CHAIN_ID=84532
+
+# Contract Labels (for MultiBaas)
 NEXT_PUBLIC_MULTIBAAS_EVENT_FACTORY_LABEL=event_factory
 NEXT_PUBLIC_MULTIBAAS_EVENT_FACTORY_ADDRESS=event_factory
 

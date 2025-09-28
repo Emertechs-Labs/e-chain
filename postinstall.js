@@ -148,7 +148,7 @@ const configFiles = [
     destination: 'blockchain/deployment-config.development.js',
   },
   {
-    source: 'frontend/.env.template',
+    source: 'frontend/.env.example',
     destination: 'frontend/.env.development',
   },
 ];

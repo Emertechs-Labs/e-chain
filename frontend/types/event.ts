@@ -1,19 +1,23 @@
 export interface Event {
   id: number;
   name: string;
-  symbol: string;
   organizer: string;
   ticketContract: string;
-  maxTickets: number;
+  poapContract?: string;
+  incentiveContract?: string;
+  metadataURI: string;
   ticketPrice: bigint;
-  saleEndTime: number;
+  maxTickets: number;
+  startTime: number;
+  endTime: number;
   isActive: boolean;
+  createdAt: number;
+  // Additional frontend fields
   description?: string;
   imageUrl?: string;
   venue?: string;
-  startTime?: number;
-  endTime?: number;
   category?: string;
+  symbol?: string; // For backward compatibility
 }
 
 export interface Ticket {

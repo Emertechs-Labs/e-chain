@@ -9,7 +9,7 @@ interface EventCardProps {
 }
 
 export default function EventCard({ event }: EventCardProps) {
-  const isEventEnded = event.saleEndTime * 1000 < Date.now();
+  const isEventEnded = event.endTime * 1000 < Date.now();
   const ticketPriceInEth = formatEther(event.ticketPrice);
   
   // Calculate ticket sales progress (mock data for demo)
@@ -52,7 +52,7 @@ export default function EventCard({ event }: EventCardProps) {
         <div className="space-y-2 mb-4">
           <div className="flex items-center text-sm text-gray-400">
             <span className="text-cyan-400 mr-2">📅</span>
-            {new Date(event.saleEndTime * 1000).toLocaleDateString()} at 09:00 AM
+            {new Date(event.endTime * 1000).toLocaleDateString()} at 09:00 AM
           </div>
           <div className="flex items-center text-sm text-gray-400">
             <span className="text-cyan-400 mr-2">�</span>
@@ -73,9 +73,9 @@ export default function EventCard({ event }: EventCardProps) {
             </span>
           </div>
           <div className="w-full bg-slate-700 rounded-full h-2">
-            <div 
+            <div
               className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${Math.min(soldPercentage, 100)}%` }}
+              style={{ width: `${Math.min(soldPercentage, 100)}%` }} // eslint-disable-line no-inline-styles
             ></div>
           </div>
           <div className="flex justify-between text-xs text-gray-500 mt-1">

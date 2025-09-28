@@ -2,58 +2,12 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-
-interface MarketplaceItem {
-  id: string;
-  eventName: string;
-  ticketType: string;
-  price: string;
-  originalPrice: string;
-  seller: string;
-  eventDate: string;
-  location: string;
-  verified: boolean;
-}
-
-const mockMarketplaceItems: MarketplaceItem[] = [
-  {
-    id: "1",
-    eventName: "Web3 Developer Conference 2024",
-    ticketType: "VIP Access",
-    price: "0.15 ETH",
-    originalPrice: "0.1 ETH",
-    seller: "0x1234...5678",
-    eventDate: "March 15, 2024",
-    location: "San Francisco, CA",
-    verified: true
-  },
-  {
-    id: "2",
-    eventName: "DeFi Summit: Future of Finance",
-    ticketType: "General Admission",
-    price: "0.12 ETH",
-    originalPrice: "0.08 ETH",
-    seller: "0xabcd...efgh",
-    eventDate: "March 22, 2024",
-    location: "New York, NY",
-    verified: true
-  },
-  {
-    id: "3",
-    eventName: "NFT Art & Culture Festival",
-    ticketType: "Artist Pass",
-    price: "0.08 ETH",
-    originalPrice: "0.05 ETH",
-    seller: "0x9876...4321",
-    eventDate: "April 5, 2024",
-    location: "Los Angeles, CA",
-    verified: false
-  }
-];
+import { useMarketplaceListings } from "../hooks/useMarketplace";
 
 const MarketplacePage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("price-low");
+  const { data: marketplaceItems, isLoading, error } = useMarketplaceListings();
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -90,6 +44,7 @@ const MarketplacePage: React.FC = () => {
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                   className="bg-slate-800 text-white px-4 py-3 rounded-lg border border-slate-700 focus:border-cyan-500 focus:outline-none"
+                  aria-label="Sort marketplace items"
                 >
                   <option value="price-low">Price: Low to High</option>
                   <option value="price-high">Price: High to Low</option>
@@ -106,9 +61,21 @@ const MarketplacePage: React.FC = () => {
       <section className="py-8 bg-slate-900">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            {mockMarketplaceItems.length > 0 ? (
+            {isLoading ? (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-6">⏳</div>
+                <h2 className="text-2xl font-bold text-white mb-4">Loading Marketplace</h2>
+                <p className="text-gray-400">Fetching available tickets...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-6">❌</div>
+                <h2 className="text-2xl font-bold text-white mb-4">Error Loading Marketplace</h2>
+                <p className="text-gray-400">Unable to fetch marketplace data. Please try again later.</p>
+              </div>
+            ) : marketplaceItems && marketplaceItems.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {mockMarketplaceItems.map((item) => (
+                {marketplaceItems.map((item) => (
                   <div key={item.id} className="bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-700 overflow-hidden hover:border-cyan-500/50 transition-all duration-300 hover:scale-[1.02]">
                     {/* Ticket Image */}
                     <div className="h-48 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 relative">
@@ -125,23 +92,23 @@ const MarketplacePage: React.FC = () => {
                       </div>
                       <div className="absolute top-4 right-4">
                         <span className="bg-cyan-500 text-slate-900 px-3 py-1 rounded-full text-sm font-bold">
-                          {item.price}
+                          {(Number(item.price) / 1e18).toFixed(3)} ETH
                         </span>
                       </div>
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="text-6xl">🎫</div>
                       </div>
                     </div>
-                    
+
                     <div className="p-6">
                       <h3 className="text-xl font-bold text-white mb-2">{item.eventName}</h3>
                       <p className="text-gray-400 text-sm mb-4">{item.ticketType}</p>
-                      
+
                       {/* Event Details */}
                       <div className="space-y-2 mb-4">
                         <div className="flex items-center text-sm text-gray-400">
                           <span className="text-cyan-400 mr-2">📅</span>
-                          {item.eventDate}
+                          {new Date(item.eventDate * 1000).toLocaleDateString()}
                         </div>
                         <div className="flex items-center text-sm text-gray-400">
                           <span className="text-cyan-400 mr-2">📍</span>
@@ -149,22 +116,22 @@ const MarketplacePage: React.FC = () => {
                         </div>
                         <div className="flex items-center text-sm text-gray-400">
                           <span className="text-cyan-400 mr-2">👤</span>
-                          Seller: {item.seller}
+                          Seller: {item.seller.slice(0, 6)}...{item.seller.slice(-4)}
                         </div>
                       </div>
-                      
+
                       {/* Pricing */}
                       <div className="mb-4 p-3 bg-slate-700/50 rounded-lg">
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-gray-400">Current Price</span>
-                          <span className="text-lg font-bold text-cyan-400">{item.price}</span>
+                          <span className="text-lg font-bold text-cyan-400">{(Number(item.price) / 1e18).toFixed(3)} ETH</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-xs text-gray-500">Original Price</span>
-                          <span className="text-sm text-gray-400 line-through">{item.originalPrice}</span>
+                          <span className="text-sm text-gray-400 line-through">{(Number(item.originalPrice) / 1e18).toFixed(3)} ETH</span>
                         </div>
                       </div>
-                      
+
                       {/* Action Buttons */}
                       <div className="flex gap-2">
                         <button className="flex-1 bg-cyan-500 text-slate-900 text-center py-3 rounded-lg hover:bg-cyan-400 transition-colors font-bold flex items-center justify-center gap-2">

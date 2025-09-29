@@ -1,18 +1,15 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import Header from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-  preload: true,
-  variable: '--font-inter'
-});
+// Use system font stack to avoid remote Google Fonts fetch during dev/build
+// Keep a CSS variable for compatibility with existing styles
+const inter = {
+  variable: '--font-inter',
+} as const;
 
 export const metadata: Metadata = {
   title: 'Echain Events - Blockchain Event Ticketing',
@@ -42,7 +39,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.variable}>
+  <body className={inter.variable}>
         <Providers>
           <div className="min-h-screen flex flex-col">
             <Header />
@@ -52,11 +49,6 @@ export default function RootLayout({
               </ErrorBoundary>
             </main>
             <Footer />
-            <footer className="bg-slate-900 border-t border-slate-800 text-gray-400 py-8">
-              <div className="container mx-auto px-4 text-center">
-                <p>&copy; 2025 Echain Events. Powered by blockchain technology.</p>
-              </div>
-            </footer>
           </div>
         </Providers>
       </body>

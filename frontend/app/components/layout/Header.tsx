@@ -5,6 +5,8 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { EnhancedConnectButton } from '../EnhancedConnectButton';
+import { ThemeToggle } from '../ThemeToggle';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,7 +35,7 @@ export default function Header() {
   );
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -48,96 +50,107 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
-            <Link href={isHomePage ? "#events" : "/events"} className="text-gray-300 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-800">
+          {/* Desktop Navigation - Minimal */}
+          <nav className="hidden md:flex items-center space-x-6">
+            <Link href={isHomePage ? "#hero" : "/#hero"} className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
+              Home
+            </Link>
+            <Link href={isHomePage ? "#events" : "/events"} className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
               Events
             </Link>
             {isConnected && (
-              <Link href="/events/create" className="text-gray-300 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-800">
-                Create Event
+              <Link href="/events/create" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
+                Create
               </Link>
             )}
-            <Link href={isHomePage ? "#features" : "/marketplace"} className="text-gray-300 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-800">
+            <Link href={isHomePage ? "#features" : "/#features"} className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
+              Features
+            </Link>
+            <Link href={isHomePage ? "#stats" : "/#stats"} className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
+              Stats
+            </Link>
+            <Link href={isHomePage ? "#faq" : "/#faq"} className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
+              FAQ
+            </Link>
+            <Link href="/marketplace" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
               Marketplace
             </Link>
-            <Link href={isHomePage ? "#features" : "/transparency"} className="text-gray-300 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-800">
+            <Link href="/transparency" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
               Transparency
             </Link>
-          </nav>
-          
-          {/* Search Bar */}
-          <div className="hidden md:flex items-center space-x-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search events..."
-                className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent w-64"
-              />
-            </div>
-          </div>
 
-          {/* Right side actions */}
-          <div className="flex items-center space-x-4">
-            {/* Profile Icon - only show when connected */}
-            {isConnected && (
-              <button className="text-gray-300 hover:text-white p-2 rounded-md transition-colors">
-                <span className="text-lg">👤</span>
-                <span className="ml-2 text-sm hidden lg:inline">Profile</span>
-              </button>
-            )}
-            
-            {/* Connect Wallet Button - make it more prominent */}
-            <div className="bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg p-1">
-              <ConnectButton />
+            {/* Theme Toggle */}
+            <div className="ml-2">
+              <ThemeToggle />
             </div>
-            
-            {/* Mobile menu button */}
-            <button
-              type="button"
-              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white hover:bg-slate-800"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              <span className="sr-only">Open main menu</span>
-              <div className="h-6 w-6">
-                {isMenuOpen ? (
-                  <span className="text-lg">✕</span>
-                ) : (
-                  <span className="text-lg">☰</span>
-                )}
-              </div>
-            </button>
-          </div>
+
+            {/* Connect Wallet - Enhanced ConnectButton */}
+            <div className="ml-4">
+              <EnhancedConnectButton />
+            </div>
+          </nav>
+
+          {/* Mobile menu button */}
+          <button
+            type="button"
+            className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            <span className="sr-only">Open main menu</span>
+            <div className="h-6 w-6">
+              {isMenuOpen ? (
+                <span className="text-lg">✕</span>
+              ) : (
+                <span className="text-lg">☰</span>
+              )}
+            </div>
+          </button>
         </div>
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-slate-800 bg-slate-900">
-              {visibleNavigation.map((item) => (
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-border/50 bg-background/95">
+              <Link
+                href={isHomePage ? "#events" : "/events"}
+                className="text-muted-foreground hover:text-foreground block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Events
+              </Link>
+              {isConnected && (
                 <Link
-                  key={item.name}
-                  href={isHomePage && item.name === 'Events' ? '#events' : item.href}
-                  className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors hover:bg-slate-800"
+                  href="/events/create"
+                  className="text-muted-foreground hover:text-foreground block px-3 py-2 rounded-md text-base font-medium transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  {item.name}
+                  Create Event
                 </Link>
-              ))}
+              )}
               <Link
                 href={isHomePage ? "#features" : "/marketplace"}
-                className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors hover:bg-slate-800"
+                className="text-muted-foreground hover:text-foreground block px-3 py-2 rounded-md text-base font-medium transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Marketplace
               </Link>
               <Link
                 href={isHomePage ? "#features" : "/transparency"}
-                className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors hover:bg-slate-800"
+                className="text-muted-foreground hover:text-foreground block px-3 py-2 rounded-md text-base font-medium transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Transparency
               </Link>
+
+              {/* Mobile theme toggle */}
+              <div className="px-3 py-2">
+                <ThemeToggle />
+              </div>
+
+              {/* Mobile wallet button */}
+              <div className="px-3 py-3 border-t border-slate-800/50">
+                <EnhancedConnectButton />
+              </div>
             </div>
           </div>
         )}

@@ -1,73 +1,81 @@
-# Welcome to your Lovable project
+# Echain Event Ticketing Platform - Frontend
 
-## Project info
+A blockchain-powered event ticketing platform built with Next.js, featuring NFT tickets and POAP rewards.
 
-**URL**: https://lovable.dev/projects/00ee14a0-aba6-4153-b7b9-0589f9f3b8ee
+## Technologies Used
 
-## How can I edit this code?
+- **Next.js 15.5.4** - React framework
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **RainbowKit** - Wallet connection UI
+- **Wagmi** - Ethereum interactions
+- **Viem** - Ethereum library
+- **Framer Motion** - Animations
 
-There are several ways of editing your application.
+## Getting Started
 
-**Use Lovable**
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/00ee14a0-aba6-4153-b7b9-0589f9f3b8ee) and start prompting.
+2. Set up environment variables:
+   ```bash
+   cp .env.example .env.development
+   # Edit .env.development with your API keys
+   ```
 
-Changes made via Lovable will be committed automatically to this repo.
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-**Use your preferred IDE**
+## Wallet Connection Troubleshooting
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+If you're experiencing "Failed to connect to MetaMask" errors, try these solutions:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 1. MetaMask Setup
+- **Install MetaMask**: Ensure the MetaMask browser extension is installed
+- **Unlock Wallet**: Open MetaMask and unlock your wallet
+- **Check Network**: Switch to Base Sepolia testnet in MetaMask
 
-Follow these steps:
+### 2. Browser Issues
+- **Refresh Page**: Hard refresh (Ctrl+F5) to clear cache
+- **Incognito Mode**: Try in incognito/private browsing
+- **Disable Extensions**: Temporarily disable other wallet extensions
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### 3. Network Configuration
+- **Base Sepolia**: Ensure MetaMask is connected to Base Sepolia testnet
+- **RPC URL**: `https://sepolia.base.org`
+- **Chain ID**: `84532`
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 4. Development Environment
+- **Environment Variables**: Check `.env.development` has correct `NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID`
+- **Dependencies**: Run `npm install` to ensure all packages are installed
+- **Build Cache**: Clear Next.js cache with `rm -rf .next`
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 5. Common Error Messages
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+**"User rejected the request"**
+- User clicked "Cancel" in MetaMask popup
 
-**Edit a file directly in GitHub**
+**"MetaMask is not installed"**
+- Install MetaMask extension from metamask.io
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+**"Network not supported"**
+- Switch MetaMask to Base Sepolia testnet
 
-**Use GitHub Codespaces**
+**"Connection timeout"**
+- Check internet connection and try again
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### 6. Advanced Troubleshooting
 
-## What technologies are used for this project?
+If issues persist:
+1. Open browser DevTools (F12)
+2. Check Console tab for detailed error messages
+3. Look for MetaMask-related errors
+4. Try connecting on a different browser
 
-This project is built with:
+## Deployment
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/00ee14a0-aba6-4153-b7b9-0589f9f3b8ee) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Deploy to Vercel with custom domain support through the Lovable platform.

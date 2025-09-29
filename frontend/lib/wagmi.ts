@@ -6,6 +6,8 @@ export const config = getDefaultConfig({
   projectId: process.env.NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID || 'demo-project-id-for-development',
   chains: [baseSepolia],
   ssr: true,
+  // Add connection retry logic
+  pollingInterval: 4000,
 });
 
 export { baseSepolia as defaultChain };

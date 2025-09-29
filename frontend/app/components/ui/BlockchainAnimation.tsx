@@ -8,29 +8,17 @@ export function BlockchainAnimation() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Try to load local animation first, fallback to remote
+    // Load local animation only (no external network fetches)
     fetch('/animations/blockchain-animation.json')
       .then(response => {
-        if (!response.ok) {
-          throw new Error('Local animation not found');
-        }
+        if (!response.ok) throw new Error('Local animation not found');
         return response.json();
       })
-      .then(data => {
-        setAnimationData(data);
-      })
+      .then(data => setAnimationData(data))
       .catch(localError => {
-        console.warn('Local animation failed, trying remote:', localError);
-        // Fallback to remote animation
-        fetch('https://assets4.lottiefiles.com/packages/lf20_9wpyhdbo.json')
-          .then(response => response.json())
-          .then(data => {
-            setAnimationData(data);
-          })
-          .catch(remoteError => {
-            console.error('Both local and remote animations failed:', remoteError);
-            setError(remoteError);
-          });
+        // Fail silently to avoid noisy console errors in dev/CI.
+        console.warn('Local animation failed to load:', localError);
+        setError(localError);
       });
   }, []);
 

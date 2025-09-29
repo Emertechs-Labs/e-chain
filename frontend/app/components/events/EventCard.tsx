@@ -12,14 +12,15 @@ export default function EventCard({ event }: EventCardProps) {
   const isEventEnded = event.endTime * 1000 < Date.now();
   const ticketPriceInEth = formatEther(event.ticketPrice);
   
-  // Calculate ticket sales progress (mock data for demo)
-  const ticketsSold = Math.floor(Math.random() * event.maxTickets);
+  // Calculate ticket sales progress deterministically based on event ID
+  // This ensures server and client render the same values
+  const ticketsSold = Math.floor((event.id * 37) % (event.maxTickets * 0.8)); // Max 80% sold
   const soldPercentage = (ticketsSold / event.maxTickets) * 100;
 
   return (
     <div className="bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-700 overflow-hidden hover:border-cyan-500/50 transition-all duration-300 hover:scale-[1.02]">
       {/* Event Image/Banner */}
-      <div className="h-48 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 relative">
+      <div className="h-40 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 relative">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-blue-500/20 to-purple-500/20"></div>
         <div className="absolute top-4 left-4 flex gap-2">
           <span className="bg-green-500/90 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
@@ -42,40 +43,40 @@ export default function EventCard({ event }: EventCardProps) {
         </div>
       </div>
 
-      <div className="p-6">
-        <h3 className="text-xl font-bold text-white mb-2">{event.name}</h3>
-        <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+      <div className="p-5">
+        <h3 className="text-lg font-bold text-white mb-2">{event.name}</h3>
+        <p className="text-gray-400 text-sm mb-3 line-clamp-2">
           {event.description || 'A premier blockchain development conference featuring the latest in DeFi, NFTs, and decentralized technologies.'}
         </p>
         
         {/* Event Details */}
-        <div className="space-y-2 mb-4">
+        <div className="space-y-1 mb-3">
           <div className="flex items-center text-sm text-gray-400">
             <span className="text-cyan-400 mr-2">📅</span>
             {new Date(event.endTime * 1000).toLocaleDateString()} at 09:00 AM
           </div>
           <div className="flex items-center text-sm text-gray-400">
-            <span className="text-cyan-400 mr-2">�</span>
+            <span className="text-cyan-400 mr-2">📍</span>
             {event.venue || 'San Francisco, CA'}
           </div>
           <div className="flex items-center text-sm text-gray-400">
-            <span className="text-cyan-400 mr-2">�</span>
+            <span className="text-cyan-400 mr-2">👥</span>
             {event.maxTickets.toLocaleString()} expected attendees
           </div>
         </div>
         
         {/* Ticket Sales Progress */}
-        <div className="mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-400">Tickets sold</span>
-            <span className="text-sm font-bold text-cyan-400">
+        <div className="mb-3">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs text-gray-400">Tickets sold</span>
+            <span className="text-xs font-bold text-cyan-400">
               {ticketsSold.toLocaleString()}/{event.maxTickets.toLocaleString()}
             </span>
           </div>
-          <div className="w-full bg-slate-700 rounded-full h-2">
+          <div className="w-full bg-slate-700 rounded-full h-1.5">
             <div
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all duration-300 progress-bar-fill"
-              style={{ '--progress-width': `${Math.min(soldPercentage, 100)}%` } as React.CSSProperties}
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 h-1.5 rounded-full transition-all duration-300"
+              style={{ width: `${Math.min(soldPercentage, 100)}%` }}
             ></div>
           </div>
           <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -85,7 +86,7 @@ export default function EventCard({ event }: EventCardProps) {
         </div>
         
         {/* Organizer */}
-        <div className="mb-4 pb-4 border-b border-slate-700">
+        <div className="mb-3 pb-3 border-b border-slate-700">
           <span className="text-xs text-gray-500">Organized by</span>
           <div className="text-sm text-white font-medium">BlockchainEvents LLC</div>
         </div>
@@ -94,11 +95,11 @@ export default function EventCard({ event }: EventCardProps) {
         <div className="flex gap-2">
           <Link
             href={`/events/${event.id}`}
-            className="flex-1 bg-cyan-500 text-slate-900 text-center py-3 rounded-lg hover:bg-cyan-400 transition-colors font-bold flex items-center justify-center gap-2"
+            className="flex-1 bg-cyan-500 text-slate-900 text-center py-2.5 rounded-lg hover:bg-cyan-400 transition-colors font-bold flex items-center justify-center gap-1 text-sm"
           >
             🎫 Get NFT Ticket
           </Link>
-          <button className="p-3 border border-slate-600 rounded-lg hover:bg-slate-700 transition-colors">
+          <button className="p-2.5 border border-slate-600 rounded-lg hover:bg-slate-700 transition-colors">
             <span className="text-gray-400">↗</span>
           </button>
         </div>

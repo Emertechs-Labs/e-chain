@@ -113,6 +113,10 @@ export const useEvents = () => {
         return mockEvents;
       }
     },
+    // Disable automatic fetching on mount to prevent connection issues
+    enabled: false,
+    // Set stale time to prevent refetching
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 

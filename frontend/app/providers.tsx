@@ -7,11 +7,20 @@ import { baseSepolia } from 'wagmi/chains';
 import { Toaster } from 'sonner';
 import { config } from '../lib/wagmi';
 import { ThemeProvider } from '../lib/theme-provider';
+import { useState } from 'react';
 import '@rainbow-me/rainbowkit/styles.css';
 
-const queryClient = new QueryClient();
-
 export function Providers({ children }: { children: React.ReactNode }) {
+  // Create QueryClient instance once per provider instance
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000, // 1 minute
+        gcTime: 10 * 60 * 1000, // 10 minutes
+      },
+    },
+  }));
+
   return (
     <ThemeProvider defaultTheme="dark" storageKey="echain-theme">
       <WagmiProvider config={config}>
@@ -22,6 +31,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
               learnMoreUrl: 'http://localhost:3000',
             }}
             initialChain={baseSepolia}
+            showRecentTransactions={true}
           >
             {children}
             <Toaster position="top-right" />

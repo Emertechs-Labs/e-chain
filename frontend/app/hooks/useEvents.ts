@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
+import { readContract } from 'wagmi/actions';
+import { config } from '../../lib/wagmi';
 import { Event } from '../../types/event';
-import { callContractRead } from '../../lib/multibaas';
-import { CONTRACT_ADDRESSES } from '../../lib/contracts';
+import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from '../../lib/contracts';
 
 // Mock data matching the contract Event struct
 const mockEvents: Event[] = [
@@ -62,23 +63,23 @@ export const useEvents = () => {
     queryFn: async (): Promise<Event[]> => {
       try {
         // Get active events from contract (first 50 events)
-        const [eventIds] = await callContractRead(
-          CONTRACT_ADDRESSES.EventFactory,
-          'EventFactory',
-          'getActiveEvents',
-          [0, 50] // offset 0, limit 50
-        );
+        const eventIds = await readContract(config, {
+          address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
+          abi: CONTRACT_ABIS.EventFactory,
+          functionName: 'getActiveEvents',
+          args: [0, 50]
+        }) as bigint[];
 
         // Fetch details for each event
         const events: Event[] = [];
         for (const eventId of eventIds) {
           try {
-            const eventData = await callContractRead(
-              CONTRACT_ADDRESSES.EventFactory,
-              'EventFactory',
-              'getEventDetails',
-              [eventId]
-            );
+            const eventData = await readContract(config, {
+              address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
+              abi: CONTRACT_ABIS.EventFactory,
+              functionName: 'getEventDetails',
+              args: [eventId]
+            }) as any;
 
             // Convert contract data to Event interface
             const event: Event = {
@@ -131,23 +132,23 @@ export const useEventsByOrganizer = (organizer?: string) => {
 
       try {
         // Get event IDs for this organizer
-        const eventIds = await callContractRead(
-          CONTRACT_ADDRESSES.EventFactory,
-          'EventFactory',
-          'getOrganizerEvents',
-          [targetOrganizer]
-        );
+        const eventIds = await readContract(config, {
+          address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
+          abi: CONTRACT_ABIS.EventFactory,
+          functionName: 'getOrganizerEvents',
+          args: [targetOrganizer]
+        }) as bigint[];
 
         // Fetch details for each event
         const events: Event[] = [];
         for (const eventId of eventIds) {
           try {
-            const eventData = await callContractRead(
-              CONTRACT_ADDRESSES.EventFactory,
-              'EventFactory',
-              'getEventDetails',
-              [eventId]
-            );
+            const eventData = await readContract(config, {
+              address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
+              abi: CONTRACT_ABIS.EventFactory,
+              functionName: 'getEventDetails',
+              args: [eventId]
+            }) as any;
 
             // Convert contract data to Event interface
             const event: Event = {
@@ -194,12 +195,12 @@ export const useEvent = (eventId: number) => {
       if (!eventId) return null;
 
       try {
-        const eventData = await callContractRead(
-          CONTRACT_ADDRESSES.EventFactory,
-          'EventFactory',
-          'getEventDetails',
-          [eventId]
-        );
+        const eventData = await readContract(config, {
+          address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
+          abi: CONTRACT_ABIS.EventFactory,
+          functionName: 'getEventDetails',
+          args: [BigInt(eventId)]
+        }) as any;
 
         // Convert contract data to Event interface
         const event: Event = {

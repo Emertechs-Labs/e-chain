@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
-import { callContractRead } from '../../lib/multibaas';
 import { CONTRACT_ADDRESSES } from '../../lib/contracts';
 
 export interface MarketplaceListing {

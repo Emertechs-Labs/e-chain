@@ -32,6 +32,22 @@
   animation-delay: 4s;
 }
 
+.animation-delay-0 {
+  animation-delay: 0s;
+}
+
+.animation-delay-100 {
+  animation-delay: 0.1s;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animation-duration-600 {
+  animation-duration: 0.6s;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

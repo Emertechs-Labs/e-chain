@@ -17,6 +17,15 @@ export const callContractRead = async (
   args: any[] = []
 ) => {
   try {
+    console.log('MultiBaas callContractRead:', {
+      address,
+      contractLabel,
+      method,
+      args,
+      basePath: process.env.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL,
+      hasApiKey: !!process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY
+    });
+
     const response = await contractsApi.callContractFunction(
       'ethereum', // chain
       address, // addressOrAlias
@@ -24,14 +33,22 @@ export const callContractRead = async (
       method, // method
       { args } // postMethodArgs
     );
+
+    console.log('MultiBaas response:', response.data);
+
     const result = response.data.result;
     if (result.kind === 'MethodCallResponse') {
       return result.output;
     } else {
-      throw new Error('Unexpected response type for read call');
+      throw new Error(`Unexpected response type for read call: ${result.kind}`);
     }
-  } catch (error) {
-    console.error('Error calling contract read method:', error);
+  } catch (error: any) {
+    console.error('MultiBaas callContractRead error:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data
+    });
     throw error;
   }
 };

@@ -104,13 +104,28 @@ export function Skeleton({
     text: 'rounded h-4',
   };
 
+  // Build Tailwind arbitrary value classes for dynamic width/height instead of inline styles
+  const widthClass = width
+    ? typeof width === 'number'
+      ? `w-[${width}px]`
+      : `w-[${width}]`
+    : '';
+
+  const heightClass = height
+    ? typeof height === 'number'
+      ? `h-[${height}px]`
+      : `h-[${height}]`
+    : '';
+
   return (
     <div
-      className={cn(baseClasses, dimensionClasses[variant], className)}
-      style={{
-        width: width ? (typeof width === 'number' ? `${width}px` : width) : undefined,
-        height: height ? (typeof height === 'number' ? `${height}px` : height) : undefined,
-      }}
+      className={cn(
+        baseClasses,
+        dimensionClasses[variant],
+        widthClass,
+        heightClass,
+        className
+      )}
     />
   );
 }

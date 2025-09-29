@@ -1,5 +1,6 @@
-'use client';
+ 'use client';
 
+import { useEffect, useRef } from 'react';
 import { Event } from '../../../types/event';
 import { formatEther } from 'viem';
 import Link from 'next/link';
@@ -16,6 +17,18 @@ export default function EventCard({ event }: EventCardProps) {
   // This ensures server and client render the same values
   const ticketsSold = Math.floor((event.id * 37) % (event.maxTickets * 0.8)); // Max 80% sold
   const soldPercentage = (ticketsSold / event.maxTickets) * 100;
+  const progressRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const el = progressRef.current;
+    if (!el) return;
+    // Set width after mount so the tailwind transition animates
+    const width = `${Math.min(Math.round(soldPercentage), 100)}%`;
+    // Use requestAnimationFrame to ensure this runs after paint
+    requestAnimationFrame(() => {
+      el.style.width = width;
+    });
+  }, [soldPercentage]);
 
   return (
     <div className="bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-700 overflow-hidden hover:border-cyan-500/50 transition-all duration-300 hover:scale-[1.02]">
@@ -75,9 +88,9 @@ export default function EventCard({ event }: EventCardProps) {
           </div>
           <div className="w-full bg-slate-700 rounded-full h-1.5">
             <div
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 h-1.5 rounded-full transition-all duration-300"
-              style={{ width: `${Math.min(soldPercentage, 100)}%` }}
-            ></div>
+              ref={progressRef}
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 h-1.5 rounded-full transition-all duration-300 w-0"
+            />
           </div>
           <div className="flex justify-between text-xs text-gray-500 mt-1">
             <span>{Math.round(soldPercentage)}% sold</span>

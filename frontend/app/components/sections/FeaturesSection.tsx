@@ -1,6 +1,6 @@
 export function FeaturesSection() {
   return (
-    <section id="features" className="py-8 md:py-12 bg-slate-900 relative overflow-hidden">
+    <section id="features" className="py-6 md:py-8 bg-slate-900 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-20 left-20 w-32 h-32 border border-cyan-400 rounded-full animate-spin-very-slow"></div>
@@ -8,7 +8,7 @@ export function FeaturesSection() {
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 mb-3 text-cyan-400">
             <span className="text-xl">🚀</span>
             <span className="text-sm font-medium tracking-wider uppercase">Why Choose Echain</span>

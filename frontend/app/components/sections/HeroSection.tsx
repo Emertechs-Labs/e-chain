@@ -136,18 +136,17 @@ export function HeroSection() {
           </motion.h1>
 
           <motion.p
-            className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-10"
+            className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            Experience the next generation of event ticketing with blockchain technology.
-            Secure, transparent, and community-powered events await you.
+            Secure, transparent blockchain event ticketing platform.
           </motion.p>
 
           {/* Trust Indicators */}
           <motion.div
-            className="flex flex-wrap justify-center items-center gap-6 mb-10 text-sm"
+            className="flex flex-wrap justify-center items-center gap-6 mb-8 text-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
@@ -168,15 +167,6 @@ export function HeroSection() {
             >
               <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
               <span className="text-blue-400 font-medium">Immutable Records</span>
-            </motion.div>
-
-            <motion.div
-              className="flex items-center gap-2 bg-slate-800/30 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-700/50"
-              whileHover={{ scale: 1.05, backgroundColor: 'rgba(15, 23, 42, 0.5)' }}
-              transition={{ type: 'spring', stiffness: 300, delay: 0.2 }}
-            >
-              <span className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></span>
-              <span className="text-purple-400 font-medium">NFT Rewards</span>
             </motion.div>
           </motion.div>
         </div>
@@ -211,10 +201,10 @@ export function HeroSection() {
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
             <a
               href="#features"
-              className="group flex items-center gap-2 text-slate-300 hover:text-white transition-colors text-sm font-medium px-4 py-2"
+              className="relative group bg-slate-800/50 backdrop-blur-sm border-2 border-slate-700/50 text-white px-6 py-3 rounded-lg font-bold hover:bg-slate-700/30 transition-all duration-200 flex items-center justify-center gap-2 text-base"
             >
-              <span>Learn more</span>
-              <span className="group-hover:translate-x-1 transition-transform">↓</span>
+              <span>📚</span>
+              <span>Learn More</span>
             </a>
           </motion.div>
         </motion.div>

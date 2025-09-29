@@ -120,6 +120,8 @@ html {
     --neon-purple: 270 95% 75%;
     --success-green: 142 76% 36%;
     --warning-orange: 25 95% 53%;
+    /* Height of the fixed header to offset anchored scroll positions */
+    --header-offset: 4rem; /* matches .h-16 in Header.tsx (64px) */
   }
 
   .dark {
@@ -275,4 +277,15 @@ html {
 .bg-grid-pattern {
   background-image: radial-gradient(circle at 1px 1px, rgba(56, 189, 248, 0.15) 1px, transparent 0);
   background-size: 30px 30px;
+}
+
+/* Ensure anchored sections are visible below the fixed header */
+/* Apply to commonly used anchors and any section with an id */
+#events,
+#hero,
+#features,
+#faq,
+section[id] {
+  /* Use the header offset so hash navigation doesn't hide content */
+  scroll-margin-top: var(--header-offset);
 }

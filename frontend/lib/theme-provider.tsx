@@ -25,20 +25,32 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 export function ThemeProvider({
   children,
   defaultTheme = 'system',
-  storageKey = 'echain-ui-theme',
+  // Use a consistent storage key across the app
+  storageKey = 'echain-theme',
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
+  // Initialize theme synchronously from localStorage when possible to
+  // avoid a brief mismatch between the UI and the saved user preference.
+  const [theme, setTheme] = useState<Theme>(() => {
+    // During SSR we don't know the user's preference. Use 'system' so
+    // the server doesn't render a concrete theme class (light/dark).
+    // The client-side script in `app/layout.tsx` runs before hydration
+    // and will set the correct class from localStorage or system prefs.
+    if (typeof window === 'undefined') return 'system';
+    try {
+      const stored = localStorage.getItem(storageKey) as Theme | null;
+      if (stored && ['light', 'dark', 'system'].includes(stored)) return stored;
+    } catch (e) {
+      // ignore
+    }
+    return defaultTheme;
+  });
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Only run on client side
-    const storedTheme = localStorage.getItem(storageKey) as Theme;
-    if (storedTheme && ['light', 'dark', 'system'].includes(storedTheme)) {
-      setTheme(storedTheme);
-    }
     setMounted(true);
-  }, [storageKey]);
+  }, []);
 
   useEffect(() => {
     if (!mounted) return;
@@ -63,7 +75,11 @@ export function ThemeProvider({
   const value = {
     theme,
     setTheme: (newTheme: Theme) => {
-      localStorage.setItem(storageKey, newTheme);
+      try {
+        localStorage.setItem(storageKey, newTheme);
+      } catch (e) {
+        // ignore storage errors
+      }
       setTheme(newTheme);
     },
   };

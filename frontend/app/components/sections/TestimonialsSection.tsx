@@ -1,8 +1,8 @@
 export function TestimonialsSection() {
   return (
-    <section id="testimonials" className="py-8 md:py-12 bg-slate-800/50">
+    <section id="testimonials" className="py-6 md:py-8 bg-slate-800/50">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 mb-3 text-green-400">
             <span className="text-xl">💬</span>
             <span className="text-sm font-medium tracking-wider uppercase">Success Stories</span>

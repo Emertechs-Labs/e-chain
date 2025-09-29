@@ -13,33 +13,29 @@ export function ThemeToggle() {
   }, []);
 
   const toggleTheme = () => {
-    if (theme === 'light') {
-      setTheme('dark');
-    } else if (theme === 'dark') {
-      setTheme('system');
-    } else {
-      setTheme('light');
-    }
+    // Cycle dark -> light -> system -> dark
+    if (theme === 'dark') setTheme('light');
+    else if (theme === 'light') setTheme('system');
+    else setTheme('dark');
   };
 
   const getIcon = () => {
-    if (theme === 'light') {
+    // When using 'system', detect effective theme for correct icon
+    if (theme === 'system') {
+      if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return <Moon className="h-4 w-4" />;
+      }
       return <Sun className="h-4 w-4" />;
-    } else if (theme === 'dark') {
-      return <Moon className="h-4 w-4" />;
-    } else {
-      return <Sun className="h-4 w-4 opacity-50" />;
     }
+    return theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />;
   };
 
   const getLabel = () => {
-    if (theme === 'light') {
-      return 'Switch to dark mode';
-    } else if (theme === 'dark') {
-      return 'Switch to system mode';
-    } else {
-      return 'Switch to light mode';
+    if (theme === 'system') {
+      const prefersDark = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return prefersDark ? 'Using system (dark) — switch to dark/light/system' : 'Using system (light) — switch to dark/light/system';
     }
+    return theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
   };
 
   // Prevent hydration mismatch by not rendering until mounted

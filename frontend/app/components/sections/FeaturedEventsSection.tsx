@@ -73,9 +73,9 @@ export function FeaturedEventsSection() {
   };
 
   return (
-    <section id="events" className="py-8 bg-slate-900">
+    <section id="events" className="py-6 md:py-8 bg-slate-900">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 md:mb-8 max-w-6xl mx-auto gap-4">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 md:mb-6 max-w-6xl mx-auto gap-4">
           <div>
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Featured Events</h2>
             <p className="text-gray-400">Discover blockchain-native events with verified organizers and transparent operations.</p>

@@ -66,9 +66,6 @@ export default function Header() {
             <Link href={isHomePage ? "#features" : "/#features"} className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
               Features
             </Link>
-            <Link href={isHomePage ? "#stats" : "/#stats"} className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
-              Stats
-            </Link>
             <Link href={isHomePage ? "#faq" : "/#faq"} className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
               FAQ
             </Link>

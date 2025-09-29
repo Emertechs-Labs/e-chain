@@ -8,12 +8,12 @@ export function FAQSection() {
   return (
     <section id="faq" className="py-6 md:py-8 bg-slate-900">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 mb-4 text-orange-400">
             <span className="text-2xl">❓</span>
             <span className="text-sm font-medium tracking-wider uppercase">Frequently Asked</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Got Questions?
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto">

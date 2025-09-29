@@ -1,6 +1,6 @@
-'use client';
+ 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -23,26 +23,71 @@ export function HeroSection() {
   // Navbar contains the wallet connect UI; hero should not duplicate it
   const { isConnected } = useAccount();
 
+  function VideoBackground() {
+    const [hasVideo, setHasVideo] = useState(false);
+
+    useEffect(() => {
+      // Only attempt to load a video if an external URL is provided at build time
+      const videoUrl = process.env.NEXT_PUBLIC_HERO_VIDEO_URL;
+      if (!videoUrl) {
+        setHasVideo(false);
+        return;
+      }
+
+      // Avoid loading on small screens or slow networks
+      const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+      const connection = (navigator as any).connection;
+      const effectiveType = connection?.effectiveType || '4g';
+      const isFastNetwork = ['4g', '5g', 'wifi'].includes(effectiveType);
+
+      if (!isDesktop || !isFastNetwork) {
+        setHasVideo(false);
+        return;
+      }
+
+      let mounted = true;
+      // quick HEAD request to check existence and avoid heavy download
+      fetch(videoUrl, { method: 'HEAD' })
+        .then((res) => {
+          if (!mounted) return;
+          setHasVideo(res.ok);
+        })
+        .catch(() => {
+          if (!mounted) return;
+          setHasVideo(false);
+        });
+
+      return () => {
+        mounted = false;
+      };
+    }, []);
+
+    if (!hasVideo) return null;
+
+    const videoUrl = process.env.NEXT_PUBLIC_HERO_VIDEO_URL as string;
+    return (
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <video
+          className="w-full h-full object-cover opacity-30"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster="/videos/hero-bg-poster.jpg"
+        >
+          <source src={videoUrl} type="video/mp4" />
+        </video>
+      </div>
+    );
+  }
+
   return (
     // Force hero to fit within one viewport minus header (header ~4rem)
     <section id="hero" className="relative py-8 md:py-12 overflow-hidden h-[calc(100vh-4rem)] flex items-center">
       <div className="absolute inset-0 bg-slate-900">
-        {/* Optional video background (place a file at public/videos/hero-bg.mp4). If not present, BlockchainAnimation will act as fallback. */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <video
-            className="w-full h-full object-cover opacity-30"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            poster="/videos/hero-bg-poster.jpg"
-          >
-            <source src="/videos/hero-bg.mp4" type="video/mp4" />
-            {/* If the video isn't available, the browser will ignore it and the animation will be visible */}
-          </video>
-        </div>
-
+        {/* Optional video background (place a file at public/videos/hero-bg.mp4). If present it will be used; otherwise the animation will be visible. */}
+        <VideoBackground />
         <BlockchainAnimation />
 
         {/* Gradient Overlay */}

@@ -272,7 +272,7 @@ html {
   background-size: 50px 50px;
 }
 
-/* Progress bar with CSS variable */
-.progress-bar-fill {
-  width: var(--progress-width, 0%);
+.bg-grid-pattern {
+  background-image: radial-gradient(circle at 1px 1px, rgba(56, 189, 248, 0.15) 1px, transparent 0);
+  background-size: 30px 30px;
 }

@@ -4,18 +4,45 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { useAccount } from 'wagmi';
 
 // Dynamically import the heavy animation component on client only to speed up dev/server
 const BlockchainAnimation = dynamic(() => import('../ui/BlockchainAnimation').then(m => m.BlockchainAnimation), {
   ssr: false,
-  loading: () => null,
+  loading: () => (
+    <div className="absolute inset-0 w-full h-full pointer-events-none opacity-10">
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-blue-500/20 to-purple-500/20 animate-pulse"></div>
+      <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-cyan-400/30 rounded-full blur-xl animate-bounce"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-blue-400/30 rounded-full blur-xl animate-bounce delay-1000"></div>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-purple-400/20 rounded-full blur-xl animate-pulse delay-500"></div>
+    </div>
+  ),
 });
 
 export function HeroSection() {
+  // Navbar contains the wallet connect UI; hero should not duplicate it
+  const { isConnected } = useAccount();
+
   return (
-    <section id="hero" className="relative py-12 md:py-20 overflow-hidden min-h-[calc(100vh-4rem)] flex items-center">
-      {/* Blockchain Animation Background */}
+    // Force hero to fit within one viewport minus header (header ~4rem)
+    <section id="hero" className="relative py-8 md:py-12 overflow-hidden h-[calc(100vh-4rem)] flex items-center">
       <div className="absolute inset-0 bg-slate-900">
+        {/* Optional video background (place a file at public/videos/hero-bg.mp4). If not present, BlockchainAnimation will act as fallback. */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <video
+            className="w-full h-full object-cover opacity-30"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster="/videos/hero-bg-poster.jpg"
+          >
+            <source src="/videos/hero-bg.mp4" type="video/mp4" />
+            {/* If the video isn't available, the browser will ignore it and the animation will be visible */}
+          </video>
+        </div>
+
         <BlockchainAnimation />
 
         {/* Gradient Overlay */}
@@ -110,48 +137,34 @@ export function HeroSection() {
           </motion.div>
         </div>
 
-        {/* CTA Buttons */}
+        {/* CTA Buttons: removed redundant Connect Wallet (navbar provides it). Keep primary navigation CTAs compact to fit viewport */}
         <motion.div
-          className="flex flex-col sm:flex-row gap-4 justify-center"
+          className="flex flex-wrap gap-4 justify-center items-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <motion.div
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            className="relative group"
-          >
-            <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-200 group-hover:duration-300"></div>
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
             <Link
               href="/events"
-              className="relative bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-8 py-4 rounded-lg font-bold flex items-center justify-center gap-2 text-lg shadow-lg hover:shadow-xl transition-all duration-200 group-hover:from-cyan-500 group-hover:to-blue-500"
+              className="relative bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-6 py-3 rounded-lg font-bold flex items-center justify-center gap-2 text-base shadow-lg hover:shadow-xl transition-all duration-200"
             >
-              <span className="group-hover:animate-pulse">⚡</span>
+              <span>⚡</span>
               <span>Explore Events</span>
-              <span className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">→</span>
             </Link>
           </motion.div>
 
-          <motion.div
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-          >
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
             <Link
               href="/events/create"
-              className="relative group bg-slate-800/50 backdrop-blur-sm border-2 border-slate-700/50 text-white px-8 py-4 rounded-lg font-bold hover:bg-slate-700/30 transition-all duration-200 flex items-center justify-center gap-2 text-lg hover:border-cyan-400/30"
+              className="relative group bg-slate-800/50 backdrop-blur-sm border-2 border-slate-700/50 text-white px-6 py-3 rounded-lg font-bold hover:bg-slate-700/30 transition-all duration-200 flex items-center justify-center gap-2 text-base"
             >
-              <span className="group-hover:animate-bounce">🎯</span>
+              <span>🎯</span>
               <span>Create Event</span>
-              <span className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">+</span>
             </Link>
           </motion.div>
 
-          <motion.div
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            className="sm:ml-2"
-          >
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
             <a
               href="#features"
               className="group flex items-center gap-2 text-slate-300 hover:text-white transition-colors text-sm font-medium px-4 py-2"

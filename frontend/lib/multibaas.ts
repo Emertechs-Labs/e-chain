@@ -26,11 +26,6 @@ const envVars = validateEnvironment();
 const multiBaasConfig = new Configuration({
   basePath: envVars.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL,
   apiKey: envVars.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY,
-  // Add CORS headers for browser requests
-  headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-  }
 });
 
 // Create API clients

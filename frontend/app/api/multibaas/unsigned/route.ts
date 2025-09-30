@@ -121,10 +121,15 @@ export async function POST(req: Request) {
 
       // Add better debugging for blockchain parameter
       const resolvedBlockchain = blockchain || 'base-sepolia';
-      console.debug('[app/api/multibaas/unsigned] using blockchain', { 
+      console.log('[CRITICAL DEBUG] [app/api/multibaas/unsigned] using blockchain', { 
         providedBlockchain: blockchain,
         resolvedBlockchain,
-        traceId
+        traceId,
+        envChain: process.env.NEXT_PUBLIC_MULTIBAAS_CHAIN,
+        envChainId: process.env.NEXT_PUBLIC_MULTIBAAS_CHAIN_ID,
+        method,
+        normalizedArgs,
+        from
       });
       
       const result = blockchain

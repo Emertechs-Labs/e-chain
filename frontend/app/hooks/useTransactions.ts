@@ -28,6 +28,9 @@ const callUnsignedTx = async (
   blockchain: string = 'base-sepolia' // Default to base-sepolia
 ) => {
   try {
+    // Add more explicit debugging for the blockchain parameter
+    console.log('[DEBUG] callUnsignedTx - Starting with blockchain param:', blockchain);
+    
     console.debug('[useTransactions] proxy getUnsignedTransaction request', {
       address,
       contractLabel,

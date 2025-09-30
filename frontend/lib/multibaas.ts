@@ -90,23 +90,26 @@ export const getUnsignedTransactionForChain = async (chain: string, address: str
     if (m) {
       const chainId = m[1];
       const mappedLabel = CHAIN_ID_TO_LABEL[chainId];
-      console.debug(`[multibaas] Normalizing EIP-155 chain: ${s} -> chainId: ${chainId} -> mappedLabel: ${mappedLabel || 'none'}`);
+      console.log(`[DEBUG] Normalizing EIP-155 chain: ${s} -> chainId: ${chainId} -> mappedLabel: ${mappedLabel || 'none'}`);
       return mappedLabel || 'base-sepolia';
     }
     
     // Handle numeric chain ID
     if (/^\d+$/.test(s)) {
       const mappedLabel = CHAIN_ID_TO_LABEL[s];
-      console.debug(`[multibaas] Normalizing numeric chain: ${s} -> mappedLabel: ${mappedLabel || 'none'}`);
+      console.log(`[DEBUG] Normalizing numeric chain: ${s} -> mappedLabel: ${mappedLabel || 'none'}`);
       return mappedLabel || 'base-sepolia';
     }
     
-    console.debug(`[multibaas] Using chain as provided: ${s}`);
+    console.log(`[DEBUG] Using chain as provided: ${s}`);
     return s;
   };
 
+  console.log(`[DEBUG] getUnsignedTransactionForChain input chain: ${chain}`);
+  console.log(`[DEBUG] CHAIN_ID_TO_LABEL mapping:`, CHAIN_ID_TO_LABEL);
+  
   const resolvedChain = normalizeChainLabel(chain);
-  console.debug(`[multibaas] getUnsignedTransactionForChain resolved chain: ${chain} -> ${resolvedChain}`);
+  console.log(`[DEBUG] getUnsignedTransactionForChain resolved chain: ${chain} -> ${resolvedChain}`);
   
   const api = createContractsApi();
   const response = await api.callContractFunction(resolvedChain as any, address, contractLabel, method, { args, from, ...(value && { value }) });

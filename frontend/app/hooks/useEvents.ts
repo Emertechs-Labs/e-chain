@@ -99,7 +99,22 @@ export const useEventsByOrganizer = (organizer?: string) => {
       if (!targetOrganizer) return [];
 
       try {
-        // Get total event count to validate event IDs
+        // First try to get events from database (faster)
+        console.log('[useEventsByOrganizer] Trying database first...');
+        const dbResponse = await fetch('/api/events');
+        if (dbResponse.ok) {
+          const allEvents = await dbResponse.json();
+          const organizerEvents = allEvents.filter((event: Event) =>
+            event.organizer.toLowerCase() === targetOrganizer.toLowerCase()
+          );
+          if (organizerEvents.length > 0) {
+            console.log('[useEventsByOrganizer] Found events in database:', organizerEvents.length);
+            return organizerEvents;
+          }
+        }
+
+        // Fallback to blockchain if no events in database
+        console.log('[useEventsByOrganizer] No events in database, checking blockchain...');
         const eventCount = await readContract(config, {
           address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
           abi: CONTRACT_ABIS.EventFactory,
@@ -108,7 +123,6 @@ export const useEventsByOrganizer = (organizer?: string) => {
           chainId: 84532
         }) as bigint;
 
-        // Fetch all events and filter by organizer and active status
         const events: Event[] = [];
         for (let eventId = 1; eventId <= Number(eventCount); eventId++) {
           try {
@@ -120,7 +134,6 @@ export const useEventsByOrganizer = (organizer?: string) => {
               chainId: 84532
             }) as any;
 
-            // Only include active events owned by this organizer
             if (eventData.isActive && eventData.organizer.toLowerCase() === targetOrganizer.toLowerCase()) {
               const event: Event = {
                 id: Number(eventData.id),
@@ -143,25 +156,15 @@ export const useEventsByOrganizer = (organizer?: string) => {
               events.push(event);
             }
           } catch (error) {
-            // Silently skip failed event fetches
+            console.warn(`Failed to fetch event ${eventId}:`, error);
           }
         }
 
-        // If no events were fetched from contract, fall back to mock data
-        if (events.length === 0) {
-          console.log('[useEventsByOrganizer] No events found on contract, using mock data');
-          return mockEvents.filter(event => 
-            event.organizer.toLowerCase() === targetOrganizer.toLowerCase()
-          );
-        }
-
+        console.log('[useEventsByOrganizer] Found events on blockchain:', events.length);
         return events;
       } catch (error) {
         console.error('Error fetching organizer events:', error);
-        // Fallback to mock data filtered by organizer
-        return mockEvents.filter(event => 
-          event.organizer.toLowerCase() === targetOrganizer.toLowerCase()
-        );
+        return [];
       }
     },
     enabled: !!targetOrganizer,

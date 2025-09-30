@@ -1,18 +1,25 @@
 # 🔗 Echain - Blockchain Event Platform
 
+[![Solidity](https://img.shields.io/badge/Solidity-363636?style=for-the-badge&logo=solidity&logoColor=white)](https://soliditylang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Base](https://img.shields.io/badge/Base-0052FF?style=for-the-badge&logo=base&logoColor=white)](https://base.org/)
+[![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
+
 **A Web3-native event management platform built on Base using Curvegrid MultiBaas**
 
 Echain transforms traditional events into blockchain-powered experiences with NFT tickets, POAP certificates, and gamified participation.
 
 ## 📋 Deployed Contract Addresses (Base Sepolia)
 
-| Contract | Address |
-| -------- | ------- |
-| EventFactory | `0xA97cB40548905B05A67fCD4765438aFBEA4030fc` |
-| EventTicket | `0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C` |
-| POAPAttendance | `0x08344CfBfB3afB2e114A0dbABbaF40e7eB62FD33` |
-| IncentiveManager | `0x1cfDae689817B954b72512bC82f23F35B997617D` |
-| Marketplace | `0xD061393A54784da5Fea48CC845163aBc2B11537A` |
+| Contract | Address | Verified Link |
+| -------- | ------- | ------------- |
+| EventFactory | `0xA97cB40548905B05A67fCD4765438aFBEA4030fc` | [View on BaseScan](https://sepolia.basescan.org/address/0xA97cB40548905B05A67fCD4765438aFBEA4030fc#code) |
+| EventTicket | `0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C` | [View on BaseScan](https://sepolia.basescan.org/address/0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C#code) |
+| POAPAttendance | `0x08344CfBfB3afB2e114A0dbABbaF40e7eB62FD33` | [View on BaseScan](https://sepolia.basescan.org/address/0x08344CfBfB3afB2e114A0dbABbaF40e7eB62FD33#code) |
+| IncentiveManager | `0x1cfDae689817B954b72512bC82f23F35B997617D` | [View on BaseScan](https://sepolia.basescan.org/address/0x1cfDae689817B954b72512bC82f23F35B997617D#code) |
+| Marketplace | `0xD061393A54784da5Fea48CC845163aBc2B11537A` | [View on BaseScan](https://sepolia.basescan.org/address/0xD061393A54784da5Fea48CC845163aBc2B11537A#code) |
 
 ## 🎯 Key Features
 

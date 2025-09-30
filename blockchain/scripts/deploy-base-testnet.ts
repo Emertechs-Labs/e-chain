@@ -1,5 +1,4 @@
 import { ethers, run } from 'hardhat';
-import { EventFactory, IncentiveManager, POAPAttendance } from '../typechain-types';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -27,8 +26,15 @@ async function verifyContract(
 }
 
 async function main() {
-  console.log('🚀 Starting Echain deployment to Base Testnet...');
-  console.log('===============================================');
+  console.log('🚀 Starting Echain Full Deployment to Base Testnet...');
+  console.log('===================================================');
+  console.log('📋 Deployment Order:');
+  console.log('  1. EventTicket (Template)');
+  console.log('  2. EventFactory (Main Hub)');
+  console.log('  3. POAPAttendance (Proof of Attendance)');
+  console.log('  4. IncentiveManager (Rewards System)');
+  console.log('  5. Marketplace (Secondary Trading)');
+  console.log('');
 
   const [deployer] = await ethers.getSigners();
   const deployerAddress = deployer.address;
@@ -47,8 +53,8 @@ async function main() {
   }
 
   // Security check: Ensure we have enough ETH for deployment
-  if (balance < ethers.parseEther('0.01')) {
-    throw new Error('❌ Insufficient ETH balance for deployment (need at least 0.01 ETH)');
+  if (balance < ethers.parseEther('0.05')) {
+    throw new Error('❌ Insufficient ETH balance for deployment (need at least 0.05 ETH for all contracts)');
   }
 
   const deploymentResults = {
@@ -75,7 +81,7 @@ async function main() {
     // 2. Deploy EventFactory
     console.log('\n🏭 2/4 Deploying EventFactory...');
     const EventFactory = await ethers.getContractFactory('EventFactory');
-    const eventFactory = (await EventFactory.deploy(ticketAddress, deployerAddress)) as unknown as EventFactory;
+    const eventFactory = await EventFactory.deploy(ticketAddress, deployerAddress);
     await eventFactory.waitForDeployment();
 
     const factoryAddress = await eventFactory.getAddress();
@@ -85,7 +91,7 @@ async function main() {
     // 3. Deploy POAPAttendance
     console.log('\n🏆 3/4 Deploying POAPAttendance...');
     const POAPAttendance = await ethers.getContractFactory('POAPAttendance');
-    const poapAttendance = (await POAPAttendance.deploy(factoryAddress)) as unknown as POAPAttendance;
+    const poapAttendance = await POAPAttendance.deploy(factoryAddress);
     await poapAttendance.waitForDeployment();
 
     const poapAddress = await poapAttendance.getAddress();
@@ -93,18 +99,24 @@ async function main() {
     console.log(`✅ POAPAttendance: ${poapAddress}`);
 
     // 4. Deploy IncentiveManager
-    console.log('\n🎁 4/4 Deploying IncentiveManager...');
+    console.log('\n🎁 4/5 Deploying IncentiveManager...');
     const IncentiveManager = await ethers.getContractFactory('IncentiveManager');
-    const incentiveManager = (await IncentiveManager.deploy(
-      factoryAddress,
-      ticketAddress,
-      poapAddress,
-    )) as unknown as IncentiveManager;
+    const incentiveManager = await IncentiveManager.deploy(factoryAddress, ticketAddress, poapAddress);
     await incentiveManager.waitForDeployment();
 
     const incentiveAddress = await incentiveManager.getAddress();
     deploymentResults.contracts.IncentiveManager = incentiveAddress;
     console.log(`✅ IncentiveManager: ${incentiveAddress}`);
+
+    // 5. Deploy Marketplace
+    console.log('\n🛒 5/5 Deploying Marketplace...');
+    const Marketplace = await ethers.getContractFactory('Marketplace');
+    const marketplace = await Marketplace.deploy(deployerAddress);
+    await marketplace.waitForDeployment();
+
+    const marketplaceAddress = await marketplace.getAddress();
+    deploymentResults.contracts.Marketplace = marketplaceAddress;
+    console.log(`✅ Marketplace: ${marketplaceAddress}`);
 
     // 5. Configure contracts
     console.log('\n⚙️  Configuring contracts...');
@@ -121,17 +133,24 @@ async function main() {
 
     console.log('✅ Configuration completed');
 
-    // 6. Verify contracts on Base Sepolia explorer
-    console.log('\n🔍 Verifying contracts on Base Sepolia explorer...');
+    // 6. Configure Marketplace
+    console.log('\n🛒 Configuring Marketplace...');
 
-    // Wait a bit for the contracts to be indexed
-    console.log('⏳ Waiting for contracts to be indexed...');
-    await new Promise((resolve) => setTimeout(resolve, 30000)); // 30 seconds
+    // Approve EventTicket contract for marketplace use
+    console.log('  - Approving EventTicket contract for marketplace...');
+    const approveTicketTx = await marketplace.setContractApproval(ticketAddress, true);
+    await approveTicketTx.wait();
 
-    await verifyContract(ticketAddress, [], 'EventTicket Template');
+    console.log('✅ Marketplace configuration completed');
+
+    // 7. Verify contracts on BaseScan
+    console.log('\n🔍 Verifying contracts on BaseScan...');
+
+    await verifyContract(ticketAddress, [], 'EventTicket');
     await verifyContract(factoryAddress, [ticketAddress, deployerAddress], 'EventFactory');
     await verifyContract(poapAddress, [factoryAddress], 'POAPAttendance');
     await verifyContract(incentiveAddress, [factoryAddress, ticketAddress, poapAddress], 'IncentiveManager');
+    await verifyContract(marketplaceAddress, [deployerAddress], 'Marketplace');
 
     console.log('✅ Contract verification completed');
 
@@ -191,28 +210,32 @@ async function main() {
     console.log(`✅ Deployment results saved to: ${deploymentFile}`);
 
     // 10. Print summary
-    console.log('\n🎉 BASE TESTNET DEPLOYMENT COMPLETED SUCCESSFULLY!');
-    console.log('===============================================');
-    console.log('📋 Contract Addresses:');
+    console.log('\n🎉 ECHAIN FULL DEPLOYMENT COMPLETED SUCCESSFULLY!');
+    console.log('====================================================');
+    console.log('📋 Deployed Contracts (5/5):');
     Object.entries(deploymentResults.contracts).forEach(([name, address]) => {
       console.log(`  ${name}: ${address}`);
       console.log(`  🔗 ${deploymentResults.blockExplorer}/address/${address}`);
     });
 
     console.log('\n🔗 Next Steps:');
-    console.log('1. ✅ Verify contracts on Base Sepolia explorer');
-    console.log('2. ✅ Update frontend environment variables');
-    console.log('3. ✅ Test contract functionality on testnet');
-    console.log('4. ✅ Set up monitoring and alerts');
-    console.log('5. ✅ Document deployment for team');
+    console.log('1. ✅ Deploy all 5 Echain contracts to Base Sepolia');
+    console.log('2. ✅ Verify contracts on BaseScan');
+    console.log('3. ✅ Update frontend environment variables');
+    console.log('4. ✅ Test contract interactions on testnet');
+    console.log('5. ✅ Configure marketplace contract approvals');
+    console.log('6. ✅ Set up monitoring and alerts');
+    console.log('7. ✅ Document deployment for team');
 
     console.log('\n📱 Frontend Configuration:');
     console.log('Update your frontend .env file with:');
     console.log(`NEXT_PUBLIC_CHAIN_ID=84532`);
     console.log(`NEXT_PUBLIC_RPC_URL=https://sepolia.base.org`);
     console.log(`NEXT_PUBLIC_EVENT_FACTORY_ADDRESS=${factoryAddress}`);
+    console.log(`NEXT_PUBLIC_EVENT_TICKET_ADDRESS=${ticketAddress}`);
     console.log(`NEXT_PUBLIC_POAP_ADDRESS=${poapAddress}`);
     console.log(`NEXT_PUBLIC_INCENTIVE_ADDRESS=${incentiveAddress}`);
+    console.log(`NEXT_PUBLIC_MARKETPLACE_ADDRESS=${marketplaceAddress}`);
 
     return deploymentResults;
   } catch (error) {

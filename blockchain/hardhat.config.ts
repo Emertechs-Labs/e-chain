@@ -3,12 +3,16 @@ import '@nomicfoundation/hardhat-toolbox';
 import '@typechain/hardhat';
 import 'hardhat-multibaas-plugin';
 import path from 'path';
+import * as dotenv from 'dotenv';
 
-let deployerPrivateKey = '0x0000000000000000000000000000000000000000000000000000000000000000';
-let deploymentEndpoint = '';
-let adminApiKey = '';
-let web3Key = '';
-let rpcUrl = ''; // Required if web3Key is not provided
+// Load environment variables from .env file
+dotenv.config();
+
+let deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000';
+let deploymentEndpoint = process.env.MULTIBAAS_ENDPOINT || '';
+let adminApiKey = process.env.MULTIBAAS_ADMIN_KEY || '';
+let web3Key = process.env.MULTIBAAS_WEB3_KEY || '';
+let rpcUrl = process.env.BASE_TESTNET_RPC_URL || 'https://sepolia.base.org'; // Required if web3Key is not provided
 
 if (process.env['HARDHAT_NETWORK']) {
   const CONFIG_FILE = path.join(__dirname, `./deployment-config.${process.env['HARDHAT_NETWORK']}`);
@@ -23,6 +27,11 @@ const web3Url = web3Key ? `${deploymentEndpoint}/web3/${web3Key}` : rpcUrl;
 
 const config: HardhatUserConfig = {
   networks: {
+    localhost: {
+      url: 'http://127.0.0.1:8545',
+      accounts: [deployerPrivateKey],
+      chainId: 31337,
+    },
     development: {
       url: web3Url,
       accounts: [deployerPrivateKey],
@@ -32,16 +41,14 @@ const config: HardhatUserConfig = {
       accounts: [deployerPrivateKey],
     },
     'base-testnet': {
-      url: web3Url,
+      url: 'https://sepolia.base.org',
       accounts: [deployerPrivateKey],
       chainId: 84532,
       gasPrice: 'auto',
     },
   },
   etherscan: {
-    apiKey: {
-      'base-sepolia': process.env.BASESCAN_API_KEY || 'your-basescan-api-key',
-    },
+    apiKey: process.env.BASESCAN_API_KEY || 'A86YHZ4PPM6DS6BPSV9ERMUYAWF9FI6FZ6',
     customChains: [
       {
         network: 'base-sepolia',

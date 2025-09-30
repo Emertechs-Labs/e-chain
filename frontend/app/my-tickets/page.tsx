@@ -222,6 +222,7 @@ const MyTicketsPage: React.FC = () => {
               <div className="text-6xl mb-6">🎫</div>
               <h2 className="text-2xl font-bold text-white mb-4">No Tickets Yet</h2>
               <p className="text-gray-400 mb-8 max-w-md mx-auto">
+                {/* eslint-disable-next-line react/no-unescaped-entities */}
                 You haven't purchased any event tickets yet. Browse upcoming events and get your first NFT ticket!
               </p>
               <Link

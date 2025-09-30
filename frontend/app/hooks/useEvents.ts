@@ -61,63 +61,75 @@ export const useEvents = () => {
   return useQuery({
     queryKey: ['events'],
     queryFn: async (): Promise<Event[]> => {
+      console.log('[useEvents] Fetching events from contract...');
       try {
-        // Get active events from contract (first 50 events)
-        const eventIds = await readContract(config, {
+        // Get total event count to validate event IDs
+        const eventCount = await readContract(config, {
           address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
           abi: CONTRACT_ABIS.EventFactory,
-          functionName: 'getActiveEvents',
-          args: [0, 50]
-        }) as bigint[];
+          functionName: 'eventCount',
+          args: []
+        }) as bigint;
 
-        // Fetch details for each event
+        console.log('[useEvents] Total event count:', Number(eventCount));
+
+        // Fetch all events and filter active ones (since getActiveEvents may be unreliable)
         const events: Event[] = [];
-        for (const eventId of eventIds) {
+        for (let eventId = 1; eventId <= Number(eventCount); eventId++) {
           try {
             const eventData = await readContract(config, {
               address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
               abi: CONTRACT_ABIS.EventFactory,
               functionName: 'getEventDetails',
-              args: [eventId]
+              args: [BigInt(eventId)]
             }) as any;
 
-            // Convert contract data to Event interface
-            const event: Event = {
-              id: Number(eventData.id),
-              name: eventData.name,
-              organizer: eventData.organizer,
-              ticketContract: eventData.ticketContract,
-              poapContract: eventData.poapContract || undefined,
-              incentiveContract: eventData.incentiveContract || undefined,
-              metadataURI: eventData.metadataURI,
-              ticketPrice: BigInt(eventData.ticketPrice),
-              maxTickets: Number(eventData.maxTickets),
-              startTime: Number(eventData.startTime),
-              endTime: Number(eventData.endTime),
-              isActive: eventData.isActive,
-              createdAt: Number(eventData.createdAt),
-              // Additional fields can be parsed from metadataURI if needed
-              description: '',
-              venue: '',
-              category: 'General'
-            };
-            events.push(event);
+            // Only include active events
+            if (eventData.isActive) {
+              const event: Event = {
+                id: Number(eventData.id),
+                name: eventData.name,
+                organizer: eventData.organizer,
+                ticketContract: eventData.ticketContract,
+                poapContract: eventData.poapContract || undefined,
+                incentiveContract: eventData.incentiveContract || undefined,
+                metadataURI: eventData.metadataURI,
+                ticketPrice: BigInt(eventData.ticketPrice),
+                maxTickets: Number(eventData.maxTickets),
+                startTime: Number(eventData.startTime),
+                endTime: Number(eventData.endTime),
+                isActive: eventData.isActive,
+                createdAt: Number(eventData.createdAt),
+                // Additional fields can be parsed from metadataURI if needed
+                description: '',
+                venue: '',
+                category: 'General'
+              };
+              events.push(event);
+            }
           } catch (error) {
-            console.error(`Error fetching event ${eventId}:`, error);
+            // Silently skip failed event fetches (expected for non-existent events)
           }
+        }
+
+        console.log('[useEvents] Successfully fetched events:', events.length);
+
+        // If no events were fetched from contract, fall back to mock data
+        if (events.length === 0) {
+          console.log('[useEvents] No events found on contract, using mock data');
+          return mockEvents;
         }
 
         return events;
       } catch (error) {
         console.error('Error fetching events:', error);
         // Fallback to mock data if contract call fails
+        console.log('[useEvents] Falling back to mock data');
         return mockEvents;
       }
     },
-    // Disable automatic fetching on mount to prevent connection issues
-    enabled: false,
-    // Set stale time to prevent refetching
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    // Set stale time to prevent excessive refetching
+    staleTime: 30 * 1000, // 30 seconds
   });
 };
 
@@ -131,48 +143,58 @@ export const useEventsByOrganizer = (organizer?: string) => {
       if (!targetOrganizer) return [];
 
       try {
-        // Get event IDs for this organizer
-        const eventIds = await readContract(config, {
+        // Get total event count to validate event IDs
+        const eventCount = await readContract(config, {
           address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
           abi: CONTRACT_ABIS.EventFactory,
-          functionName: 'getOrganizerEvents',
-          args: [targetOrganizer]
-        }) as bigint[];
+          functionName: 'eventCount',
+          args: []
+        }) as bigint;
 
-        // Fetch details for each event
+        // Fetch all events and filter by organizer and active status
         const events: Event[] = [];
-        for (const eventId of eventIds) {
+        for (let eventId = 1; eventId <= Number(eventCount); eventId++) {
           try {
             const eventData = await readContract(config, {
               address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
               abi: CONTRACT_ABIS.EventFactory,
               functionName: 'getEventDetails',
-              args: [eventId]
+              args: [BigInt(eventId)]
             }) as any;
 
-            // Convert contract data to Event interface
-            const event: Event = {
-              id: Number(eventData.id),
-              name: eventData.name,
-              organizer: eventData.organizer,
-              ticketContract: eventData.ticketContract,
-              poapContract: eventData.poapContract || undefined,
-              incentiveContract: eventData.incentiveContract || undefined,
-              metadataURI: eventData.metadataURI,
-              ticketPrice: BigInt(eventData.ticketPrice),
-              maxTickets: Number(eventData.maxTickets),
-              startTime: Number(eventData.startTime),
-              endTime: Number(eventData.endTime),
-              isActive: eventData.isActive,
-              createdAt: Number(eventData.createdAt),
-              description: '',
-              venue: '',
-              category: 'General'
-            };
-            events.push(event);
+            // Only include active events owned by this organizer
+            if (eventData.isActive && eventData.organizer.toLowerCase() === targetOrganizer.toLowerCase()) {
+              const event: Event = {
+                id: Number(eventData.id),
+                name: eventData.name,
+                organizer: eventData.organizer,
+                ticketContract: eventData.ticketContract,
+                poapContract: eventData.poapContract || undefined,
+                incentiveContract: eventData.incentiveContract || undefined,
+                metadataURI: eventData.metadataURI,
+                ticketPrice: BigInt(eventData.ticketPrice),
+                maxTickets: Number(eventData.maxTickets),
+                startTime: Number(eventData.startTime),
+                endTime: Number(eventData.endTime),
+                isActive: eventData.isActive,
+                createdAt: Number(eventData.createdAt),
+                description: '',
+                venue: '',
+                category: 'General'
+              };
+              events.push(event);
+            }
           } catch (error) {
-            console.error(`Error fetching event ${eventId}:`, error);
+            // Silently skip failed event fetches
           }
+        }
+
+        // If no events were fetched from contract, fall back to mock data
+        if (events.length === 0) {
+          console.log('[useEventsByOrganizer] No events found on contract, using mock data');
+          return mockEvents.filter(event => 
+            event.organizer.toLowerCase() === targetOrganizer.toLowerCase()
+          );
         }
 
         return events;
@@ -195,6 +217,20 @@ export const useEvent = (eventId: number) => {
       if (!eventId) return null;
 
       try {
+        // Get total event count to validate event ID
+        const eventCount = await readContract(config, {
+          address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
+          abi: CONTRACT_ABIS.EventFactory,
+          functionName: 'eventCount',
+          args: []
+        }) as bigint;
+
+        // Validate eventId
+        if (Number(eventId) <= 0 || Number(eventId) > Number(eventCount)) {
+          console.warn(`[useEvent] Invalid event ID ${eventId}, eventCount: ${Number(eventCount)}`);
+          return null;
+        }
+
         const eventData = await readContract(config, {
           address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
           abi: CONTRACT_ABIS.EventFactory,

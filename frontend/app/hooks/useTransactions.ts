@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAccount, useWalletClient } from 'wagmi';
+import { useAccount, useWalletClient, useChainId, useSwitchChain } from 'wagmi';
+import { defaultChain } from '../../lib/wagmi';
 import { CONTRACT_ADDRESSES } from '../../lib/contracts';
 
 // Safe stringify that handles BigInt and circular refs for logging
@@ -45,6 +46,22 @@ const callUnsignedTx = async (
     if (!res.ok) {
       const err: any = new Error(data?.error || `MultiBaas proxy failed with status ${res.status}`);
       err.response = { status: res.status, data };
+
+      // Provide actionable guidance based on common upstream failures
+      const guidance: string[] = [];
+      if (res.status === 401) guidance.push('401 Unauthorized — check MULTIBAAS_API_KEY value and server env');
+      if (res.status === 403) guidance.push('403 Forbidden — check API key permissions (DApp User vs Administrator) and MultiBaas group roles');
+      if (res.status === 405) guidance.push('405 Method Not Allowed — ensure proxy calls use the SDK or correct HTTP method/path');
+      if (data?.error || data?.message) guidance.push(`Upstream message: ${data?.error || data?.message}`);
+
+      console.error('[useTransactions] proxy getUnsignedTransaction failed:', {
+        status: res.status,
+        error: data?.error ?? data?.message,
+        upstreamBody: data?.body ?? data,
+        upstreamStatus: data?.status,
+        guidance: guidance.join(' | '),
+      });
+
       throw err;
     }
 
@@ -149,6 +166,8 @@ export const useCreateEvent = () => {
   const { address } = useAccount();
   const queryClient = useQueryClient();
   const { data: walletClient } = useWalletClient();
+  const chainId = useChainId();
+  const { switchChain } = useSwitchChain();
 
   return useMutation({
     mutationFn: async (eventData: {
@@ -159,11 +178,32 @@ export const useCreateEvent = () => {
       startTime: number;
       endTime: number;
     }) => {
+      console.log('[useCreateEvent] Mutation started');
       const traceId = Date.now().toString(36);
       console.debug('[useCreateEvent] start', { traceId, eventData: safeStringify(eventData) });
       if (!address) throw new Error('Wallet not connected');
 
+      console.log('[useCreateEvent] Wallet connected, address:', address);
+
+      // Check if on Base Sepolia testnet, switch if not
+      console.log('[useCreateEvent] Current chainId:', chainId);
+      if (chainId !== 84532) {
+        console.log('[useCreateEvent] Switching to Base Sepolia testnet');
+        try {
+          await switchChain({ chainId: 84532 });
+          // Wait a bit for the switch
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          console.log('[useCreateEvent] Switched to Base Sepolia');
+        } catch (error) {
+          console.error('[useCreateEvent] Switch failed:', error);
+          throw new Error('Failed to switch to Base Sepolia testnet. Please switch manually.');
+        }
+      }
+
+      console.log('[useCreateEvent] On correct network, proceeding');
+
       try {
+        console.log('[useCreateEvent] Calling callUnsignedTx');
         const result = await callUnsignedTx(
           CONTRACT_ADDRESSES.EventFactory,
           'EventFactory',
@@ -181,19 +221,28 @@ export const useCreateEvent = () => {
           traceId
         );
 
+        console.log('[useCreateEvent] callUnsignedTx success');
         console.debug('[useCreateEvent] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });
 
         const txData = result?.tx || result;
         const formatted = formatForWallet(txData, address);
 
+        console.log('[useCreateEvent] formatted tx, checking walletClient');
         console.debug('[useCreateEvent] formatted tx ready for wallet', { traceId, formatted: safeStringify(formatted) });
 
         // Ensure wallet client is available then send transaction
-        if (!walletClient) throw new Error('No wallet client available');
+        if (!walletClient) {
+          console.error('[useCreateEvent] No wallet client available');
+          throw new Error('No wallet client available');
+        }
 
+        console.log('[useCreateEvent] walletClient available, sending transaction');
+        console.log('[useCreateEvent] walletClient.account:', walletClient.account?.address);
+        console.log('[useCreateEvent] useAccount address:', address);
         console.debug('[useCreateEvent] calling walletClient.sendTransaction', { traceId, payload: safeStringify(formatted) });
         const txHash = await walletClient.sendTransaction(formatted as any);
 
+        console.log('[useCreateEvent] sendTransaction success, txHash:', txHash);
         console.debug('[useCreateEvent] wallet sendTransaction result', { traceId, txHash });
 
         // Return the transaction hash so callers can track status
@@ -206,7 +255,8 @@ export const useCreateEvent = () => {
         throw new Error(handleTransactionError(error));
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('[useCreateEvent] Transaction confirmed, invalidating queries', { txHash: data.txHash });
       queryClient.invalidateQueries({ queryKey: ['events'] });
       if (address) {
         queryClient.invalidateQueries({ queryKey: ['events', 'organizer', address] });

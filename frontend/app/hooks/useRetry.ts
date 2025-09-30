@@ -28,7 +28,6 @@ const DEFAULT_RETRY_OPTIONS: Required<RetryOptions> = {
  * Hook for implementing retry logic with exponential backoff
  */
 export function useRetry(options: RetryOptions = {}) {
-  const config = { ...DEFAULT_RETRY_OPTIONS, ...options };
   const [state, setState] = useState<RetryState>({
     isRetrying: false,
     attempts: 0,
@@ -36,6 +35,7 @@ export function useRetry(options: RetryOptions = {}) {
 
   const executeWithRetry = useCallback(
     async <T>(operation: () => Promise<T>): Promise<T> => {
+      const config = { ...DEFAULT_RETRY_OPTIONS, ...options };
       let lastError: Error;
 
       for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
@@ -88,7 +88,7 @@ export function useRetry(options: RetryOptions = {}) {
 
       throw lastError!;
     },
-    [config]
+    [options]
   );
 
   const reset = useCallback(() => {

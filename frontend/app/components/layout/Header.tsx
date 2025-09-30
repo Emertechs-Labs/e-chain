@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { EnhancedConnectButton } from '../EnhancedConnectButton';
 import { ThemeToggle } from '../ThemeToggle';
+import { usePendingTransactions } from '../TransactionStatus';
+import { Clock } from 'lucide-react';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

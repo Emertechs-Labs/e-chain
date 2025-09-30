@@ -24,7 +24,7 @@ export function TestimonialsSection() {
               </div>
             </div>
             <div className="text-gray-300 mb-3 text-sm">
-              "Echain revolutionized how I run events. The NFT tickets and transparent transactions gave my attendees peace of mind."
+              &ldquo;Echain revolutionized how I run events. The NFT tickets and transparent transactions gave my attendees peace of mind.&rdquo;
             </div>
             <div className="flex text-yellow-400 text-sm">
               ★★★★★
@@ -42,7 +42,7 @@ export function TestimonialsSection() {
               </div>
             </div>
             <div className="text-gray-300 mb-3 text-sm">
-              "Finally, event tickets that I can trust! The POAP rewards make attending events even more exciting."
+              &ldquo;Finally, event tickets that I can trust! The POAP rewards make attending events even more exciting.&rdquo;
             </div>
             <div className="flex text-yellow-400 text-sm">
               ★★★★★
@@ -60,7 +60,7 @@ export function TestimonialsSection() {
               </div>
             </div>
             <div className="text-gray-300 mb-3 text-sm">
-              "The transparency and security of blockchain-based ticketing is exactly what the industry needed."
+              &ldquo;The transparency and security of blockchain-based ticketing is exactly what the industry needed.&rdquo;
             </div>
             <div className="flex text-yellow-400 text-sm">
               ★★★★★

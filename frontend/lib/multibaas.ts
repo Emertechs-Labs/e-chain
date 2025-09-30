@@ -1,179 +1,96 @@
 import { Configuration, ContractsApi } from '@curvegrid/multibaas-sdk';
 
-// Validate environment variables
-const validateEnvironment = () => {
-  const requiredEnvVars = {
-    NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL: process.env.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL,
-    NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY: process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY,
+// Read environment but avoid throwing during module import. Validate at runtime.
+const envVars = {
+  MULTIBAAS_API_KEY: process.env.MULTIBAAS_API_KEY,
+  NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY: process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY,
+  NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL: process.env.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL,
+  NEXT_PUBLIC_MULTIBAAS_CHAIN: process.env.NEXT_PUBLIC_MULTIBAAS_CHAIN,
+  NEXT_PUBLIC_MULTIBAAS_CHAIN_ID: process.env.NEXT_PUBLIC_MULTIBAAS_CHAIN_ID,
+};
+
+if (!envVars.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL || (!envVars.MULTIBAAS_API_KEY && !envVars.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY)) {
+  console.warn('[multibaas] Some MultiBaas environment variables are missing. Set MULTIBAAS_API_KEY and NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL to enable server-side calls.');
+}
+
+const CHAIN_ID_TO_LABEL: Record<string, string> = {
+  '84532': 'ethereum',
+};
+
+const explicitChain = envVars.NEXT_PUBLIC_MULTIBAAS_CHAIN;
+const numericChainId = envVars.NEXT_PUBLIC_MULTIBAAS_CHAIN_ID;
+export const CHAIN_NAME = (() => {
+  if (explicitChain) {
+    if (/^\d+$/.test(explicitChain)) {
+      return CHAIN_ID_TO_LABEL[explicitChain] || explicitChain;
+    }
+    return explicitChain;
+  }
+
+  if (numericChainId) {
+    return CHAIN_ID_TO_LABEL[numericChainId] || numericChainId;
+  }
+
+  return 'base-sepolia';
+})();
+
+const normalizeBasePath = (raw?: string) => {
+  if (!raw) return undefined;
+  if (raw.includes('/api/')) return raw.replace(/\/$/, '');
+  return raw.replace(/\/$/, '') + '/api/v0';
+};
+
+const getAccessToken = () => envVars.MULTIBAAS_API_KEY || envVars.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY;
+
+const createContractsApi = () => {
+  const basePath = normalizeBasePath(envVars.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL);
+  const accessToken = getAccessToken();
+
+  if (!basePath) throw new Error('[multibaas] MULTIBAAS deployment URL is not configured.');
+  if (!accessToken) throw new Error('[multibaas] MULTIBAAS API key is not configured.');
+
+  const cfg = new Configuration({ basePath, accessToken });
+  return new ContractsApi(cfg);
+};
+
+export const callContractRead = async (address: string, contractLabel: string, method: string, args: any[] = []) => {
+  const api = createContractsApi();
+  const response = await api.callContractFunction(CHAIN_NAME as any, address, contractLabel, method, { args });
+  const result = response.data.result;
+  if (result.kind === 'MethodCallResponse') return result.output;
+  throw new Error(`Unexpected response type for read call: ${result.kind}`);
+};
+
+export const callContractWrite = async (address: string, contractLabel: string, method: string, args: any[] = [], from: string, value?: string) => {
+  const api = createContractsApi();
+  const response = await api.callContractFunction(CHAIN_NAME as any, address, contractLabel, method, { args, from, ...(value && { value }) });
+  const result = response.data.result;
+  if (result.kind === 'TransactionToSignResponse') return result;
+  throw new Error(`Unexpected response type for write call: ${result.kind}`);
+};
+
+export const getUnsignedTransaction = async (address: string, contractLabel: string, method: string, args: any[] = [], from: string, value?: string) => {
+  const api = createContractsApi();
+  const response = await api.callContractFunction(CHAIN_NAME as any, address, contractLabel, method, { args, from, ...(value && { value }) });
+  const result = response.data.result;
+  if (result.kind === 'TransactionToSignResponse') return result;
+  throw new Error(`Unexpected response type for unsigned transaction: ${result.kind}`);
+};
+
+export const getUnsignedTransactionForChain = async (chain: string, address: string, contractLabel: string, method: string, args: any[] = [], from: string, value?: string) => {
+  const normalizeChainLabel = (input?: string) => {
+    if (!input) return CHAIN_NAME;
+    const s = String(input).trim();
+    const m = s.match(/^eip155[:\-]?(\d+)$/i);
+    if (m) return CHAIN_ID_TO_LABEL[m[1]] || CHAIN_NAME;
+    if (/^\d+$/.test(s)) return CHAIN_ID_TO_LABEL[s] || CHAIN_NAME;
+    return s;
   };
 
-  const missingVars = Object.entries(requiredEnvVars)
-    .filter(([key, value]) => !value)
-    .map(([key]) => key);
-
-  if (missingVars.length > 0) {
-    console.error('Missing environment variables:', missingVars);
-    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
-  }
-
-  return requiredEnvVars;
-};
-
-// Validate environment on module load
-const envVars = validateEnvironment();
-
-// MultiBaas API client configuration
-const multiBaasConfig = new Configuration({
-  basePath: envVars.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL,
-  apiKey: envVars.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY,
-});
-
-// Create API clients
-export const contractsApi = new ContractsApi(multiBaasConfig);
-
-// Helper function to call contract read methods
-export const callContractRead = async (
-  address: string,
-  contractLabel: string,
-  method: string,
-  args: any[] = []
-) => {
-  try {
-    console.log('MultiBaas callContractRead:', {
-      address,
-      contractLabel,
-      method,
-      args,
-      basePath: process.env.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL,
-      hasApiKey: !!process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY
-    });
-
-    const response = await contractsApi.callContractFunction(
-      'ethereum', // chain
-      address, // addressOrAlias
-      contractLabel, // contract
-      method, // method
-      { args } // postMethodArgs
-    );
-
-    console.log('MultiBaas response:', response.data);
-
-    const result = response.data.result;
-    if (result.kind === 'MethodCallResponse') {
-      return result.output;
-    } else {
-      throw new Error(`Unexpected response type for read call: ${result.kind}`);
-    }
-  } catch (error: any) {
-    console.error('MultiBaas callContractRead error:', {
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data
-    });
-    throw error;
-  }
-};
-
-// Helper function to call contract write methods (transactions)
-export const callContractWrite = async (
-  address: string,
-  contractLabel: string,
-  method: string,
-  args: any[] = [],
-  from: string, // Required for write operations
-  value?: string // For payable functions
-) => {
-  try {
-    console.log('MultiBaas callContractWrite:', {
-      address,
-      contractLabel,
-      method,
-      args,
-      from,
-      value,
-      basePath: process.env.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL,
-      hasApiKey: !!process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY
-    });
-
-    const response = await contractsApi.callContractFunction(
-      'ethereum', // chain
-      address, // addressOrAlias
-      contractLabel, // contract
-      method, // method
-      {
-        args,
-        from, // Required for write operations
-        ...(value && { value }) // Include value for payable functions
-      }
-    );
-
-    console.log('MultiBaas write response:', response.data);
-
-    const result = response.data.result;
-    if (result.kind === 'TransactionToSignResponse') {
-      return result;
-    } else {
-      throw new Error(`Unexpected response type for write call: ${result.kind}`);
-    }
-  } catch (error: any) {
-    console.error('MultiBaas callContractWrite error:', {
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      config: error.config
-    });
-    throw error;
-  }
-};
-
-// Helper function to get unsigned transaction for wallet signing
-export const getUnsignedTransaction = async (
-  address: string,
-  contractLabel: string,
-  method: string,
-  args: any[] = [],
-  from: string, // Required for transaction preparation
-  value?: string
-) => {
-  try {
-    console.log('MultiBaas getUnsignedTransaction:', {
-      address,
-      contractLabel,
-      method,
-      args,
-      from,
-      value
-    });
-
-    const response = await contractsApi.callContractFunction(
-      'ethereum',
-      address,
-      contractLabel,
-      method,
-      {
-        args,
-        from, // Required for transaction preparation
-        ...(value && { value })
-      }
-    );
-
-    console.log('MultiBaas unsigned transaction response:', response.data);
-
-    const result = response.data.result;
-    if (result.kind === 'TransactionToSignResponse') {
-      return result;
-    } else {
-      throw new Error(`Unexpected response type for unsigned transaction: ${result.kind}`);
-    }
-  } catch (error: any) {
-    console.error('MultiBaas getUnsignedTransaction error:', {
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data
-    });
-    throw error;
-  }
+  const resolvedChain = normalizeChainLabel(chain);
+  const api = createContractsApi();
+  const response = await api.callContractFunction(resolvedChain as any, address, contractLabel, method, { args, from, ...(value && { value }) });
+  const result = response.data.result;
+  if (result.kind === 'TransactionToSignResponse') return result;
+  throw new Error(`Unexpected response type for unsigned transaction: ${result.kind}`);
 };

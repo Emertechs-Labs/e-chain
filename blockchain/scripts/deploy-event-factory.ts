@@ -1,5 +1,17 @@
 import { ethers } from 'hardhat';
-import { EventFactory } from '../typechain-types';
+import * as fs from 'fs';
+import * as path from 'path';
+
+type MinimalFactory = {
+  waitForDeployment?: () => Promise<void>;
+  getAddress?: () => Promise<string>;
+  eventCount: () => Promise<bigint>;
+  isVerifiedOrganizer: (addr: string) => Promise<boolean>;
+  platformFeeBps: () => Promise<bigint>;
+  treasury: () => Promise<string>;
+  createEvent: (...args: unknown[]) => Promise<{ wait: () => Promise<void> }>;
+  getEvent: (id: bigint | number | string) => Promise<unknown>;
+};
 
 async function main() {
   console.log('🚀 Deploying Echain Event Platform...');
@@ -13,9 +25,9 @@ async function main() {
   // Deploy EventTicket template first
   console.log('\n📋 Deploying EventTicket template...');
   const EventTicket = await ethers.getContractFactory('EventTicket');
-  const eventTicketTemplate = await EventTicket.deploy();
-  await eventTicketTemplate.waitForDeployment();
-  console.log('✅ EventTicket template deployed to:', await eventTicketTemplate.getAddress());
+  const eventTicketTemplate = (await EventTicket.deploy()) as unknown as MinimalFactory;
+  await eventTicketTemplate.waitForDeployment?.();
+  console.log('✅ EventTicket template deployed to:', await eventTicketTemplate.getAddress?.());
 
   // Set treasury address (for now, use deployer address)
   const treasuryAddress = deployer.address;
@@ -23,12 +35,13 @@ async function main() {
   // Deploy EventFactory
   console.log('\n🏭 Deploying EventFactory...');
   const EventFactory = await ethers.getContractFactory('EventFactory');
+  // Deploy as a minimally-typed contract to avoid TypeChain mismatches in this script
   const eventFactory = (await EventFactory.deploy(
-    await eventTicketTemplate.getAddress(),
+    await eventTicketTemplate.getAddress?.(),
     treasuryAddress,
-  )) as EventFactory;
-  await eventFactory.waitForDeployment();
-  console.log('✅ EventFactory deployed to:', await eventFactory.getAddress());
+  )) as unknown as MinimalFactory;
+  await eventFactory.waitForDeployment?.();
+  console.log('✅ EventFactory deployed to:', await eventFactory.getAddress?.());
 
   // Verify deployment
   console.log('\n🔍 Verifying deployment...');
@@ -46,35 +59,58 @@ async function main() {
   console.log('\n🎪 Creating test event...');
   const testEventTx = await eventFactory.createEvent(
     'Echain Launch Event',
-    'ipfs://QmTestMetadata123', // Placeholder IPFS hash
-    ethers.parseEther('0.01'), // 0.01 ETH per ticket
-    100, // Max 100 tickets
-    Math.floor(Date.now() / 1000) + 86400, // Start in 24 hours
-    Math.floor(Date.now() / 1000) + 86400 + 7200, // End 2 hours after start
+    'ipfs://QmTestMetadata123',
+    ethers.parseEther('0.01'),
+    100,
+    Math.floor(Date.now() / 1000) + 86400,
+    Math.floor(Date.now() / 1000) + 86400 + 7200,
   );
+  await testEventTx.wait();
 
-  const receipt = await testEventTx.wait();
-  const eventCreatedEvent = receipt.events?.find((e) => e.event === 'EventCreated');
+  // Read the new event count and fetch the latest event by id
+  const updatedCount = await eventFactory.eventCount();
+  const eventId = updatedCount; // event IDs start at 1 and eventCount reflects total events
 
-  if (eventCreatedEvent) {
-    const eventId = eventCreatedEvent.args?.eventId;
-    const ticketContract = eventCreatedEvent.args?.ticketContract;
-
+  try {
+    const eventDetails: unknown = await eventFactory.getEvent(eventId);
     console.log('✅ Test event created:');
     console.log('  - Event ID:', eventId.toString());
-    console.log('  - Ticket contract:', ticketContract);
 
-    // Get event details
-    const eventDetails = await eventFactory.getEvent(eventId);
-    console.log('  - Event name:', eventDetails.name);
-    console.log('  - Ticket price:', ethers.formatEther(eventDetails.ticketPrice), 'ETH');
-    console.log('  - Max tickets:', eventDetails.maxTickets.toString());
+    const asRecord = (v: unknown): Record<string, unknown> | null =>
+      v && typeof v === 'object' ? (v as Record<string, unknown>) : null;
+    const ed = asRecord(eventDetails);
+    if (ed) {
+      const nameField = ed['name'];
+      let name: string | undefined;
+      if (typeof nameField === 'string') {
+        name = nameField;
+      } else if (typeof ed[5] === 'string') {
+        name = ed[5];
+      } else {
+        name = undefined;
+      }
+      const ticketPrice = ed['ticketPrice'] ?? ed[7];
+      const maxTickets = ed['maxTickets'] ?? ed[8];
+
+      console.log('  - Event name:', name ?? 'N/A');
+      if (ticketPrice != null) {
+        // Print as-is; this is a best-effort display for debugging
+        console.log('  - Ticket price (raw):', ticketPrice);
+      } else {
+        console.log('  - Ticket price: N/A');
+      }
+      console.log('  - Max tickets:', maxTickets != null ? maxTickets : 'N/A');
+    } else {
+      console.log('  - Event details not available (untyped contract response)');
+    }
+  } catch (err) {
+    console.warn('Could not fetch event details after creation:', err);
   }
 
   console.log('\n🎉 Deployment completed successfully!');
   console.log('\n📋 Contract Addresses:');
-  console.log('EventFactory:', await eventFactory.getAddress());
-  console.log('EventTicket Template:', await eventTicketTemplate.getAddress());
+  console.log('EventFactory:', await eventFactory.getAddress?.());
+  console.log('EventTicket Template:', await eventTicketTemplate.getAddress?.());
 
   console.log('\n🔗 Next steps:');
   console.log('1. Update frontend environment variables with contract addresses');
@@ -88,19 +124,16 @@ async function main() {
     timestamp: new Date().toISOString(),
     deployer: deployer.address,
     contracts: {
-      EventFactory: await eventFactory.getAddress(),
-      EventTicketTemplate: await eventTicketTemplate.getAddress(),
+      EventFactory: await eventFactory.getAddress?.(),
+      EventTicketTemplate: await eventTicketTemplate.getAddress?.(),
     },
     gasUsed: {
       EventTicket: 'N/A', // Gas usage tracking needs different approach in ethers v6
       EventFactory: 'N/A',
     },
-  };
+  } as const;
 
-  const fs = require('fs');
-  const path = require('path');
   const deploymentsDir = path.join(__dirname, '..', 'deployments');
-
   if (!fs.existsSync(deploymentsDir)) {
     fs.mkdirSync(deploymentsDir);
   }

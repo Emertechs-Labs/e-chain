@@ -38,6 +38,7 @@ const MyEventsPage: React.FC = () => {
               </div>
               <h1 className="text-4xl font-bold text-white mb-4">Manage Your Events</h1>
               <p className="text-gray-400 max-w-2xl">
+                {/* eslint-disable-next-line react/no-unescaped-entities */}
                 View, manage, and track all events you've created on the blockchain.
               </p>
             </div>
@@ -109,6 +110,7 @@ const MyEventsPage: React.FC = () => {
               <div className="text-6xl mb-6">📅</div>
               <h2 className="text-2xl font-bold text-white mb-4">No Events Yet</h2>
               <p className="text-gray-400 mb-8 max-w-md mx-auto">
+                {/* eslint-disable-next-line react/no-unescaped-entities */}
                 You haven't created any events yet. Start by creating your first blockchain event.
               </p>
               <Link

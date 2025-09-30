@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "prepare": "cd .. && husky blockchain/.husky",
-    "fix:eslint": "eslint --fix '{*,**/*}.{js,ts}'",
+    "fix:eslint": "eslint --fix {*,**/*}.{js,ts}",
     "fix:prettier": "prettier --write --plugin=prettier-plugin-solidity 'contracts/**/*.sol'",
     "fix:solhint": "solhint --fix --noPrompt 'contracts/**/*.sol'",
     "fix:sol": "npm run fix:prettier && npm run fix:solhint",
@@ -14,7 +14,7 @@
     "deploy:voting:dev": "HARDHAT_NETWORK=development npx hardhat run scripts/deploy-mb.ts",
     "deploy:voting:testing": "HARDHAT_NETWORK=testing npx hardhat run scripts/deploy-mb.ts",
     "deploy:events:dev": "HARDHAT_NETWORK=development npx hardhat run scripts/deploy-event-factory.ts",
-    "deploy:events:testing": "HARDHAT_NETWORK=testing npx hardhat run scripts/deploy-event-factory.ts"
+    "register:multibaas": "npx hardhat run scripts/register-contracts-multibaas.ts"
   },
   "repository": {
     "type": "git",

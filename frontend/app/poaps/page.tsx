@@ -232,6 +232,7 @@ const POAPsPage: React.FC = () => {
               <div className="text-6xl mb-6">🏆</div>
               <h2 className="text-2xl font-bold text-white mb-4">No POAPs Yet</h2>
               <p className="text-gray-400 mb-8 max-w-md mx-auto">
+                {/* eslint-disable-next-line react/no-unescaped-entities */}
                 You haven't collected any Proof of Attendance certificates yet. Attend events and claim your POAPs to build your on-chain event history!
               </p>
               <Link
@@ -281,6 +282,7 @@ const POAPsPage: React.FC = () => {
                 <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-2xl p-6">
                   <h3 className="text-xl font-bold text-white mb-2">🏆 Event Enthusiast</h3>
                   <p className="text-gray-400">
+                    {/* eslint-disable-next-line react/no-unescaped-entities */}
                     You've attended {poaps.length} events and collected {poaps.length} unique POAPs.
                     Your on-chain event history is growing!
                   </p>

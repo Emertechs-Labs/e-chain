@@ -283,22 +283,13 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
         uint256 returnedCount = 0;
         uint256[] memory tempIds = new uint256[](limit);
 
-        // Single pass: count active events and collect requested range efficiently
-        for (uint256 i = 1; i <= eventCount && returnedCount < limit; i++) {
+        // Count all active events and collect the requested range
+        for (uint256 i = 1; i <= eventCount; i++) {
             if (events[i].isActive && events[i].endTime > block.timestamp) {
-                if (totalActiveCount >= offset) {
+                totalActiveCount++;
+                if (totalActiveCount > offset && returnedCount < limit) {
                     tempIds[returnedCount] = i;
                     returnedCount++;
-                }
-                totalActiveCount++;
-            }
-        }
-        
-        // Continue counting remaining active events for hasMore calculation
-        if (returnedCount == limit) {
-            for (uint256 i = 1; i <= eventCount; i++) {
-                if (events[i].isActive && events[i].endTime > block.timestamp) {
-                    totalActiveCount++;
                 }
             }
         }

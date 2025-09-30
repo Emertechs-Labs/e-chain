@@ -1,9 +1,9 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WagmiConfig } from 'wagmi';
+import { WagmiProvider } from 'wagmi';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
-import { baseSepolia } from 'wagmi/chains';
+import { defaultChain } from '../lib/wagmi';
 import { Toaster } from 'sonner';
 import { config } from '../lib/wagmi';
 import { ThemeProvider } from '../lib/theme-provider';
@@ -23,21 +23,21 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="echain-theme">
-  <WagmiConfig config={config}>
+      <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider
             appInfo={{
               appName: 'Echain Event Ticketing',
               learnMoreUrl: 'http://localhost:3000',
             }}
-            initialChain={baseSepolia}
+            initialChain={defaultChain}
             showRecentTransactions={true}
           >
             {children}
             <Toaster position="top-right" />
           </RainbowKitProvider>
         </QueryClientProvider>
-  </WagmiConfig>
+      </WagmiProvider>
     </ThemeProvider>
   );
 }

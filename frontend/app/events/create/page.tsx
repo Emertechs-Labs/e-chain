@@ -3,8 +3,10 @@
 import React, { useState } from "react";
 import { useAccount } from "wagmi";
 import { useCreateEvent } from "../../hooks/useTransactions";
+import SignAndSendUnsignedTx from '../../../components/SignAndSendUnsignedTx';
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { TransactionStatus, usePendingTransactions } from "../../components/TransactionStatus";
 
 interface EventForm {
   name: string;
@@ -20,10 +22,12 @@ interface EventForm {
 }
 
 const CreateEventPage: React.FC = () => {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const router = useRouter();
   const createEventMutation = useCreateEvent();
   const [isLoading, setIsLoading] = useState(false);
+  const [preparedPayload, setPreparedPayload] = useState<Record<string, any> | null>(null);
+  const { pendingTxs, addTransaction, removeTransaction } = usePendingTransactions();
   const [formData, setFormData] = useState<EventForm>({
     name: "",
     description: "",
@@ -36,6 +40,25 @@ const CreateEventPage: React.FC = () => {
     saleEndDate: "",
     imageUrl: ""
   });
+  const getMinDateTime = () => {
+    const now = new Date();
+    now.setHours(now.getHours() + 1); // At least 1 hour from now
+    return now.toISOString().slice(0, 16); // Format for datetime-local
+  };
+
+  const getMaxStartDateTime = (endDate: string) => {
+    if (!endDate) return '';
+    const end = new Date(endDate);
+    end.setHours(end.getHours() - 1); // Start must be at least 1 hour before end
+    return end.toISOString().slice(0, 16);
+  };
+
+  const getMaxSaleEndDateTime = (startDate: string) => {
+    if (!startDate) return '';
+    const start = new Date(startDate);
+    start.setMinutes(start.getMinutes() - 1); // Sale end must be before start
+    return start.toISOString().slice(0, 16);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -51,30 +74,81 @@ const CreateEventPage: React.FC = () => {
       toast.error("Please connect your wallet first");
       return;
     }
-
+    setIsLoading(true);
     try {
+      // Validate required fields
+      if (!formData.startDate || !formData.endDate || !formData.saleEndDate) {
+        toast.error("Please fill in all required date fields");
+        return;
+      }
+
       // Convert form data to contract parameters
+      const startTime = Math.floor(new Date(formData.startDate).getTime() / 1000);
+      const endTime = Math.floor(new Date(formData.endDate).getTime() / 1000);
+      const saleEndTime = Math.floor(new Date(formData.saleEndDate).getTime() / 1000);
+      const now = Math.floor(Date.now() / 1000);
+      const oneHourFromNow = now + 3600;
+
+      // Validate dates with detailed error messages
+      if (isNaN(startTime) || isNaN(endTime) || isNaN(saleEndTime)) {
+        toast.error("Invalid date format. Please use the date picker.");
+        return;
+      }
+
+      if (startTime <= oneHourFromNow) {
+        toast.error("Event start time must be at least 1 hour in the future");
+        return;
+      }
+
+      if (endTime <= startTime) {
+        toast.error("Event end time must be after start time");
+        return;
+      }
+
+      if (endTime - startTime < 3600) { // At least 1 hour duration
+        toast.error("Event must be at least 1 hour long");
+        return;
+      }
+
+      if (saleEndTime >= startTime) {
+        toast.error("Ticket sales must end before the event starts");
+        return;
+      }
+
       const eventData = {
         name: formData.name,
         metadataURI: formData.imageUrl || "ipfs://placeholder", // TODO: Upload to IPFS
         ticketPrice: (parseFloat(formData.ticketPrice) * 1e18).toString(), // Convert ETH to wei
         maxTickets: parseInt(formData.maxTickets),
-        startTime: Math.floor(new Date(formData.startDate).getTime() / 1000),
-        endTime: Math.floor(new Date(formData.endDate).getTime() / 1000)
+        startTime,
+        endTime
       };
+  // Prepare payload for server-side unsigned tx creation
+      const payload = {
+        address: 'eventfactory',
+        contractLabel: 'eventfactory',
+        method: 'createEvent',
+        blockchain: 'eip155-84532',
+        args: [
+          eventData.name,
+          eventData.metadataURI,
+          String(eventData.ticketPrice),
+          String(eventData.maxTickets),
+          String(eventData.startTime),
+          String(eventData.endTime)
+        ],
+        from: address ?? undefined, // prefer connected wallet address
+        autoStart: true,
+        traceId: `create-event-${Date.now()}`
+      } as Record<string, any>;
 
-      toast.loading("Creating event on blockchain...");
-
-      // Create event via blockchain
-      await createEventMutation.mutateAsync(eventData);
-
+      // Store prepared payload and flip UI to show wallet signing component
+      setPreparedPayload(payload);
       toast.dismiss();
-      toast.success("Event created successfully!");
-
-      // Redirect to events page on success
-      router.push('/events');
+      setIsLoading(false);
     } catch (error: any) {
       toast.dismiss();
+      setIsLoading(false);
       toast.error(error.message || "Failed to create event. Please try again.");
     }
   };  if (!isConnected) {
@@ -109,7 +183,7 @@ const CreateEventPage: React.FC = () => {
       </section>
 
       {/* Form */}
-      <section className="py-16 bg-slate-900">
+  <section className="py-16 bg-slate-900">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <form onSubmit={handleSubmit} className="space-y-8">
@@ -203,6 +277,8 @@ const CreateEventPage: React.FC = () => {
                       value={formData.startDate}
                       onChange={handleInputChange}
                       required
+                      min={getMinDateTime()}
+                      max={getMaxStartDateTime(formData.endDate)}
                       placeholder="Select event start date and time"
                       className="w-full bg-slate-700 text-white px-4 py-3 rounded-lg border border-slate-600 focus:border-cyan-500 focus:outline-none"
                     />
@@ -218,6 +294,7 @@ const CreateEventPage: React.FC = () => {
                       value={formData.endDate}
                       onChange={handleInputChange}
                       required
+                      min={formData.startDate || getMinDateTime()}
                       placeholder="Select event end date and time"
                       className="w-full bg-slate-700 text-white px-4 py-3 rounded-lg border border-slate-600 focus:border-cyan-500 focus:outline-none"
                     />
@@ -233,6 +310,7 @@ const CreateEventPage: React.FC = () => {
                       value={formData.saleEndDate}
                       onChange={handleInputChange}
                       required
+                      max={getMaxSaleEndDateTime(formData.startDate)}
                       placeholder="Select ticket sales end date and time"
                       className="w-full bg-slate-700 text-white px-4 py-3 rounded-lg border border-slate-600 focus:border-cyan-500 focus:outline-none"
                     />
@@ -305,17 +383,39 @@ const CreateEventPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Submit Button */}
+              {/* Transaction Status */}
+              {pendingTxs.length > 0 && (
+                <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-8">
+                  <h2 className="text-2xl font-bold text-white mb-6">Transaction Status</h2>
+                  <div className="space-y-4">
+                    {pendingTxs.map((tx) => (
+                      <TransactionStatus
+                        key={tx.hash}
+                        hash={tx.hash}
+                        description={tx.description}
+                        onComplete={() => {
+                          removeTransaction(tx.hash);
+                          toast.success("Event created successfully!");
+                          router.push('/my-events');
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Submit Button / Wallet signing flow */}
               <div className="text-center">
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={handleSubmit}
                   disabled={isLoading}
                   className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-12 py-4 rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <span className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      Creating Event...
+                      Preparing Transaction...
                     </span>
                   ) : (
                     "🚀 Create Event"
@@ -325,6 +425,22 @@ const CreateEventPage: React.FC = () => {
                   Creating an event will deploy a smart contract and mint NFT tickets
                 </p>
               </div>
+
+              {/* Wallet signing area: rendered only when we have a prepared payload */}
+              {preparedPayload && (
+                <div id="wallet-sign-area" className="mt-6">
+                  <SignAndSendUnsignedTx
+                    payload={{ ...preparedPayload, from: undefined }}
+                    label={`Sign & Send: Create ${formData.name}`}
+                    onSubmitted={(txHash) => {
+                      // txHash is a string; cast to the template literal type expected by addTransaction
+                      addTransaction(txHash as `0x${string}`, `Create Event: ${formData.name}`);
+                      toast.success('Transaction submitted! Waiting for confirmation...');
+                      // Let TransactionStatus handle completion and navigation
+                    }}
+                  />
+                </div>
+              )}
             </form>
           </div>
         </div>

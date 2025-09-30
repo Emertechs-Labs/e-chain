@@ -2,13 +2,15 @@
   "name": "echain-frontend",
   "private": true,
   "version": "0.1.0",
+  "type": "module",
   "description": "Echain Event Ticketing Platform - Next.js Frontend",
   "scripts": {
     "dev": "next dev",
     "dev:turbo": "next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit",
     "analyze": "ANALYZE=true next build",
     "dev:debug": "NODE_OPTIONS='--inspect' next dev",
@@ -32,6 +34,7 @@
     "wagmi": "^2.12.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^2.1.4",
     "@types/minimatch": "^6.0.0",
     "@types/node": "^20.19.17",
     "@types/react": "^18.3.24",

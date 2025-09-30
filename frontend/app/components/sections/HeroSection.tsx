@@ -84,7 +84,7 @@ export function HeroSection() {
   return (
     // Force hero to fit within one viewport minus header (header ~4rem)
     <section id="hero" className="relative py-8 md:py-12 overflow-hidden h-[calc(100vh-4rem)] flex items-center">
-      <div className="absolute inset-0 bg-[url('/images/background.jpg')] bg-cover bg-center">
+      <div className="absolute inset-0">
         {/* Optional video background (place a file at public/videos/hero-bg.mp4). If present it will be used; otherwise the animation will be visible. */}
         <VideoBackground />
         <BlockchainAnimation />

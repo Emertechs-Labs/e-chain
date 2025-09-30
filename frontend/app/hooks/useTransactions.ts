@@ -1,8 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAccount, useWalletClient, useChainId, useSwitchChain } from 'wagmi';
 import { defaultChain } from '../../lib/wagmi';
 import { CONTRACT_ADDRESSES } from '../../lib/contracts';
 import { uploadTicketMetadata } from '../../lib/ipfs';
+import { ethers } from 'ethers';
 
 // Safe stringify that handles BigInt and circular refs for logging
 const safeStringify = (v: any) => {
@@ -295,13 +296,17 @@ export const usePurchaseTicket = () => {
       if (!address) throw new Error('Wallet not connected');
 
       try {
+        // Calculate total cost for the quantity
+        const quantity = purchaseData.quantity || 1;
+        const totalCost = purchaseData.ticketPrice * BigInt(quantity);
+
         const result = await callUnsignedTx(
           purchaseData.ticketContract,
           'EventTicket',
-          'purchaseTicket',
-          [purchaseData.eventId, purchaseData.quantity || 1],
+          'purchaseTicket', // ✅ Now matches the contract function
+          [quantity], // ✅ Only quantity parameter needed
           address,
-          purchaseData.ticketPrice.toString(),
+          totalCost.toString(), // ✅ Correct total cost calculation
           traceId
         );
 
@@ -616,64 +621,167 @@ export const useClaimLoyaltyReward = () => {
   });
 };
 
-// Generic hook for claiming incentives
-export const useClaimIncentives = () => {
+// Hook for checking organizer verification status
+export const useOrganizerVerification = () => {
   const { address } = useAccount();
-  const walletClient = useWalletClient()?.data;
   const queryClient = useQueryClient();
-  const traceId = `claim-incentives-${Date.now()}`;
 
-  return useMutation({
-    mutationFn: async (params: { eventId?: number; incentiveType: string; threshold?: number }) => {
-      if (!address) throw new Error('No wallet address available');
-
-      const { eventId, incentiveType, threshold } = params;
+  return useQuery({
+    queryKey: ['organizer-verification', address],
+    queryFn: async () => {
+      if (!address) return { isVerified: false };
 
       try {
-        let result;
+        // For view functions, we need to call the contract directly
+        // Import the contract address and ABI
+        const CONTRACT_ADDRESSES = {
+          EventFactory: '0xbE36039Bfe7f48604F73daD61411459B17fd2e85',
+        };
 
-        switch (incentiveType) {
-          case 'early-bird':
-            if (!eventId) throw new Error('Event ID required for early bird claim');
-            result = await callUnsignedTx(
-              CONTRACT_ADDRESSES.IncentiveManager,
-              'IncentiveManager',
-              'claimEarlyBird',
-              [eventId],
-              address,
-              undefined,
-              traceId
-            );
-            break;
+        const EVENT_FACTORY_ABI = [
+          'function isVerifiedOrganizer(address organizer) external view returns (bool)',
+        ];
 
-          case 'loyalty':
-            if (!threshold) throw new Error('Threshold required for loyalty claim');
-            result = await callUnsignedTx(
-              CONTRACT_ADDRESSES.IncentiveManager,
-              'IncentiveManager',
-              'claimLoyaltyReward',
-              [threshold],
-              address,
-              undefined,
-              traceId
-            );
-            break;
+        // Create a provider (read-only)
+        const provider = new ethers.JsonRpcProvider(
+          process.env.NEXT_PUBLIC_BASE_TESTNET_RPC_URL || 'https://sepolia.base.org'
+        );
 
-          case 'referral':
-            result = await callUnsignedTx(
-              CONTRACT_ADDRESSES.IncentiveManager,
-              'IncentiveManager',
-              'claimReferralReward',
-              [],
-              address,
-              undefined,
-              traceId
-            );
-            break;
+        const contract = new ethers.Contract(
+          CONTRACT_ADDRESSES.EventFactory,
+          EVENT_FACTORY_ABI,
+          provider
+        );
 
-          default:
-            throw new Error(`Unknown incentive type: ${incentiveType}`);
-        }
+        const isVerified = await contract.isVerifiedOrganizer(address);
+        return { isVerified };
+      } catch (error) {
+        console.error('Error checking organizer verification:', error);
+        return { isVerified: false };
+      }
+    },
+    enabled: !!address,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// Hook for verifying an organizer (self-verification with payment)
+export const useVerifyOrganizer = () => {
+  const { address } = useAccount();
+  const queryClient = useQueryClient();
+  const { data: walletClient } = useWalletClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!address) throw new Error('Wallet not connected');
+      
+      const traceId = Date.now().toString(36);
+      console.debug('[useVerifyOrganizer] start', { traceId, address });
+
+      try {
+        // Call selfVerifyOrganizer with 0.001 ETH payment
+        const result = await callUnsignedTx(
+          CONTRACT_ADDRESSES.EventFactory,
+          'EventFactory',
+          'selfVerifyOrganizer',
+          [address], // organizer address
+          address,
+          '1000000000000000', // 0.001 ETH in wei
+          traceId
+        );
+
+        console.debug('[useVerifyOrganizer] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });
+
+        const txData = result?.tx || result;
+        const formatted = formatForWallet(txData, address);
+
+        console.debug('[useVerifyOrganizer] formatted tx ready for wallet', { traceId, formatted: safeStringify(formatted) });
+
+        if (!walletClient) throw new Error('No wallet client available');
+
+        console.debug('[useVerifyOrganizer] calling walletClient.sendTransaction', { traceId, payload: safeStringify(formatted) });
+        const txHash = await walletClient.sendTransaction(formatted as any);
+
+        console.debug('[useVerifyOrganizer] wallet sendTransaction result', { traceId, txHash });
+
+        return { txHash };
+      } catch (error) {
+        console.error('Organizer verification failed:', {
+          traceId,
+          error: safeStringify(error),
+        });
+        throw new Error(handleTransactionError(error));
+      }
+    },
+    onSuccess: () => {
+      // Invalidate verification status and related queries
+      queryClient.invalidateQueries({ queryKey: ['organizer-verification'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+    },
+    onError: (error) => {
+      console.error('Organizer verification failed:', error);
+    },
+  });
+};
+
+// Hook for claiming incentives (generic wrapper for different incentive types)
+export const useClaimIncentives = () => {
+  const { address } = useAccount();
+  const queryClient = useQueryClient();
+  const { data: walletClient } = useWalletClient();
+
+  return useMutation({
+    mutationFn: async (claimData: {
+      eventId?: number;
+      incentiveType: 'early-bird' | 'loyalty' | 'referral';
+      ticketContract?: string;
+    }) => {
+      const traceId = Date.now().toString(36);
+      console.debug('[useClaimIncentives] start', { traceId, claimData: safeStringify(claimData) });
+      if (!address) throw new Error('Wallet not connected');
+
+      let contractAddress: string;
+      let method: string;
+      let args: any[];
+
+      switch (claimData.incentiveType) {
+        case 'early-bird':
+          if (!claimData.eventId || !claimData.ticketContract) {
+            throw new Error('Event ID and ticket contract required for early bird claims');
+          }
+          contractAddress = CONTRACT_ADDRESSES.IncentiveManager;
+          method = 'claimEarlyBird';
+          args = [claimData.eventId, claimData.ticketContract];
+          break;
+
+        case 'loyalty':
+          contractAddress = CONTRACT_ADDRESSES.IncentiveManager;
+          method = 'claimLoyaltyReward';
+          args = [10]; // Default threshold
+          break;
+
+        case 'referral':
+          // Note: Referral claiming might need different implementation
+          // For now, we'll assume it's handled via loyalty system
+          contractAddress = CONTRACT_ADDRESSES.IncentiveManager;
+          method = 'claimLoyaltyReward';
+          args = [10];
+          break;
+
+        default:
+          throw new Error(`Unknown incentive type: ${claimData.incentiveType}`);
+      }
+
+      try {
+        const result = await callUnsignedTx(
+          contractAddress,
+          contractAddress === CONTRACT_ADDRESSES.IncentiveManager ? 'IncentiveManager' : 'EventTicket',
+          method,
+          args,
+          address,
+          undefined,
+          traceId
+        );
 
         console.debug('[useClaimIncentives] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });
 
@@ -689,20 +797,52 @@ export const useClaimIncentives = () => {
 
         console.debug('[useClaimIncentives] wallet sendTransaction result', { traceId, txHash });
 
-        return { txHash };
+        return { txHash, claimData };
       } catch (error) {
         console.error('Incentive claim failed:', { traceId, error: safeStringify(error) });
         throw new Error(handleTransactionError(error));
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['user-rewards'] });
       queryClient.invalidateQueries({ queryKey: ['user-loyalty-points'] });
       queryClient.invalidateQueries({ queryKey: ['user-referral-rewards'] });
-      queryClient.invalidateQueries({ queryKey: ['early-bird-status'] });
+
+      if (variables.eventId) {
+        queryClient.invalidateQueries({ queryKey: ['early-bird-status', variables.eventId] });
+      }
     },
     onError: (error) => {
       console.error('Incentive claim failed:', error);
     },
+  });
+};
+
+// Hook for fetching ETH price
+export const useEthPrice = () => {
+  return useQuery({
+    queryKey: ['eth-price'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/eth-price');
+        if (!response.ok) {
+          throw new Error('Failed to fetch ETH price');
+        }
+        return response.json();
+      } catch (error) {
+        console.warn('ETH price fetch failed, using fallback:', error);
+        // Return fallback data if API fails
+        return {
+          ethPrice: 2500,
+          ethAmountForOneDollar: 1 / 2500,
+          lastUpdated: new Date().toISOString(),
+          source: 'fallback'
+        };
+      }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+    retry: 2, // Retry failed requests
+    retryDelay: 1000, // Wait 1 second before retry
   });
 };

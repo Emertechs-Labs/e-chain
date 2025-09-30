@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useAccount } from "wagmi";
-import { useCreateEvent } from "../../hooks/useTransactions";
+import { useCreateEvent, useOrganizerVerification, useVerifyOrganizer } from "../../hooks/useTransactions";
 import SignAndSendUnsignedTx from '../../../components/SignAndSendUnsignedTx';
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -35,6 +35,8 @@ const CreateEventPage: React.FC = () => {
   const { isConnected, address } = useAccount();
   const router = useRouter();
   const createEventMutation = useCreateEvent();
+  const { data: verificationStatus, isLoading: verificationLoading } = useOrganizerVerification();
+  const verifyOrganizerMutation = useVerifyOrganizer();
   const [isLoading, setIsLoading] = useState(false);
   const [preparedPayload, setPreparedPayload] = useState<Record<string, any> | null>(null);
   const { pendingTxs, addTransaction, removeTransaction } = usePendingTransactions();
@@ -214,6 +216,12 @@ const CreateEventPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent multiple submissions
+    if (isLoading || preparedPayload) {
+      console.log('[CreateEventPage] Ignoring duplicate submit - already processing');
+      return;
+    }
+    
     // Use the validation function
     const validation = validateForm();
     if (!validation.isValid) {
@@ -223,6 +231,20 @@ const CreateEventPage: React.FC = () => {
 
     if (!isConnected) {
       toast.error("Please connect your wallet first");
+      return;
+    }
+
+    // Check verification status
+    if (verificationLoading) {
+      toast.info("Checking organizer verification status...");
+      return;
+    }
+
+    if (!verificationStatus?.isVerified) {
+      toast.error("You need to be verified as an organizer to create events. Redirecting to verification page...", {
+        duration: 4000,
+      });
+      router.push('/organizer/approval');
       return;
     }
 
@@ -295,16 +317,79 @@ const CreateEventPage: React.FC = () => {
             <span className="text-sm font-medium">Event Creation</span>
           </div>
           <h1 className="text-4xl font-bold text-white mb-4">Create New Event</h1>
-          <p className="text-gray-400 max-w-2xl mx-auto">
+          <p className="text-gray-400 max-w-2xl mx-auto mb-8">
             Launch your blockchain-verified event with NFT tickets and transparent operations.
           </p>
+
+          {/* Verification Info */}
+          <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700 p-6 max-w-2xl mx-auto mb-8">
+            <div className="flex items-start gap-3">
+              <div className="text-cyan-400 text-2xl mt-1">ℹ️</div>
+              <div>
+                <h3 className="text-white font-semibold mb-2">Organizer Verification Required</h3>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  To ensure quality events and prevent spam, all event organizers must be verified.
+                  Get verified instantly by paying a one-time $1 fee - no manual approval needed!
+                  Choose between crypto payment (ETH) or card payment (Stripe).
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Form */}
-  <section className="py-16 bg-slate-900">
+      <section className="py-16 bg-slate-900">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
+            {/* Verification Status Card */}
+            {isConnected && (
+              <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-6 border border-slate-700 mb-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`w-3 h-3 rounded-full ${verificationStatus?.isVerified ? 'bg-green-400' : 'bg-yellow-400'}`}></div>
+                  <h3 className="text-xl font-bold text-white">
+                    {verificationStatus?.isVerified ? '✅ Organizer Verified' : '⚠️ Verification Required'}
+                  </h3>
+                </div>
+
+                {verificationLoading ? (
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-400"></div>
+                    Checking verification status...
+                  </div>
+                ) : verificationStatus?.isVerified ? (
+                  <p className="text-slate-300">
+                    Your account is verified and ready to create events. You can proceed with event creation.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-slate-300">
+                      To create events on Echain, your organizer account must be verified.
+                      Get verified instantly by paying a one-time $1 fee.
+                    </p>
+
+                    <div className="bg-slate-800 rounded-lg p-4 border border-slate-600">
+                      <h4 className="text-white font-semibold mb-2">How to Get Verified:</h4>
+                      <ul className="text-slate-300 space-y-1 text-sm">
+                        <li>• Pay a one-time $1 verification fee</li>
+                        <li>• Choose crypto payment (ETH) or card (Stripe)</li>
+                        <li>• Get verified instantly and automatically</li>
+                        <li>• Start creating events immediately</li>
+                      </ul>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => router.push('/organizer/approval')}
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-500 hover:to-purple-500 transition-all duration-200 font-semibold"
+                    >
+                      � Get Verified Now (Pay $1)
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Basic Information */}
               <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-8">
@@ -600,7 +685,7 @@ const CreateEventPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={!isFormValid || isLoading}
+                  disabled={!isFormValid || isLoading || verificationLoading || !verificationStatus?.isVerified}
                   className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-12 py-4 rounded-lg hover:from-cyan-400 hover:to-blue-400 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all duration-200 font-bold text-lg"
                 >
                   {isLoading ? (
@@ -608,8 +693,15 @@ const CreateEventPage: React.FC = () => {
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                       Preparing Transaction...
                     </span>
+                  ) : verificationLoading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Checking Verification...
+                    </span>
                   ) : !isConnected ? (
                     "🔗 Connect Wallet to Create Event"
+                  ) : !verificationStatus?.isVerified ? (
+                    "⚠️ Get Verified to Create Events"
                   ) : !validation.isValid ? (
                     "⚠️ Complete Form to Create Event"
                   ) : (
@@ -632,42 +724,44 @@ const CreateEventPage: React.FC = () => {
                       addTransaction(txHash as `0x${string}`, `Create Event: ${formData.name}`);
                       toast.success('Transaction submitted! Waiting for confirmation...');
 
-                      // Generate QR code verification poster after transaction is submitted
-                      try {
-                        if (imageUpload.file) {
-                          const verificationData = {
-                            eventId: 0, // Will be set after event creation
-                            eventName: formData.name,
-                            organizer: address || '',
-                            transactionHash: txHash,
-                            blockNumber: 0, // Will be fetched from transaction
-                            timestamp: Date.now(),
-                          };
+                      // Generate QR code verification poster after transaction is submitted (non-blocking)
+                      setTimeout(async () => {
+                        try {
+                          if (imageUpload.file) {
+                            const verificationData = {
+                              eventId: 0, // Will be set after event creation
+                              eventName: formData.name,
+                              organizer: address || '',
+                              transactionHash: txHash,
+                              blockNumber: 0, // Will be fetched from transaction
+                              timestamp: Date.now(),
+                            };
 
-                          const eventData = {
-                            name: formData.name,
-                            description: formData.description,
-                            date: formData.startDate,
-                            venue: formData.venue,
-                            organizer: address || '',
-                          };
+                            const eventData = {
+                              name: formData.name,
+                              description: formData.description,
+                              date: formData.startDate,
+                              venue: formData.venue,
+                              organizer: address || '',
+                            };
 
-                          const posterResult = await generateEventPosterWithQR(
-                            eventData,
-                            verificationData,
-                            imageUpload.file
-                          );
+                            const posterResult = await generateEventPosterWithQR(
+                              eventData,
+                              verificationData,
+                              imageUpload.file
+                            );
 
-                          if (posterResult.success) {
-                            toast.success('QR code verification poster generated and uploaded to IPFS!');
-                            console.log('Verification poster IPFS URL:', posterResult.url);
-                          } else {
-                            console.warn('Failed to generate QR poster:', posterResult.error);
+                            if (posterResult.success) {
+                              console.log('Verification poster IPFS URL:', posterResult.url);
+                              toast.success('QR code verification poster generated and uploaded to IPFS!');
+                            } else {
+                              console.warn('Failed to generate QR poster:', posterResult.error);
+                            }
                           }
+                        } catch (error) {
+                          console.error('Error generating QR verification poster:', error);
                         }
-                      } catch (error) {
-                        console.error('Error generating QR verification poster:', error);
-                      }
+                      }, 100); // Small delay to ensure transaction is processed
 
                       // Let TransactionStatus handle completion and navigation
                     }}

@@ -80,3 +80,101 @@ export const isProduction = process.env.NODE_ENV === 'production';
 export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+// ============ Blockchain Security Utilities ============
+
+import { callContractRead } from './multibaas';
+import { CONTRACT_ADDRESSES, EIP712_DOMAINS, EIP712_TYPES } from './contracts';
+
+/**
+ * Predict the ticket contract address for an event before creation
+ * @param organizer Organizer address
+ * @param eventId Event ID
+ * @param timestamp Creation timestamp
+ * @param blockNumber Creation block number
+ * @returns Predicted contract address
+ */
+export async function predictTicketContractAddress(
+  organizer: string,
+  eventId: number,
+  timestamp: number,
+  blockNumber: number
+): Promise<string> {
+  try {
+    const predictedAddress = await callContractRead(
+      CONTRACT_ADDRESSES.EventFactory,
+      'EventFactory',
+      'predictTicketContractAddress',
+      [organizer, eventId, timestamp, blockNumber]
+    );
+    return predictedAddress as string;
+  } catch (error) {
+    console.error('Error predicting ticket contract address:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create EIP-712 signature for POAP minting
+ * @param signer Wallet signer
+ * @param eventId Event ID
+ * @param attendee Attendee address
+ * @param nonce Nonce value
+ * @param deadline Deadline timestamp
+ * @returns Signature string
+ */
+export async function createPOAPSignature(
+  signer: any,
+  eventId: number,
+  attendee: string,
+  nonce: number,
+  deadline: number
+): Promise<string> {
+  const domain = EIP712_DOMAINS.POAPAttendance;
+  const types = EIP712_TYPES;
+  const value = {
+    eventId,
+    attendee,
+    nonce,
+    deadline,
+  };
+
+  try {
+    const signature = await signer.signTypedData(domain, types, value);
+    return signature;
+  } catch (error) {
+    console.error('Error creating POAP signature:', error);
+    throw error;
+  }
+}
+
+/**
+ * Verify EIP-712 signature for POAP minting (client-side verification)
+ * @param signature Signature to verify
+ * @param eventId Event ID
+ * @param attendee Attendee address
+ * @param nonce Nonce value
+ * @param deadline Deadline timestamp
+ * @returns Recovered signer address
+ */
+export function verifyPOAPSignature(
+  signature: string,
+  eventId: number,
+  attendee: string,
+  nonce: number,
+  deadline: number
+): string {
+  const domain = EIP712_DOMAINS.POAPAttendance;
+  const types = EIP712_TYPES;
+  const value = {
+    eventId,
+    attendee,
+    nonce,
+    deadline,
+  };
+
+  // Note: This is a client-side utility. Actual verification happens on-chain
+  // For client-side verification, you would need ethers.verifyTypedData
+  // This is just a placeholder for the interface
+  return '0x0000000000000000000000000000000000000000';
+}

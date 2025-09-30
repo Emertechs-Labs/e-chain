@@ -2,152 +2,90 @@
 
 **A Web3-native event management platform built on Base using Curvegrid MultiBaas**
 
-Echain is a blockchain-enabled events platform that combines the convenience of traditional event management with the transparency, security, and incentive mechanisms of Web3 technology. Built on Base (Ethereum L2) with Curvegrid MultiBaas for seamless blockchain integration, it features NFT tickets, POAP attendance certificates, and gamified participation to create engaging experiences for organizers and attendees.
+Echain transforms traditional events into blockchain-powered experiences with NFT tickets, POAP certificates, and gamified participation.
 
-<!-- Screenshot placeholder - Add actual project screenshot here -->
-<!-- ![Screenshot](screenshots/homepage.png) -->
+## 🎯 Platform Overview
 
-## 🛠️ Tech Stack & Tools
+- **🎟️ NFT Ticketing**: Secure, verifiable, transferable event tickets with creator royalties
+- **🏆 POAP System**: Soulbound attendance certificates for reputation building
+- **💰 Incentive Engine**: Gamified rewards and loyalty programs
+- **🔄 Real-time Sync**: Live updates via WebSocket streaming
+- **🛡️ Security First**: OpenZeppelin audited smart contracts
+- **📱 Mobile Ready**: PWA support for mobile access
 
-### Blockchain Layer
-[![Base](https://img.shields.io/badge/Base-Ethereum_L2-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)](https://base.org/)
-[![Solidity](https://img.shields.io/badge/Solidity-0.8.19-363636?style=for-the-badge&logo=solidity&logoColor=white)](https://soliditylang.org/)
-[![OpenZeppelin](https://img.shields.io/badge/OpenZeppelin-5.4.0-4E5EE4?style=for-the-badge&logo=ethereum&logoColor=white)](https://openzeppelin.com/)
-[![Hardhat](https://img.shields.io/badge/Hardhat-2.22.18-FFDB1E?style=for-the-badge&logo=ethereum&logoColor=black)](https://hardhat.org/)
+**Current Status**: ✅ Production-ready on Base Sepolia testnet
 
-### Frontend Layer
-[![Next.js](https://img.shields.io/badge/Next.js-14.0.0-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-18.2.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.3.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![RainbowKit](https://img.shields.io/badge/RainbowKit-1.0.0-FF6B6B?style=for-the-badge&logo=rainbow&logoColor=white)](https://www.rainbowkit.com/)
+## 🛠️ Technology Stack
 
-### Infrastructure & APIs
-[![Curvegrid MultiBaas](https://img.shields.io/badge/Curvegrid_MultiBaas-API-00AEEF?style=for-the-badge&logo=api&logoColor=white)](https://docs.curvegrid.com/multibaas/)
-[![IPFS](https://img.shields.io/badge/IPFS-0.18.0-65C2CB?style=for-the-badge&logo=ipfs&logoColor=white)](https://ipfs.io/)
+**Blockchain Layer:**
+- Base Ethereum L2 network
+- Solidity smart contracts with OpenZeppelin
+- CurveGrid MultiBaas API platform
 
-### Development & Testing
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Sourcify](https://img.shields.io/badge/Sourcify-Verified-FF6B35?style=for-the-badge&logo=ethereum&logoColor=white)](https://sourcify.dev/)
-[![BaseScan](https://img.shields.io/badge/BaseScan-Explorer-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)](https://basescan.org/)
+**Frontend Layer:**
+- Next.js 15 with TypeScript
+- RainbowKit + Reown wallet integration
+- Tailwind CSS with custom design system
 
-## 🎟 Core Platform Features
-
-### 1. Event Creation & NFT Ticketing
-- Organizers mint **NFT tickets** (unique, verifiable, transferable)
-- Smart contracts handle sales, refunds, and secondary trading
-- Transparent pricing and fraud prevention
-
-### 2. Attendance Verification
-- On-chain **Proof-of-Attendance (POAP)** NFTs for verified attendees
-- Digital certificates that unlock future discounts and special access
-- Building attendee reputation and on-chain event history
-
-### 3. Incentive Mechanisms
-- **Early Bird Rewards**: First 10 attendees receive exclusive NFT badges
-- **Loyalty System**: Multiple event attendance earns layered NFT collectibles
-- **Gamified Participation**: Token rewards for referrals, check-ins, and engagement
-
-## 💡 Value Beyond Traditional Platforms
-
-- **🔒 Transparency**: On-chain tickets reduce fraud & scalping
-- **🔄 Engagement Loop**: NFTs + incentives create ongoing community interaction
-- **💰 New Revenue**: Organizers earn from secondary market royalties
-- **🏆 Gamified Exclusivity**: "First 10" or "Top 1%" status drives participation
-- **📜 Digital Identity**: Permanent on-chain record of event participation
-
----
-
-## 🏗 Current Implementation Status
-
-### ✅ Smart Contracts (Deployed & Verified)
-All core contracts are deployed on **Base Sepolia** and verified on both Sourcify and BaseScan:
-
-- **EventFactory** (`0xbE36039Bfe7f48604F73daD61411459B17fd2e85`): Main event creation and management
-- **EventTicket** (`0x127b53D8f29DcDe4DDfcCb24ad8b88B515D08180`): NFT ticket implementation
-- **POAPAttendance** (`0x405061e2ef1F748fA95A1e7725fc1a008e8c2196`): Proof-of-attendance certificates
-- **IncentiveManager** (`0x8290c12f874DF9D03FDadAbE10C7c6321B69Ded9`): Rewards and gamification system
-
-### ✅ Frontend Implementation (Complete)
-Full-featured Next.js application with comprehensive blockchain integration:
-
-- **Event Discovery**: Browse and search upcoming events with real blockchain data
-- **Event Creation**: Create events with NFT ticketing via MultiBaas
-- **Ticket Purchasing**: Buy NFT tickets with ETH payments
-- **My Tickets**: View and manage user's NFT ticket collection with real blockchain data
-- **POAP Collection**: Display attendance certificates with real POAP data and claim new ones
-- **Marketplace**: Secondary ticket trading interface with real marketplace listings
-- **Transparency Log**: Real-time blockchain transaction monitoring
-- **Wallet Integration**: RainbowKit multi-wallet support
-
-### ✅ Real Blockchain Integration (Complete)
-All user-facing features now use real blockchain data instead of mock data:
-
-- **My Tickets Page**: Fetches actual NFT tickets owned by the user from EventTicket contracts
-- **POAPs Page**: Displays real POAP NFTs from the POAPAttendance contract
-- **Marketplace Page**: Shows available ticket listings (framework ready for marketplace contract)
-- **Event Details**: Real-time ticket availability and POAP claiming functionality
-- **Transaction History**: Live blockchain transaction monitoring and verification
-
-### ✅ Security & Testing
-- **Comprehensive Security Audit**: Complete with critical vulnerability fixes
-- **Automated Testing**: Full test suite with security validations
-- **OpenZeppelin Standards**: Industry-standard security patterns
-- **Accessibility Compliance**: WCAG 2.1 AA compliant with axe-core validation
-
----
+**Infrastructure:**
+- Vercel for frontend hosting
+- IPFS for decentralized storage
+- WebSocket for real-time updates
 
 ## 🚀 Quick Start
 
-### Prerequisites
-1. **MultiBaas Account**: Sign up at [console.curvegrid.com](https://console.curvegrid.com)
-2. **Wallet**: MetaMask or compatible Web3 wallet
-3. **Reown Project**: Create project at [cloud.reown.com](https://cloud.reown.com)
+### For Event Organizers
+1. **[Deploy Contracts](./docs/contracts/README.md)**: Set up smart contracts on Base
+2. **[Create Events](./docs/guides/README.md#for-event-organizers)**: Use the platform to create NFT ticketed events
+3. **[Manage Attendees](./docs/guides/README.md#event-management)**: Handle ticket sales and check-ins
 
-### Installation
-```bash
-git clone https://github.com/polymathuniversata/Echain.git
-cd Echain
-npm install
-```
+### For Developers
+1. **[Smart Contracts](./docs/contracts/README.md)**: Understand the blockchain architecture
+2. **[MultiBaas Integration](./docs/integration/README.md)**: Connect to blockchain APIs
+3. **[API Reference](./docs/api/README.md)**: Build integrations and extensions
 
-### Development
-```bash
-# Start blockchain development environment
-cd blockchain
-npm run deploy:dev
+### For Attendees
+1. **[Connect Wallet](./docs/guides/README.md#getting-started)**: Set up MetaMask or Web3 wallet
+2. **[Browse Events](./docs/examples/README.md)**: Discover upcoming events
+3. **[Purchase Tickets](./docs/guides/README.md#buying-tickets)**: Buy NFT tickets with crypto
 
-# Start frontend development server
-cd frontend
-npm run dev
-```
+## 📚 Documentation Structure
 
-Visit `http://localhost:3000` to interact with the platform.
+### 🏗️ [Smart Contracts](./docs/contracts/README.md)
+Complete smart contract architecture and deployment guide for:
+- EventFactory, EventTicket, POAP, and IncentiveManager contracts
+- OpenZeppelin security patterns and upgradeability
+- Gas optimization and testing strategies
 
----
+### 🔗 [MultiBaas Integration](./docs/integration/README.md)
+Comprehensive CurveGrid MultiBaas integration covering:
+- API setup and configuration
+- React hooks for blockchain data
+- Real-time WebSocket streaming
+- Security best practices
 
-## 📖 Documentation
+### 🚀 [Deployment](./docs/deployment/README.md)
+Step-by-step deployment instructions for Base Sepolia testnet and production deployment.
 
-- **[📖 Full Documentation](./docs/README.md)**: Complete platform overview and guides
-- **[🚀 Deployment Guide](./docs/deployment/README.md)**: Step-by-step deployment instructions
-- **[🏗️ Smart Contracts](./docs/contracts/README.md)**: Technical contract documentation
-- **[🔒 Security](./docs/security/README.md)**: Security audit reports and implementations
+### 📖 [User Guides](./docs/guides/README.md)
+Practical guides for all user types: event organizers, attendees, and developers.
 
----
+### 💡 [Examples](./docs/examples/README.md)
+Code examples and real-world use cases.
 
-## 🔗 Links & Resources
+### 🔒 [Security](./docs/security/README.md)
+Security audit reports, implementations, and testing procedures.
 
-- **📖 Documentation**: [docs/README.md](./docs/README.md)
-- **🔗 BaseScan**: [View Contracts](https://sepolia-explorer.base.org)
-- **🔗 Sourcify**: [Contract Verification](https://sourcify.dev)
-- **🛠️ MultiBaas**: [API Documentation](https://docs.curvegrid.com/multibaas/)
+## 📞 Support & Resources
 
----
+- **[GitHub Repository](https://github.com/Talent-Index/Echain)**: Source code and issues
+- **[MultiBaas Console](https://console.curvegrid.com/)**: Blockchain API management
+- **[Base Explorer](https://sepolia.basescan.org/)**: Contract verification
+- **[Discord Community](https://discord.gg/echain)**: Community support
 
-## 📄 License
+**Ready to revolutionize event management with blockchain?**
 
-MIT License - see [LICENSE](./LICENSE) for details.
-
-**Ready to revolutionize event management with blockchain?** Check out our [comprehensive documentation](./docs/README.md) to start building with Echain!
+[Get Started with Smart Contracts](./docs/contracts/README.md) • [MultiBaas Integration](./docs/integration/README.md) • [Deploy to Base](./docs/deployment/README.md)
 
 ## 📋 Development Task Breakdown
 

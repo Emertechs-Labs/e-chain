@@ -45,8 +45,15 @@ export default function SignAndSendUnsignedTx({
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [hasStarted, setHasStarted] = useState(false); // Prevent duplicate auto-start
 
   const handle = React.useCallback(async () => {
+    // Prevent duplicate calls
+    if (busy || result) {
+      console.log('[SignAndSendUnsignedTx] Ignoring duplicate call - already busy or completed');
+      return;
+    }
+
     setBusy(true);
     setResult(null);
     setError(null);
@@ -134,12 +141,13 @@ export default function SignAndSendUnsignedTx({
     } finally {
       setBusy(false);
     }
-  }, [payload, onSubmitted]);
+  }, [payload, onSubmitted, busy, result]);
 
   // Auto-start signing when component mounts if payload.autoStart is true
   React.useEffect(() => {
-    if (payload && (payload.autoStart === true)) {
-      // Trigger signing automatically
+    if (payload && (payload.autoStart === true) && !hasStarted && !busy && !result) {
+      console.log('[SignAndSendUnsignedTx] Auto-starting transaction');
+      setHasStarted(true);
       // Slight delay to ensure UI has updated
       const t = setTimeout(() => {
         void handle();
@@ -147,7 +155,7 @@ export default function SignAndSendUnsignedTx({
       return () => clearTimeout(t);
     }
     return undefined;
-  }, [payload, handle]);
+  }, [payload, handle, hasStarted, busy, result]);
 
   return (
     <div>

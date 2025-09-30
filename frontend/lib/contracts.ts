@@ -6,6 +6,25 @@ export const CONTRACT_ADDRESSES = {
   IncentiveManager: '0x8290c12f874DF9D03FDadAbE10C7c6321B69Ded9'
 } as const;
 
+// EIP-712 Domain and Type definitions
+export const EIP712_DOMAINS = {
+  POAPAttendance: {
+    name: 'POAPAttendance',
+    version: '1',
+    chainId: 84532, // Base Sepolia
+    verifyingContract: CONTRACT_ADDRESSES.POAPAttendance,
+  },
+} as const;
+
+export const EIP712_TYPES = {
+  MintAttendance: [
+    { name: 'eventId', type: 'uint256' },
+    { name: 'attendee', type: 'address' },
+    { name: 'nonce', type: 'uint256' },
+    { name: 'deadline', type: 'uint256' },
+  ],
+} as const;
+
 // Re-export contract types from typechain
 export type {
   EventFactory,

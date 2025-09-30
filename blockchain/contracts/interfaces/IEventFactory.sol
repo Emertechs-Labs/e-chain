@@ -66,7 +66,7 @@ interface IEventFactory {
         uint256 maxTickets,
         uint256 startTime,
         uint256 endTime
-    ) external returns (uint256 eventId);
+    ) external payable returns (uint256 eventId);
 
     /**
      * @notice Gets complete event information
@@ -104,6 +104,18 @@ interface IEventFactory {
     function isVerifiedOrganizer(
         address organizer
     ) external view returns (bool);
+
+    /**
+     * @notice Allows anyone to become a verified organizer by paying a verification fee
+     * @param organizer Address to verify (can be msg.sender or another address)
+     */
+    function selfVerifyOrganizer(address organizer) external payable;
+
+    /**
+     * @notice Removes organizer verification (admin only)
+     * @param organizer Address to unverify
+     */
+    function unverifyOrganizer(address organizer) external;
 
     // ============ View Functions ============
 

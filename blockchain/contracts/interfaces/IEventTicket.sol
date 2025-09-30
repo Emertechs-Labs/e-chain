@@ -39,6 +39,7 @@ interface IEventTicket is IERC721 {
     event TicketTransferRestricted(uint256 indexed tokenId, bool restricted);
     event RoyaltyInfoUpdated(address indexed recipient, uint96 feeBps);
     event FundsWithdrawn(address indexed owner, uint256 amount);
+    event MaxTicketsPerAddressUpdated(uint256 newLimit);
 
     // ============ Core Functions ============
 
@@ -63,7 +64,16 @@ interface IEventTicket is IERC721 {
     ) external;
 
     /**
-     * @notice Mints a ticket to specified address
+     * @notice Allows anyone to purchase tickets directly
+     * @param quantity Number of tickets to purchase
+     * @return tokenIds Array of minted token IDs
+     */
+    function purchaseTicket(
+        uint256 quantity
+    ) external payable returns (uint256[] memory tokenIds);
+
+    /**
+     * @notice Mints a ticket to specified address (organizer/factory only)
      * @param to Recipient address
      * @param seatNumber Seat number (0 for general admission)
      * @param tier Ticket tier
@@ -95,11 +105,17 @@ interface IEventTicket is IERC721 {
     function useTicket(uint256 tokenId) external;
 
     /**
-     * @notice Sets transfer restriction on a ticket
-     * @param tokenId Token ID
+     * @notice Sets transfer restriction for a specific ticket
+     * @param tokenId Token ID to restrict
      * @param restricted Whether transfers are restricted
      */
     function setTransferRestriction(uint256 tokenId, bool restricted) external;
+
+    /**
+     * @notice Sets maximum tickets allowed per address (organizer only)
+     * @param newLimit New maximum tickets per address (0 means unlimited)
+     */
+    function setMaxTicketsPerAddress(uint256 newLimit) external;
 
     // ============ View Functions ============
 
@@ -139,6 +155,12 @@ interface IEventTicket is IERC721 {
      * @return Number of tickets remaining
      */
     function ticketsRemaining() external view returns (uint256);
+
+    /**
+     * @notice Gets organizer's available balance for withdrawal
+     * @return Available balance in wei
+     */
+    function organizerBalance() external view returns (uint256);
 
     // ============ Contract Info ============
 

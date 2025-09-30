@@ -39,6 +39,12 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
     /// @notice Total number of events created
     uint256 public eventCount;
 
+    /// @notice Array of active event IDs for efficient querying
+    uint256[] private _activeEvents;
+
+    /// @notice Mapping to track position of event ID in active events array
+    mapping(uint256 => uint256) private _activeEventIndex;
+
     /// @notice Mapping from organizer address to their event IDs
     mapping(address => uint256[]) public organizerEvents;
 
@@ -48,13 +54,30 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
     /// @notice Platform fee percentage (basis points, 100 = 1%)
     uint256 public platformFeeBps = 250; // 2.5% default
 
+    /// @notice Fee for organizer verification (0.002 ETH = ~$5)
+    uint256 public constant ORGANIZER_VERIFICATION_FEE = 0.002 ether;
+    
     /// @notice Platform treasury address
     address public treasury;
+
+    /// @notice Timelock delay for critical changes (24 hours)
+    uint256 public constant TIMELOCK_DELAY = 24 hours;
+
+    /// @notice Pending treasury change
+    struct PendingChange {
+        address newTreasury;
+        uint256 executeAfter;
+        bool executed;
+    }
+
+    /// @notice Current pending treasury change
+    PendingChange public pendingTreasuryChange;
 
     // ============ Events ============
     // Events are defined in IEventFactory interface
 
     event PlatformFeeUpdated(uint256 newFeeBps);
+    event TreasuryChangeProposed(address newTreasury, uint256 executeAfter);
     event TreasuryUpdated(address newTreasury);
 
     // ============ Modifiers ============
@@ -114,6 +137,7 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
         uint256 endTime
     )
         external
+        payable
         override
         nonReentrant
         whenNotPaused
@@ -128,12 +152,21 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
         require(endTime > startTime, "End time before start");
         require(endTime <= startTime + 365 days, "Event duration too long");
 
+        // FREE EVENTS: No fees at all
+        if (ticketPrice == 0) {
+            require(msg.value == 0, "Free events require no payment");
+        } else {
+            // PAID EVENTS: No upfront fee, platform takes % during sales
+            require(msg.value == 0, "No upfront fee for paid events");
+        }
+
         // Increment event counter
         _eventIdCounter++;
         eventId = _eventIdCounter;
 
-        // Deploy EventTicket contract clone
-        address ticketContract = eventTicketTemplate.clone();
+        // Deploy EventTicket contract clone using CREATE2 for deterministic addresses
+        bytes32 salt = keccak256(abi.encodePacked(msg.sender, eventId, block.timestamp, block.number));
+        address ticketContract = Clones.cloneDeterministic(eventTicketTemplate, salt);
 
         // Initialize the ticket contract
         IEventTicket(ticketContract).initialize(
@@ -179,6 +212,9 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
             maxTickets
         );
 
+        // Add to active events index
+        _addToActiveEvents(eventId);
+
         return eventId;
     }
 
@@ -212,7 +248,17 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
         uint256 eventId,
         bool isActive
     ) external validEventId(eventId) onlyEventOrganizer(eventId) {
-        events[eventId].isActive = isActive;
+        Event storage eventData = events[eventId];
+        bool wasActive = eventData.isActive;
+        eventData.isActive = isActive;
+        
+        // Update active events index
+        if (isActive && !wasActive) {
+            _addToActiveEvents(eventId);
+        } else if (!isActive && wasActive) {
+            _removeFromActiveEvents(eventId);
+        }
+        
         emit EventStatusChanged(eventId, isActive);
     }
 
@@ -240,6 +286,65 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
     ) external validEventId(eventId) onlyEventOrganizer(eventId) {
         require(incentiveContract != address(0), "Invalid incentive contract");
         events[eventId].incentiveContract = incentiveContract;
+    }
+
+    // ============ Internal Functions ============
+
+    /**
+     * @dev Adds an event to the active events index
+     * @param eventId Event ID to add
+     */
+    function _addToActiveEvents(uint256 eventId) internal {
+        // Only add if not already in the index
+        if (_activeEventIndex[eventId] == 0) {
+            _activeEventIndex[eventId] = _activeEvents.length + 1;
+            _activeEvents.push(eventId);
+        }
+    }
+
+    /**
+     * @dev Removes an event from the active events index
+     * @param eventId Event ID to remove
+     */
+    function _removeFromActiveEvents(uint256 eventId) internal {
+        uint256 index = _activeEventIndex[eventId];
+        if (index > 0) {
+            // Move the last element to this position
+            uint256 lastEventId = _activeEvents[_activeEvents.length - 1];
+            _activeEvents[index - 1] = lastEventId;
+            _activeEventIndex[lastEventId] = index;
+            
+            // Remove the last element
+            _activeEvents.pop();
+            _activeEventIndex[eventId] = 0;
+        }
+    }
+
+    /**
+     * @dev Gets current active events (events that are active and not ended)
+     * @return activeEventIds Array of currently active event IDs
+     */
+    function _getCurrentActiveEventIds() internal view returns (uint256[] memory activeEventIds) {
+        uint256 activeCount = 0;
+        
+        // First pass: count currently active events
+        for (uint256 i = 0; i < _activeEvents.length; i++) {
+            uint256 eventId = _activeEvents[i];
+            if (events[eventId].isActive && events[eventId].endTime > block.timestamp) {
+                activeCount++;
+            }
+        }
+        
+        // Second pass: collect active event IDs
+        activeEventIds = new uint256[](activeCount);
+        uint256 index = 0;
+        for (uint256 i = 0; i < _activeEvents.length; i++) {
+            uint256 eventId = _activeEvents[i];
+            if (events[eventId].isActive && events[eventId].endTime > block.timestamp) {
+                activeEventIds[index] = eventId;
+                index++;
+            }
+        }
     }
 
     // ============ View Functions ============
@@ -279,28 +384,42 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
     ) external view returns (uint256[] memory eventIds, bool hasMore) {
         require(limit > 0 && limit <= 100, "Invalid limit");
 
-        uint256 totalActiveCount = 0;
-        uint256 returnedCount = 0;
-        uint256[] memory tempIds = new uint256[](limit);
-
-        // Count all active events and collect the requested range
-        for (uint256 i = 1; i <= eventCount; i++) {
-            if (events[i].isActive && events[i].endTime > block.timestamp) {
-                totalActiveCount++;
-                if (totalActiveCount > offset && returnedCount < limit) {
-                    tempIds[returnedCount] = i;
-                    returnedCount++;
-                }
-            }
+        uint256[] memory currentActiveIds = _getCurrentActiveEventIds();
+        
+        uint256 totalActive = currentActiveIds.length;
+        uint256 startIndex = offset;
+        uint256 endIndex = startIndex + limit;
+        
+        if (endIndex > totalActive) {
+            endIndex = totalActive;
         }
-
-        // Create properly sized array
-        eventIds = new uint256[](returnedCount);
-        for (uint256 i = 0; i < returnedCount; i++) {
-            eventIds[i] = tempIds[i];
+        
+        uint256 resultLength = endIndex > startIndex ? endIndex - startIndex : 0;
+        eventIds = new uint256[](resultLength);
+        
+        for (uint256 i = 0; i < resultLength; i++) {
+            eventIds[i] = currentActiveIds[startIndex + i];
         }
+        
+        hasMore = endIndex < totalActive;
+    }
 
-        hasMore = totalActiveCount > offset + returnedCount;
+    /**
+     * @notice Predicts the ticket contract address for an event before creation
+     * @param organizer Organizer address
+     * @param eventId Event ID
+     * @param timestamp Creation timestamp
+     * @param blockNumber Creation block number
+     * @return predictedAddress The predicted contract address
+     */
+    function predictTicketContractAddress(
+        address organizer,
+        uint256 eventId,
+        uint256 timestamp,
+        uint256 blockNumber
+    ) external view returns (address predictedAddress) {
+        bytes32 salt = keccak256(abi.encodePacked(organizer, eventId, timestamp, blockNumber));
+        predictedAddress = Clones.predictDeterministicAddress(eventTicketTemplate, salt);
     }
 
     /**
@@ -317,11 +436,24 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
     // ============ Admin Functions ============
 
     /**
-     * @notice Verifies an organizer (only owner)
-     * @param organizer Address to verify
+     * @notice Allows anyone to become a verified organizer by paying a verification fee
+     * @param organizer Address to verify (can be msg.sender or another address)
      */
-    function verifyOrganizer(address organizer) external onlyOwner {
+    function selfVerifyOrganizer(address organizer) external payable nonReentrant whenNotPaused {
+        require(!verifiedOrganizers[organizer], "Already verified");
+        require(msg.value >= ORGANIZER_VERIFICATION_FEE, "Insufficient verification fee");
+
+        // Mark as verified
         verifiedOrganizers[organizer] = true;
+
+        // Transfer fee to treasury
+        payable(treasury).transfer(ORGANIZER_VERIFICATION_FEE);
+        
+        // Refund excess payment
+        if (msg.value > ORGANIZER_VERIFICATION_FEE) {
+            payable(msg.sender).transfer(msg.value - ORGANIZER_VERIFICATION_FEE);
+        }
+
         emit OrganizerVerified(organizer);
     }
 
@@ -345,7 +477,39 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
     }
 
     /**
-     * @notice Updates treasury address (only owner)
+     * @notice Proposes treasury address change with timelock (only owner)
+     * @param newTreasury New treasury address
+     */
+    function proposeTreasuryChange(address newTreasury) external onlyOwner {
+        require(newTreasury != address(0), "Invalid treasury");
+        require(!pendingTreasuryChange.executed || block.timestamp > pendingTreasuryChange.executeAfter, "Pending change exists");
+        
+        pendingTreasuryChange = PendingChange({
+            newTreasury: newTreasury,
+            executeAfter: block.timestamp + TIMELOCK_DELAY,
+            executed: false
+        });
+        
+        emit TreasuryChangeProposed(newTreasury, block.timestamp + TIMELOCK_DELAY);
+    }
+
+    /**
+     * @notice Executes pending treasury change after timelock (only owner)
+     */
+    function executeTreasuryChange() external onlyOwner {
+        require(!pendingTreasuryChange.executed, "Already executed");
+        require(block.timestamp >= pendingTreasuryChange.executeAfter, "Timelock not expired");
+        require(pendingTreasuryChange.newTreasury != address(0), "No pending change");
+        
+        address newTreasury = pendingTreasuryChange.newTreasury;
+        pendingTreasuryChange.executed = true;
+        treasury = newTreasury;
+        
+        emit TreasuryUpdated(newTreasury);
+    }
+
+    /**
+     * @notice Updates treasury address (only owner) - DEPRECATED: Use proposeTreasuryChange
      * @param newTreasury New treasury address
      */
     function setTreasury(address newTreasury) external onlyOwner {

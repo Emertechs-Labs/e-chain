@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../interfaces/IEventTicket.sol";
+import "../interfaces/IEventFactory.sol";
 
 /**
  * @title EventTicket
@@ -50,6 +51,12 @@ contract EventTicket is
 
     /// @notice Whether the contract has been initialized
     bool private _initialized;
+
+    /// @notice Maximum tickets allowed per address (default: 1, can be modified by organizer)
+    uint256 public maxTicketsPerAddress;
+
+    /// @notice Organizer's accumulated balance after platform fees
+    uint256 private _organizerBalance;
 
     // ============ Modifiers ============
 
@@ -110,11 +117,102 @@ contract EventTicket is
         _royaltyRecipient = _organizer;
         _royaltyFeeBps = 500; // 5%
 
+        // Set default ticket limit per address to 1 (can be modified by organizer)
+        maxTicketsPerAddress = 1;
+
         _initialized = true;
     }
 
     // ============ Core Functions ============
 
+    /**
+     * @notice Allows anyone to purchase tickets directly
+     * @dev Public function for end users to buy tickets with ETH
+     * @param quantity Number of tickets to purchase (1-10 per transaction)
+     * @return tokenIds Array of minted token IDs
+     */
+    function purchaseTicket(
+        uint256 quantity
+    ) 
+        external 
+        payable 
+        whenNotPaused 
+        onlyInitialized 
+        returns (uint256[] memory tokenIds) 
+    {
+        // Input validation
+        require(quantity > 0, "Quantity must be greater than 0");
+        require(quantity <= 10, "Max 10 tickets per transaction"); // Anti-spam protection
+        require(_totalSold + quantity <= maxSupply, "Exceeds maximum supply");
+        
+        // Price calculation with overflow protection
+        uint256 totalCost = ticketPrice * quantity;
+        require(totalCost / quantity == ticketPrice, "Price overflow detected");
+        require(msg.value >= totalCost, "Insufficient payment");
+
+        // Rate limiting: configurable max tickets per address per event (default: 1)
+        uint256 currentBalance = balanceOf(msg.sender);
+        require(currentBalance + quantity <= maxTicketsPerAddress, "Exceeds max tickets per address");
+
+        // Handle revenue distribution
+        if (ticketPrice > 0) {
+            // PAID EVENTS: Deduct platform fee
+            IEventFactory factoryContract = IEventFactory(factory);
+            uint256 platformFeeBps = factoryContract.platformFeeBps();
+            uint256 platformFee = (totalCost * platformFeeBps) / 10000;
+            uint256 organizerRevenue = totalCost - platformFee;
+            
+            // Send platform fee to treasury immediately
+            address treasury = factoryContract.treasury();
+            payable(treasury).transfer(platformFee);
+            
+            // Track organizer revenue for withdrawal
+            _organizerBalance += organizerRevenue;
+        }
+        // For FREE EVENTS (ticketPrice = 0): no fees, no revenue
+
+        // Initialize return array
+        tokenIds = new uint256[](quantity);
+
+        // Mint tickets in a gas-efficient loop
+        for (uint256 i = 0; i < quantity; i++) {
+            uint256 tokenId = _tokenIdCounter;
+            _tokenIdCounter++;
+            _totalSold++;
+
+            // Mint NFT to purchaser
+            _safeMint(msg.sender, tokenId);
+
+            // Store ticket information
+            _ticketInfo[tokenId] = TicketInfo({
+                eventId: eventId,
+                seatNumber: 0, // General admission
+                tier: 0,       // Standard tier
+                isUsed: false,
+                mintedAt: block.timestamp,
+                originalBuyer: msg.sender
+            });
+
+            tokenIds[i] = tokenId;
+            emit TicketMinted(tokenId, msg.sender, eventId, 0, 0);
+        }
+
+        // Refund excess payment
+        if (msg.value > totalCost) {
+            payable(msg.sender).transfer(msg.value - totalCost);
+        }
+
+        return tokenIds;
+    }
+
+    /**
+     * @notice Mint ticket function for organizers/factory (admin use)
+     * @dev Restricted function for special ticket creation
+     * @param to Recipient address
+     * @param seatNumber Seat number (0 for general admission)
+     * @param tier Ticket tier (0=General, 1=VIP, etc.)
+     * @return tokenId The minted token ID
+     */
     function mintTicket(
         address to,
         uint256 seatNumber,
@@ -240,6 +338,15 @@ contract EventTicket is
         emit TicketTransferRestricted(tokenId, restricted);
     }
 
+    /**
+     * @notice Set maximum tickets allowed per address (organizer only)
+     * @param newLimit New maximum tickets per address (0 means unlimited)
+     */
+    function setMaxTicketsPerAddress(uint256 newLimit) external onlyOrganizerOrFactory {
+        maxTicketsPerAddress = newLimit;
+        emit MaxTicketsPerAddressUpdated(newLimit);
+    }
+
     // ============ View Functions ============
 
     function getTicketInfo(
@@ -316,12 +423,21 @@ contract EventTicket is
     }
 
     function withdraw() external onlyOwner nonReentrant {
-        uint256 balance = address(this).balance;
+        uint256 balance = _organizerBalance;
         require(balance > 0, "No funds to withdraw");
         
+        _organizerBalance = 0;
         (bool success, ) = payable(owner()).call{value: balance}("");
         require(success, "Transfer failed");
         emit FundsWithdrawn(owner(), balance);
+    }
+
+    /**
+     * @notice Get organizer's available balance for withdrawal
+     * @return Available balance in wei
+     */
+    function organizerBalance() external view returns (uint256) {
+        return _organizerBalance;
     }
 
     // ============ Override Functions ============

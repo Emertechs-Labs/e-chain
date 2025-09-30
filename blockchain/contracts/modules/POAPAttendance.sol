@@ -4,9 +4,10 @@ pragma solidity ^0.8.24;
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract POAPAttendance is ERC721, Ownable {
+contract POAPAttendance is ERC721, EIP712, Ownable {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 
@@ -31,6 +32,10 @@ contract POAPAttendance is ERC721, Ownable {
     // Nonce mapping to prevent signature replay attacks
     mapping(address => uint256) public nonces;
 
+    // EIP-712 structured data signing
+    bytes32 private constant MINT_ATTENDANCE_TYPEHASH = 
+        keccak256("MintAttendance(uint256 eventId,address attendee,uint256 nonce,uint256 deadline)");
+
     address public eventFactory;
 
     uint256 private _nextTokenId;
@@ -43,7 +48,7 @@ contract POAPAttendance is ERC721, Ownable {
 
     constructor(
         address _eventFactory
-    ) ERC721("POAP Attendance", "POAP") Ownable(msg.sender) {
+    ) ERC721("POAP Attendance", "POAP") EIP712("POAPAttendance", "1") Ownable(msg.sender) {
         eventFactory = _eventFactory;
     }
 
@@ -57,20 +62,29 @@ contract POAPAttendance is ERC721, Ownable {
         if (from != address(0) && to != address(0)) revert SoulboundTransfer();
     }
 
-    // Mint function with signature verification
+    // Mint function with EIP-712 structured signature verification
     function mintAttendance(
         uint256 eventId,
         address attendee,
         uint256 nonce,
+        uint256 deadline,
         bytes memory signature
     ) external {
         if (hasClaimed[eventId][attendee]) revert AlreadyClaimed();
         require(nonce == nonces[attendee], "Invalid nonce");
+        require(block.timestamp <= deadline, "Signature expired");
 
-        // Verify signature with nonce to prevent replay attacks
-        bytes32 messageHash = keccak256(abi.encodePacked(eventId, attendee, nonce));
-        bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
-        address signer = ethSignedMessageHash.recover(signature);
+        // EIP-712 structured data signing for domain separation
+        bytes32 structHash = keccak256(abi.encode(
+            MINT_ATTENDANCE_TYPEHASH,
+            eventId,
+            attendee,
+            nonce,
+            deadline
+        ));
+        bytes32 digest = _hashTypedDataV4(structHash);
+        address signer = ECDSA.recover(digest, signature);
+        
         if (signer != owner() && signer != eventFactory)
             revert InvalidSignature();
             

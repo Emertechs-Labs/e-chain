@@ -1,7 +1,12 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { EventFactory, EventTicket } from '../typechain-types';
+import { EventFactory, EventTicket } from '../../frontend/lib/typechain-types';
 import type { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
+import { time } from '@nomicfoundation/hardhat-network-helpers';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 describe('EventFactory', function () {
   let eventFactory: EventFactory;
@@ -43,19 +48,33 @@ describe('EventFactory', function () {
   });
 
   describe('Organizer Management', function () {
-    it('Should allow owner to verify organizers', async function () {
-      await eventFactory.verifyOrganizer(organizer.address);
+    it('Should allow paid organizer verification', async function () {
+      const verificationFee = ethers.parseEther('0.01');
+      await expect(
+        eventFactory.connect(organizer).selfVerifyOrganizer(organizer.address, {
+          value: verificationFee,
+        }),
+      )
+        .to.emit(eventFactory, 'OrganizerVerified')
+        .withArgs(organizer.address);
       expect(await eventFactory.isVerifiedOrganizer(organizer.address)).to.equal(true);
     });
 
     it('Should allow owner to unverify organizers', async function () {
-      await eventFactory.verifyOrganizer(organizer.address);
+      // First verify with payment
+      await eventFactory.connect(organizer).selfVerifyOrganizer(organizer.address, {
+        value: ethers.parseEther('0.01'),
+      });
       await eventFactory.unverifyOrganizer(organizer.address);
       expect(await eventFactory.isVerifiedOrganizer(organizer.address)).to.equal(false);
     });
 
     it('Should emit events when verifying/unverifying', async function () {
-      await expect(eventFactory.verifyOrganizer(organizer.address))
+      await expect(
+        eventFactory.connect(organizer).selfVerifyOrganizer(organizer.address, {
+          value: ethers.parseEther('0.01'),
+        }),
+      )
         .to.emit(eventFactory, 'OrganizerVerified')
         .withArgs(organizer.address);
 
@@ -64,17 +83,20 @@ describe('EventFactory', function () {
         .withArgs(organizer.address);
     });
 
-    it('Should reject non-owner attempts to verify organizers', async function () {
-      await expect(eventFactory.connect(user).verifyOrganizer(organizer.address)).to.be.revertedWithCustomError(
-        eventFactory,
-        'OwnableUnauthorizedAccount',
-      );
+    it('Should reject insufficient verification fees', async function () {
+      await expect(
+        eventFactory.connect(organizer).selfVerifyOrganizer(organizer.address, {
+          value: ethers.parseEther('0.001'), // Less than required 0.002 ETH
+        }),
+      ).to.be.revertedWith('Insufficient verification fee');
     });
   });
 
   describe('Event Creation', function () {
     beforeEach(async function () {
-      await eventFactory.verifyOrganizer(organizer.address);
+      await (eventFactory as any).connect(organizer).selfVerifyOrganizer(organizer.address, {
+        value: ethers.parseEther('0.002'),
+      });
     });
 
     it('Should create an event successfully', async function () {
@@ -213,16 +235,21 @@ describe('EventFactory', function () {
 
   describe('Event Management', function () {
     beforeEach(async function () {
-      await eventFactory.verifyOrganizer(organizer.address);
-      await eventFactory
+      // Use any casting for TypeScript issue
+      await (eventFactory as any).connect(organizer).selfVerifyOrganizer(organizer.address, {
+        value: ethers.parseEther('0.002'),
+      });
+
+      const currentTime = await time.latest();
+      await (eventFactory as any)
         .connect(organizer)
         .createEvent(
           'Test Event',
           'ipfs://QmTest123',
           ethers.parseEther('0.1'),
           100,
-          Math.floor(Date.now() / 1000) + 86400,
-          Math.floor(Date.now() / 1000) + 86400 + 7200,
+          currentTime + 86400,
+          currentTime + 86400 + 7200,
         );
     });
 
@@ -257,19 +284,22 @@ describe('EventFactory', function () {
 
   describe('Active Events Query', function () {
     beforeEach(async function () {
-      await eventFactory.verifyOrganizer(organizer.address);
+      await (eventFactory as any).connect(organizer).selfVerifyOrganizer(organizer.address, {
+        value: ethers.parseEther('0.002'),
+      });
 
       // Create multiple events
+      const currentTime = await time.latest();
       for (let i = 0; i < 5; i++) {
-        await eventFactory
+        await (eventFactory as any)
           .connect(organizer)
           .createEvent(
             `Event ${i + 1}`,
             `ipfs://QmTest${i + 1}`,
             ethers.parseEther('0.1'),
             100,
-            Math.floor(Date.now() / 1000) + 86400,
-            Math.floor(Date.now() / 1000) + 86400 + 7200,
+            currentTime + 86400 + i * 1000,
+            currentTime + 86400 + 7200 + i * 1000,
           );
       }
     });

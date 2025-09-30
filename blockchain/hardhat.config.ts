@@ -38,6 +38,21 @@ const config: HardhatUserConfig = {
       gasPrice: 'auto',
     },
   },
+  etherscan: {
+    apiKey: {
+      'base-sepolia': process.env.BASESCAN_API_KEY || 'your-basescan-api-key',
+    },
+    customChains: [
+      {
+        network: 'base-sepolia',
+        chainId: 84532,
+        urls: {
+          apiURL: 'https://api-sepolia.basescan.org/api',
+          browserURL: 'https://sepolia.basescan.org',
+        },
+      },
+    ],
+  },
   mbConfig: {
     apiKey: adminApiKey,
     host: deploymentEndpoint,

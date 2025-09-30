@@ -7,6 +7,8 @@ import SignAndSendUnsignedTx from '../../../components/SignAndSendUnsignedTx';
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { TransactionStatus, usePendingTransactions } from "../../components/TransactionStatus";
+import { uploadToIPFS, uploadEventMetadata, generateEventPosterWithQR } from "../../../lib/ipfs";
+import Image from "next/image";
 
 interface EventForm {
   name: string;
@@ -21,6 +23,14 @@ interface EventForm {
   imageUrl: string;
 }
 
+interface ImageUploadState {
+  file: File | null;
+  preview: string;
+  uploading: boolean;
+  uploaded: boolean;
+  ipfsUrl: string;
+}
+
 const CreateEventPage: React.FC = () => {
   const { isConnected, address } = useAccount();
   const router = useRouter();
@@ -28,6 +38,13 @@ const CreateEventPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [preparedPayload, setPreparedPayload] = useState<Record<string, any> | null>(null);
   const { pendingTxs, addTransaction, removeTransaction } = usePendingTransactions();
+  const [imageUpload, setImageUpload] = useState<ImageUploadState>({
+    file: null,
+    preview: '',
+    uploading: false,
+    uploaded: false,
+    ipfsUrl: ''
+  });
   const [formData, setFormData] = useState<EventForm>({
     name: "",
     description: "",
@@ -66,6 +83,7 @@ const CreateEventPage: React.FC = () => {
     if (!formData.saleEndDate) errors.push("Sale end date is required");
     if (!formData.maxTickets) errors.push("Maximum tickets is required");
     if (!formData.ticketPrice) errors.push("Ticket price is required");
+    if (!imageUpload.uploaded && !formData.imageUrl) errors.push("Event poster is required (upload an image for verification QR code generation)");
 
     // Check numeric validations
     const maxTickets = parseInt(formData.maxTickets);
@@ -117,6 +135,67 @@ const CreateEventPage: React.FC = () => {
   const validation = validateForm();
   const isFormValid = validation.isValid && isConnected;
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image file size must be less than 5MB');
+      return;
+    }
+
+    // Create preview
+    const preview = URL.createObjectURL(file);
+    setImageUpload(prev => ({
+      ...prev,
+      file,
+      preview,
+      uploading: true,
+      uploaded: false,
+      ipfsUrl: ''
+    }));
+
+    try {
+      // Upload to IPFS
+      const result = await uploadToIPFS(file);
+
+      if (result.success) {
+        setImageUpload(prev => ({
+          ...prev,
+          uploading: false,
+          uploaded: true,
+          ipfsUrl: result.url
+        }));
+
+        // Update form data with IPFS URL
+        setFormData(prev => ({
+          ...prev,
+          imageUrl: result.url
+        }));
+
+        toast.success('Image uploaded to IPFS successfully!');
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Image upload error:', error);
+      setImageUpload(prev => ({
+        ...prev,
+        uploading: false,
+        uploaded: false,
+        ipfsUrl: ''
+      }));
+      toast.error('Failed to upload image to IPFS. Please try again.');
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -156,7 +235,7 @@ const CreateEventPage: React.FC = () => {
 
       const eventData = {
         name: formData.name,
-        metadataURI: formData.imageUrl || "ipfs://placeholder", // TODO: Upload to IPFS
+        metadataURI: imageUpload.ipfsUrl || formData.imageUrl || "ipfs://placeholder", // Use uploaded IPFS URL
         ticketPrice: (parseFloat(formData.ticketPrice) * 1e18).toString(), // Convert ETH to wei
         maxTickets: parseInt(formData.maxTickets),
         startTime,
@@ -284,6 +363,59 @@ const CreateEventPage: React.FC = () => {
                     className="w-full bg-slate-700 text-white px-4 py-3 rounded-lg border border-slate-600 focus:border-cyan-500 focus:outline-none"
                     placeholder="Describe your event, what attendees can expect, speakers, agenda, etc."
                   />
+                </div>
+
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Event Poster * <span className="text-cyan-400">(Required for QR Code Verification)</span>
+                  </label>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <label className="block w-full">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          disabled={imageUpload.uploading}
+                          className="block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-cyan-500 file:text-white hover:file:bg-cyan-400 disabled:opacity-50"
+                          title="Select event poster for QR code verification"
+                        />
+                      </label>
+                      {imageUpload.uploading && (
+                        <div className="flex items-center gap-2 text-cyan-400">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-cyan-400"></div>
+                          <span className="text-sm">Uploading...</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {imageUpload.preview && (
+                      <div className="relative">
+                        <Image
+                          src={imageUpload.preview}
+                          alt="Event poster preview"
+                          width={400}
+                          height={192}
+                          className="w-full max-w-md h-48 object-cover rounded-lg border border-slate-600"
+                        />
+                        {imageUpload.uploaded && (
+                          <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                            ✓ Poster Uploaded to IPFS
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {imageUpload.ipfsUrl && (
+                      <div className="text-sm text-gray-400">
+                        <span className="text-cyan-400">IPFS URL:</span> {imageUpload.ipfsUrl}
+                      </div>
+                    )}
+
+                    <div className="text-xs text-gray-500 bg-slate-700/50 p-3 rounded-lg">
+                      <strong>📱 QR Code Verification:</strong> Your event poster will be enhanced with a QR code that attendees can scan to verify ticket authenticity and view transaction details on the blockchain.
+                    </div>
+                  </div>
                 </div>
 
                 <div className="mt-6">
@@ -495,10 +627,48 @@ const CreateEventPage: React.FC = () => {
                   <SignAndSendUnsignedTx
                     payload={preparedPayload}
                     label={`Sign & Send: Create ${formData.name}`}
-                    onSubmitted={(txHash) => {
+                    onSubmitted={async (txHash) => {
                       // txHash is a string; cast to the template literal type expected by addTransaction
                       addTransaction(txHash as `0x${string}`, `Create Event: ${formData.name}`);
                       toast.success('Transaction submitted! Waiting for confirmation...');
+
+                      // Generate QR code verification poster after transaction is submitted
+                      try {
+                        if (imageUpload.file) {
+                          const verificationData = {
+                            eventId: 0, // Will be set after event creation
+                            eventName: formData.name,
+                            organizer: address || '',
+                            transactionHash: txHash,
+                            blockNumber: 0, // Will be fetched from transaction
+                            timestamp: Date.now(),
+                          };
+
+                          const eventData = {
+                            name: formData.name,
+                            description: formData.description,
+                            date: formData.startDate,
+                            venue: formData.venue,
+                            organizer: address || '',
+                          };
+
+                          const posterResult = await generateEventPosterWithQR(
+                            eventData,
+                            verificationData,
+                            imageUpload.file
+                          );
+
+                          if (posterResult.success) {
+                            toast.success('QR code verification poster generated and uploaded to IPFS!');
+                            console.log('Verification poster IPFS URL:', posterResult.url);
+                          } else {
+                            console.warn('Failed to generate QR poster:', posterResult.error);
+                          }
+                        }
+                      } catch (error) {
+                        console.error('Error generating QR verification poster:', error);
+                      }
+
                       // Let TransactionStatus handle completion and navigation
                     }}
                   />

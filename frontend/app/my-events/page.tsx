@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useAccount } from "wagmi";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { EnhancedConnectButton } from "../components/EnhancedConnectButton";
 import { useEventsByOrganizer } from "../hooks/useEvents";
 
 const MyEventsPage: React.FC = () => {
@@ -19,7 +19,7 @@ const MyEventsPage: React.FC = () => {
           <p className="text-gray-400 mb-8 max-w-md mx-auto">
             Connect your wallet to view and manage your events.
           </p>
-          <ConnectButton />
+          <EnhancedConnectButton />
         </div>
       </div>
     );
@@ -96,9 +96,12 @@ const MyEventsPage: React.FC = () => {
                         >
                           View Event
                         </Link>
-                        <button className="bg-cyan-500 text-black px-4 py-2 rounded-lg hover:bg-cyan-400 transition-colors">
+                        <Link
+                          href={`/events/${event.id}/manage`}
+                          className="bg-cyan-500 text-black px-4 py-2 rounded-lg hover:bg-cyan-400 transition-colors"
+                        >
                           Manage
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   </div>

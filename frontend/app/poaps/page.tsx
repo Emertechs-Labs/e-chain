@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { callContractRead } from "../../lib/multibaas";
 import { CONTRACT_ADDRESSES } from "../../lib/contracts";
 import Link from "next/link";
+import { RewardsDashboard } from "@/components/rewards/RewardsDashboard";
 
 interface POAP {
   id: string;
@@ -243,6 +244,13 @@ const POAPsPage: React.FC = () => {
               </Link>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Rewards Dashboard */}
+      <section className="py-16 bg-slate-800/30">
+        <div className="container mx-auto px-4">
+          <RewardsDashboard />
         </div>
       </section>
 

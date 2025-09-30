@@ -7,6 +7,7 @@ import { callContractRead } from "../../lib/multibaas";
 import { CONTRACT_ADDRESSES } from "../../lib/contracts";
 import { formatEther } from "viem";
 import Link from "next/link";
+import { RewardsDashboard } from "@/components/rewards/RewardsDashboard";
 
 interface UserTicket {
   eventId: number;
@@ -233,6 +234,13 @@ const MyTicketsPage: React.FC = () => {
               </Link>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Rewards Dashboard */}
+      <section className="py-16 bg-slate-800/30">
+        <div className="container mx-auto px-4">
+          <RewardsDashboard />
         </div>
       </section>
 

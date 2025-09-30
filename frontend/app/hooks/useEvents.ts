@@ -178,7 +178,20 @@ export const useEvent = (eventId: number) => {
       if (!eventId) return null;
 
       try {
-        // Get total event count to validate event ID
+        // First try to get event from database (faster and includes webhook data)
+        console.log('[useEvent] Trying database first for event:', eventId);
+        const dbResponse = await fetch('/api/events');
+        if (dbResponse.ok) {
+          const allEvents = await dbResponse.json();
+          const event = allEvents.find((e: Event) => e.id === eventId);
+          if (event) {
+            console.log('[useEvent] Found event in database:', event.name);
+            return event;
+          }
+        }
+
+        // Fallback to blockchain if not in database
+        console.log('[useEvent] Event not in database, checking blockchain for event:', eventId);
         const eventCount = await readContract(config, {
           address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
           abi: CONTRACT_ABIS.EventFactory,
@@ -221,6 +234,7 @@ export const useEvent = (eventId: number) => {
           category: 'General'
         };
 
+        console.log('[useEvent] Found event on blockchain:', event.name);
         return event;
       } catch (error) {
         console.error('Error fetching event:', error);

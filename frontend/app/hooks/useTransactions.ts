@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAccount, useWalletClient, useChainId, useSwitchChain } from 'wagmi';
 import { defaultChain } from '../../lib/wagmi';
 import { CONTRACT_ADDRESSES } from '../../lib/contracts';
+import { uploadTicketMetadata } from '../../lib/ipfs';
 
 // Safe stringify that handles BigInt and circular refs for logging
 const safeStringify = (v: any) => {
@@ -280,6 +281,14 @@ export const usePurchaseTicket = () => {
       ticketContract: string;
       ticketPrice: bigint;
       quantity?: number;
+      eventData?: {
+        name: string;
+        description: string;
+        venue: string;
+        startTime: number;
+        endTime: number;
+        imageUrl?: string;
+      };
     }) => {
       const traceId = Date.now().toString(36);
       console.debug('[usePurchaseTicket] start', { traceId, purchaseData: safeStringify(purchaseData) });
@@ -310,13 +319,62 @@ export const usePurchaseTicket = () => {
 
         console.debug('[usePurchaseTicket] wallet sendTransaction result', { traceId, txHash });
 
-        return { txHash };
+        return { txHash, purchaseData };
       } catch (error) {
         console.error('Ticket purchase failed:', { traceId, error: safeStringify(error) });
         throw new Error(handleTransactionError(error));
       }
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (data, variables) => {
+      // Upload ticket metadata to IPFS after successful purchase
+      try {
+        if (variables.eventData) {
+          const ticketMetadata: {
+            name: string;
+            description: string;
+            eventId: number;
+            eventName: string;
+            ticketId: number;
+            seatNumber?: number;
+            tier: string;
+            attributes: Array<{
+              trait_type: string;
+              value: string;
+            }>;
+            image?: string;
+          } = {
+            name: `${variables.eventData.name} - Ticket`,
+            description: `NFT Ticket for ${variables.eventData.name}\n\n${variables.eventData.description}\n\nVenue: ${variables.eventData.venue}\nStart: ${new Date(variables.eventData.startTime * 1000).toLocaleString()}\nEnd: ${new Date(variables.eventData.endTime * 1000).toLocaleString()}`,
+            eventId: variables.eventId,
+            eventName: variables.eventData.name,
+            ticketId: 0, // Will be set by contract after minting
+            seatNumber: undefined, // Assigned by contract
+            tier: 'General Admission',
+            attributes: [
+              { trait_type: 'Event', value: variables.eventData.name },
+              { trait_type: 'Venue', value: variables.eventData.venue },
+              { trait_type: 'Start Time', value: new Date(variables.eventData.startTime * 1000).toISOString() },
+              { trait_type: 'End Time', value: new Date(variables.eventData.endTime * 1000).toISOString() },
+              { trait_type: 'Ticket Type', value: 'NFT' },
+              { trait_type: 'Transferable', value: 'Yes' },
+            ],
+          };
+
+          if (variables.eventData.imageUrl) {
+            ticketMetadata.image = variables.eventData.imageUrl;
+          }
+
+          const metadataResult = await uploadTicketMetadata(ticketMetadata);
+          if (metadataResult.success) {
+            console.log('Ticket metadata uploaded to IPFS:', metadataResult.url);
+          } else {
+            console.warn('Failed to upload ticket metadata:', metadataResult.error);
+          }
+        }
+      } catch (error) {
+        console.error('Error uploading ticket metadata:', error);
+      }
+
       queryClient.invalidateQueries({ queryKey: ['event', variables.eventId] });
       queryClient.invalidateQueries({ queryKey: ['events'] });
     },
@@ -342,19 +400,28 @@ export const useClaimPOAP = () => {
       if (!address) throw new Error('Wallet not connected');
 
       try {
-        const result = await callUnsignedTx(
-          claimData.poapContract,
-          'POAPAttendance',
-          'claimAttendance',
-          [claimData.eventId],
-          address,
-          undefined,
-          traceId
-        );
+        // For POAP claiming, we need to get a signature from the backend
+        // since the contract requires signature verification
+        const response = await fetch('/api/poap/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventId: claimData.eventId,
+            attendeeAddress: address,
+            nonce: 0 // For now, using 0 - in production should get from contract
+          })
+        });
 
-        console.debug('[useClaimPOAP] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to get POAP claim transaction');
+        }
 
-        const txData = result?.tx || result;
+        const unsignedTx = await response.json();
+
+        console.debug('[useClaimPOAP] unsignedTx raw', { traceId, unsignedTx: safeStringify(unsignedTx) });
+
+        const txData = unsignedTx?.tx || unsignedTx;
         const formatted = formatForWallet(txData, address);
 
         console.debug('[useClaimPOAP] formatted tx ready for wallet', { traceId, formatted: safeStringify(formatted) });
@@ -377,6 +444,265 @@ export const useClaimPOAP = () => {
     },
     onError: (error) => {
       console.error('POAP claim failed:', error);
+    },
+  });
+};
+
+// Hook for claiming early bird rewards
+export const useClaimEarlyBird = () => {
+  const { address } = useAccount();
+  const queryClient = useQueryClient();
+  const { data: walletClient } = useWalletClient();
+
+  return useMutation({
+    mutationFn: async (claimData: {
+      eventId: number;
+      ticketContract: string;
+    }) => {
+      const traceId = Date.now().toString(36);
+      console.debug('[useClaimEarlyBird] start', { traceId, claimData: safeStringify(claimData) });
+      if (!address) throw new Error('Wallet not connected');
+
+      try {
+        const result = await callUnsignedTx(
+          CONTRACT_ADDRESSES.IncentiveManager,
+          'IncentiveManager',
+          'claimEarlyBird',
+          [claimData.eventId, claimData.ticketContract],
+          address,
+          undefined,
+          traceId
+        );
+
+        console.debug('[useClaimEarlyBird] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });
+
+        const txData = result?.tx || result;
+        const formatted = formatForWallet(txData, address);
+
+        console.debug('[useClaimEarlyBird] formatted tx ready for wallet', { traceId, formatted: safeStringify(formatted) });
+
+        if (!walletClient) throw new Error('No wallet client available');
+
+        console.debug('[useClaimEarlyBird] calling walletClient.sendTransaction', { traceId, payload: safeStringify(formatted) });
+        const txHash = await walletClient.sendTransaction(formatted as any);
+
+        console.debug('[useClaimEarlyBird] wallet sendTransaction result', { traceId, txHash });
+
+        return { txHash };
+      } catch (error) {
+        console.error('Early bird claim failed:', { traceId, error: safeStringify(error) });
+        throw new Error(handleTransactionError(error));
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['user-rewards'] });
+      queryClient.invalidateQueries({ queryKey: ['early-bird-status', variables.eventId] });
+    },
+    onError: (error) => {
+      console.error('Early bird claim failed:', error);
+    },
+  });
+};
+
+// Hook for generating referral codes
+export const useGenerateReferralCode = () => {
+  const { address } = useAccount();
+  const queryClient = useQueryClient();
+  const { data: walletClient } = useWalletClient();
+
+  return useMutation({
+    mutationFn: async (codeData: {
+      code: string;
+    }) => {
+      const traceId = Date.now().toString(36);
+      console.debug('[useGenerateReferralCode] start', { traceId, codeData: safeStringify(codeData) });
+      if (!address) throw new Error('Wallet not connected');
+
+      // Convert string to bytes32
+      const codeBytes32 = '0x' + Buffer.from(codeData.code.padEnd(32, '\0')).toString('hex').slice(0, 64);
+
+      try {
+        const result = await callUnsignedTx(
+          CONTRACT_ADDRESSES.IncentiveManager,
+          'IncentiveManager',
+          'generateReferralCode',
+          [codeBytes32],
+          address,
+          undefined,
+          traceId
+        );
+
+        console.debug('[useGenerateReferralCode] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });
+
+        const txData = result?.tx || result;
+        const formatted = formatForWallet(txData, address);
+
+        console.debug('[useGenerateReferralCode] formatted tx ready for wallet', { traceId, formatted: safeStringify(formatted) });
+
+        if (!walletClient) throw new Error('No wallet client available');
+
+        console.debug('[useGenerateReferralCode] calling walletClient.sendTransaction', { traceId, payload: safeStringify(formatted) });
+        const txHash = await walletClient.sendTransaction(formatted as any);
+
+        console.debug('[useGenerateReferralCode] wallet sendTransaction result', { traceId, txHash });
+
+        return { txHash, code: codeData.code };
+      } catch (error) {
+        console.error('Referral code generation failed:', { traceId, error: safeStringify(error) });
+        throw new Error(handleTransactionError(error));
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['user-referral-codes'] });
+    },
+    onError: (error) => {
+      console.error('Referral code generation failed:', error);
+    },
+  });
+};
+
+// Hook for claiming loyalty rewards
+export const useClaimLoyaltyReward = () => {
+  const { address } = useAccount();
+  const queryClient = useQueryClient();
+  const { data: walletClient } = useWalletClient();
+
+  return useMutation({
+    mutationFn: async (claimData: {
+      threshold: number;
+    }) => {
+      const traceId = Date.now().toString(36);
+      console.debug('[useClaimLoyaltyReward] start', { traceId, claimData: safeStringify(claimData) });
+      if (!address) throw new Error('Wallet not connected');
+
+      try {
+        const result = await callUnsignedTx(
+          CONTRACT_ADDRESSES.IncentiveManager,
+          'IncentiveManager',
+          'claimLoyaltyReward',
+          [claimData.threshold],
+          address,
+          undefined,
+          traceId
+        );
+
+        console.debug('[useClaimLoyaltyReward] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });
+
+        const txData = result?.tx || result;
+        const formatted = formatForWallet(txData, address);
+
+        console.debug('[useClaimLoyaltyReward] formatted tx ready for wallet', { traceId, formatted: safeStringify(formatted) });
+
+        if (!walletClient) throw new Error('No wallet client available');
+
+        console.debug('[useClaimLoyaltyReward] calling walletClient.sendTransaction', { traceId, payload: safeStringify(formatted) });
+        const txHash = await walletClient.sendTransaction(formatted as any);
+
+        console.debug('[useClaimLoyaltyReward] wallet sendTransaction result', { traceId, txHash });
+
+        return { txHash };
+      } catch (error) {
+        console.error('Loyalty reward claim failed:', { traceId, error: safeStringify(error) });
+        throw new Error(handleTransactionError(error));
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-rewards'] });
+      queryClient.invalidateQueries({ queryKey: ['user-loyalty-points'] });
+    },
+    onError: (error) => {
+      console.error('Loyalty reward claim failed:', error);
+    },
+  });
+};
+
+// Generic hook for claiming incentives
+export const useClaimIncentives = () => {
+  const { address } = useAccount();
+  const walletClient = useWalletClient()?.data;
+  const queryClient = useQueryClient();
+  const traceId = `claim-incentives-${Date.now()}`;
+
+  return useMutation({
+    mutationFn: async (params: { eventId?: number; incentiveType: string; threshold?: number }) => {
+      if (!address) throw new Error('No wallet address available');
+
+      const { eventId, incentiveType, threshold } = params;
+
+      try {
+        let result;
+
+        switch (incentiveType) {
+          case 'early-bird':
+            if (!eventId) throw new Error('Event ID required for early bird claim');
+            result = await callUnsignedTx(
+              CONTRACT_ADDRESSES.IncentiveManager,
+              'IncentiveManager',
+              'claimEarlyBird',
+              [eventId],
+              address,
+              undefined,
+              traceId
+            );
+            break;
+
+          case 'loyalty':
+            if (!threshold) throw new Error('Threshold required for loyalty claim');
+            result = await callUnsignedTx(
+              CONTRACT_ADDRESSES.IncentiveManager,
+              'IncentiveManager',
+              'claimLoyaltyReward',
+              [threshold],
+              address,
+              undefined,
+              traceId
+            );
+            break;
+
+          case 'referral':
+            result = await callUnsignedTx(
+              CONTRACT_ADDRESSES.IncentiveManager,
+              'IncentiveManager',
+              'claimReferralReward',
+              [],
+              address,
+              undefined,
+              traceId
+            );
+            break;
+
+          default:
+            throw new Error(`Unknown incentive type: ${incentiveType}`);
+        }
+
+        console.debug('[useClaimIncentives] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });
+
+        const txData = result?.tx || result;
+        const formatted = formatForWallet(txData, address);
+
+        console.debug('[useClaimIncentives] formatted tx ready for wallet', { traceId, formatted: safeStringify(formatted) });
+
+        if (!walletClient) throw new Error('No wallet client available');
+
+        console.debug('[useClaimIncentives] calling walletClient.sendTransaction', { traceId, payload: safeStringify(formatted) });
+        const txHash = await walletClient.sendTransaction(formatted as any);
+
+        console.debug('[useClaimIncentives] wallet sendTransaction result', { traceId, txHash });
+
+        return { txHash };
+      } catch (error) {
+        console.error('Incentive claim failed:', { traceId, error: safeStringify(error) });
+        throw new Error(handleTransactionError(error));
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-rewards'] });
+      queryClient.invalidateQueries({ queryKey: ['user-loyalty-points'] });
+      queryClient.invalidateQueries({ queryKey: ['user-referral-rewards'] });
+      queryClient.invalidateQueries({ queryKey: ['early-bird-status'] });
+    },
+    onError: (error) => {
+      console.error('Incentive claim failed:', error);
     },
   });
 };

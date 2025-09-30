@@ -3,23 +3,85 @@
 import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import { useAccount } from "wagmi";
+import { readContract } from "wagmi/actions";
+import { config } from "../../../lib/wagmi";
 import { useEvent } from "../../hooks/useEvents";
 import { usePurchaseTicket } from "../../hooks/useTransactions";
 import { useClaimPOAP } from "../../hooks/useTransactions";
 import { formatEther } from "viem";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from "../../../lib/contracts";
 
 const EventDetailPage: React.FC = () => {
   const params = useParams();
   const eventId = parseInt(params.id as string);
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { data: event, isLoading } = useEvent(eventId);
   const purchaseTicketMutation = usePurchaseTicket();
   const claimPOAPMutation = useClaimPOAP();
   const [quantity, setQuantity] = useState(1);
-  const [hasTicket, setHasTicket] = useState(false); // This would be checked from blockchain
-  const [hasClaimedPOAP, setHasClaimedPOAP] = useState(false); // This would be checked from blockchain
+
+  // Check if user has tickets for this event
+  const { data: hasTicket = false } = useQuery({
+    queryKey: ['user-has-ticket', eventId, address, event?.ticketContract],
+    queryFn: async (): Promise<boolean> => {
+      if (!address || !event?.ticketContract) return false;
+
+      try {
+        const userTicketIds = await readContract(config, {
+          address: event.ticketContract as `0x${string}`,
+          abi: CONTRACT_ABIS.EventTicket,
+          functionName: 'getOwnerTickets',
+          args: [address],
+          chainId: 84532
+        }) as bigint[];
+
+        // Check if any of the user's tickets are for this event
+        for (const ticketId of userTicketIds) {
+          const ticketInfo = await readContract(config, {
+            address: event.ticketContract as `0x${string}`,
+            abi: CONTRACT_ABIS.EventTicket,
+            functionName: 'getTicketInfo',
+            args: [ticketId],
+            chainId: 84532
+          }) as any;
+          if (Number(ticketInfo.eventId) === eventId) {
+            return true;
+          }
+        }
+        return false;
+      } catch (error) {
+        console.error('Error checking user tickets:', error);
+        return false;
+      }
+    },
+    enabled: !!address && !!event?.ticketContract,
+  });
+
+  // Check if user has claimed POAP for this event
+  const { data: hasClaimedPOAP = false } = useQuery({
+    queryKey: ['user-has-claimed-poap', eventId, address],
+    queryFn: async (): Promise<boolean> => {
+      if (!address) return false;
+
+      try {
+        const hasClaimed = await readContract(config, {
+          address: CONTRACT_ADDRESSES.POAPAttendance as `0x${string}`,
+          abi: CONTRACT_ABIS.POAPAttendance,
+          functionName: 'hasClaimed',
+          args: [BigInt(eventId), address],
+          chainId: 84532
+        }) as boolean;
+        return hasClaimed;
+      } catch (error) {
+        console.error('Error checking POAP claim:', error);
+        return false;
+      }
+    },
+    enabled: !!address,
+  });
 
   const handlePurchaseTicket = async () => {
     if (!event || !isConnected) return;
@@ -36,7 +98,7 @@ const EventDetailPage: React.FC = () => {
 
       toast.dismiss();
       toast.success(`Successfully purchased ${quantity} ticket${quantity > 1 ? 's' : ''}!`);
-      setHasTicket(true); // Mark as having ticket after purchase
+      // hasTicket will be updated automatically by the query
     } catch (error: any) {
       toast.dismiss();
       toast.error(error.message || "Failed to purchase ticket. Please try again.");
@@ -49,14 +111,20 @@ const EventDetailPage: React.FC = () => {
     try {
       toast.loading("Claiming your POAP...");
 
+      // Use the POAP contract from the event, or fallback to the default
+      const poapContract = event.poapContract || CONTRACT_ADDRESSES.POAPAttendance;
+
       await claimPOAPMutation.mutateAsync({
-        eventId: event.id,
-        poapContract: event.poapContract || "0x0000000000000000000000000000000000000000" // fallback
+        eventId: eventId,
+        poapContract: poapContract
       });
 
       toast.dismiss();
       toast.success("POAP claimed successfully! 🏆");
-      setHasClaimedPOAP(true);
+
+      // Invalidate queries to refresh the UI
+      // hasClaimedPOAP will be updated automatically by the query
+
     } catch (error: any) {
       toast.dismiss();
       toast.error(error.message || "Failed to claim POAP. Please try again.");

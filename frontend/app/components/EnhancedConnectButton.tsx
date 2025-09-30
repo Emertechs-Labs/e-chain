@@ -3,13 +3,25 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useConnect } from 'wagmi';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { WalletTroubleshooting } from './WalletTroubleshooting';
 
 export function EnhancedConnectButton() {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { error, isPending } = useConnect();
   const [showTroubleshooting, setShowTroubleshooting] = useState(false);
+  const router = useRouter();
+
+  // Show success message when wallet connects (no automatic redirect)
+  useEffect(() => {
+    if (isConnected && address) {
+      console.log('[EnhancedConnectButton] Wallet connected:', address);
+      toast.success('Wallet connected successfully!', {
+        duration: 3000,
+      });
+    }
+  }, [isConnected, address]);
 
   // Show error toast when connection fails
   useEffect(() => {

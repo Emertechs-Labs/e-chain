@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 
 interface StorageStatus {
-  postgres: boolean;
+  turso: boolean;
   blob: boolean;
   edgeConfig: boolean;
 }
 
 export default function StorageDashboard() {
   const [status, setStatus] = useState<StorageStatus>({
-    postgres: false,
+    turso: false,
     blob: false,
     edgeConfig: false
   });
@@ -29,7 +29,7 @@ export default function StorageDashboard() {
       if (response.ok) {
         setTestResults(data.data);
         setStatus({
-          postgres: true, // Assuming if API works, Postgres is connected
+          turso: true, // Assuming if API works, Turso is connected
           blob: !!data.data?.blob,
           edgeConfig: !!data.data?.edgeConfig
         });
@@ -63,8 +63,8 @@ export default function StorageDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-card p-6 rounded-lg border">
-          <h3 className="text-lg font-semibold mb-4">Postgres</h3>
-          <StatusIndicator active={status.postgres} label="Database" />
+          <h3 className="text-lg font-semibold mb-4">Turso</h3>
+          <StatusIndicator active={status.turso} label="Database" />
           <p className="text-sm text-muted-foreground mt-2">
             Relational data storage
           </p>

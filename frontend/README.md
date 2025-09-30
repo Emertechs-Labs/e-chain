@@ -10,7 +10,7 @@ A blockchain-powered event ticketing platform built with Next.js, featuring NFT 
 - 📱 **Responsive Design** - Mobile-first approach with Tailwind CSS
 - 🔐 **Wallet Integration** - RainbowKit + Wagmi for seamless wallet connection
 - 📊 **Real-time Analytics** - Event tracking and user engagement
-- 🗄️ **Scalable Storage** - Vercel Postgres, Blob, and Edge Config
+- 🗄️ **Scalable Storage** - Turso SQLite, Vercel Blob, and Edge Config
 
 ## Quick Start
 
@@ -69,38 +69,154 @@ NEXT_PUBLIC_POAP_ADDRESS=0x405061e2ef1F748fA95A1e7725fc1a008e2196
 NEXT_PUBLIC_INCENTIVE_ADDRESS=0x8290c12f874DF9D03FDadAbE10C7c6321B69Ded9
 
 # Vercel Storage Services
-POSTGRES_URL=postgresql://...
+TURSO_DATABASE_URL=libsql://...
+TURSO_AUTH_TOKEN=eyJ...
 BLOB_READ_WRITE_TOKEN=vercel_blob_...
 EDGE_CONFIG=https://edge-config.vercel.com/...
 ```
 
 ## Vercel Storage Services Setup
 
-This project uses Vercel's storage services for optimal performance and scalability:
+This project uses Vercel's optimized storage services for enterprise-grade performance and scalability. We've implemented a streamlined architecture using only the essential services needed for a blockchain event platform.
 
-### 1. Vercel Postgres (Database)
-- **Purpose**: Store relational data like events, users, and transactions
-- **Setup**:
-  1. Go to Vercel Dashboard → Your Project → Storage
-  2. Create a new Postgres database
-  3. Copy the connection string to `POSTGRES_URL` in your environment variables
+### 🗄️ **1. Turso (Primary Database)**
+**Purpose**: Store relational data like events, users, transactions, and metadata
 
-### 2. Vercel Blob (Object Storage)
-- **Purpose**: Store images, documents, and other files
-- **Setup**:
-  1. Go to Vercel Dashboard → Your Project → Storage
-  2. Create a new Blob store
-  3. Copy the token to `BLOB_READ_WRITE_TOKEN`
+**Setup Steps:**
+1. Go to [Turso Dashboard](https://turso.tech) and create an account
+2. Create a new database (e.g., `echain-db`)
+3. Generate an auth token for your database
+4. Copy the **database URL** and **auth token**
+5. Add to environment variables as `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`
 
-### 3. Vercel Edge Config (Global Configuration)
-- **Purpose**: Store app configuration, feature flags, contract addresses
-- **Setup**:
-  1. Go to Vercel Dashboard → Your Project → Storage
-  2. Create a new Edge Config
-  3. Copy the connection string to `EDGE_CONFIG`
+**Features:**
+- ✅ Serverless SQLite database
+- ✅ Global distribution with low latency
+- ✅ Generous free tier (500 databases, 1GB storage)
+- ✅ Real-time event storage and retrieval
+- ✅ ACID compliance for transaction integrity
 
-### Testing Storage Services
-Visit `/storage` for the dashboard or `/api/storage-test` to verify services are working.
+### 📦 **2. Vercel Blob (Object Storage)**
+**Purpose**: Store images, documents, event assets, and user uploads
+
+**Setup Steps:**
+1. In Vercel Storage tab, click **"Create Database"** → Select **"Blob"**
+2. Choose store name (e.g., `echain-blob`) and region
+3. Copy the **token** from the store settings
+4. Add to environment variables as `BLOB_READ_WRITE_TOKEN`
+
+**Features:**
+- ✅ Global CDN for fast content delivery
+- ✅ Unlimited storage with generous free tier
+- ✅ Automatic image optimization
+- ✅ Secure, signed URLs for private content
+- ✅ Event image storage and user avatar uploads
+
+### ⚙️ **3. Vercel Edge Config (Global Configuration)**
+**Purpose**: Store app configuration, feature flags, contract addresses, and runtime settings
+
+**Setup Steps:**
+1. In Vercel Storage tab, click **"Create Database"** → Select **"Edge Config"**
+2. Choose config name (e.g., `echain-config`) and region
+3. Copy the **connection string** from the config settings
+4. Add to environment variables as `EDGE_CONFIG`
+
+**Features:**
+- ✅ Ultra-low latency global reads (<50ms worldwide)
+- ✅ Real-time configuration updates
+- ✅ Feature flags for gradual rollouts
+- ✅ Contract address management
+- ✅ Rate limiting and security settings
+
+### 🔧 **Environment Variables Configuration**
+
+Add these to your **Vercel project environment variables** (Project Settings → Environment Variables):
+
+```bash
+# Database (Required)
+TURSO_DATABASE_URL=libsql://your-database-url.turso.io
+TURSO_AUTH_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Object Storage (Required)
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Global Config (Required)
+EDGE_CONFIG=https://edge-config.vercel.com/ecfg_xxxxxxxxxxxxxxxxxx
+```
+
+### 🧪 **Testing Your Storage Setup**
+
+After configuration, test all services:
+
+1. **Storage Dashboard**: Visit `/storage` to see service status
+2. **API Test Endpoint**: Visit `/api/storage-test` for detailed testing
+3. **File Upload Test**: Use the test endpoint to upload sample files
+
+### 📊 **Storage Architecture Benefits**
+
+| Service | Use Case | Performance | Cost |
+|---------|----------|-------------|------|
+| **Turso** | Event data, users, transactions | Global SQLite | Generous free tier |
+| **Blob** | Images, documents, assets | Global CDN | Generous free tier |
+| **Edge Config** | Config, flags, addresses | <50ms latency | Always free |
+
+### 🚀 **Production Deployment Checklist**
+
+- [ ] Create Turso database, Blob, and Edge Config in respective services
+- [ ] Configure environment variables in Vercel dashboard
+- [ ] Test storage services using `/storage` and `/api/storage-test`
+- [ ] Verify database connections and data persistence
+- [ ] Confirm file uploads work correctly
+- [ ] Test Edge Config reads for configuration
+- [ ] Run full application test suite
+- [ ] Deploy to production environment
+
+### 🔒 **Security Considerations**
+
+- **Turso**: Auth tokens provide secure access
+- **Blob**: Tokens provide scoped access (read/write)
+- **Edge Config**: Public reads, secure writes through Vercel
+- **Environment Variables**: Never commit secrets to code
+- **Access Control**: Configure proper permissions in Vercel
+
+### 📈 **Scaling Strategy**
+
+- **Turso**: Global replication with low latency
+- **Blob**: Unlimited storage with global CDN
+- **Edge Config**: Instant global replication
+- **Monitoring**: Use Vercel Analytics for performance metrics
+- **Backup**: Automatic replication for Turso data
+
+### 🆘 **Troubleshooting**
+
+**Database Connection Issues:**
+- Verify `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` are correct
+- Check if your Turso database is accessible from your region
+- Ensure the auth token has the correct permissions
+
+**Blob Upload Failures:**
+- Confirm `BLOB_READ_WRITE_TOKEN` is valid
+- Check token permissions (read/write required)
+- Verify file size limits (5GB per file)
+
+**Edge Config Errors:**
+- Validate `EDGE_CONFIG` URL format
+- Ensure config exists in Vercel dashboard
+- Check for typos in configuration keys
+
+**Performance Issues:**
+- Use connection pooling for database queries
+- Implement caching for frequently accessed data
+- Optimize image sizes before upload
+
+### 🎯 **Next Steps**
+
+Once storage is configured:
+1. **Initialize Database**: Run database migrations if needed
+2. **Seed Data**: Add initial configuration to Edge Config
+3. **Test Integration**: Verify all app features work with storage
+4. **Monitor Usage**: Track storage costs and performance
+5. **Optimize**: Implement caching and query optimization
 
 ## Deployment to Vercel
 
@@ -115,7 +231,7 @@ Visit `/storage` for the dashboard or `/api/storage-test` to verify services are
    - Add all variables from `.env.example`
 
 3. **Set up Storage Services**
-   - Create Postgres, Blob, and Edge Config databases in Vercel Storage
+   - Create Turso database, Blob, and Edge Config in respective services
    - Add their connection strings to environment variables
 
 4. **Deploy**
@@ -197,7 +313,7 @@ frontend/
 - **Wagmi** - Ethereum interactions
 - **Viem** - Ethereum library
 - **Framer Motion** - Animations and transitions
-- **Vercel Postgres** - Serverless database
+- **Turso** - Serverless SQLite database
 - **Vercel Blob** - Object storage
 - **Vercel Edge Config** - Global configuration
 - **React Query** - Data fetching and caching

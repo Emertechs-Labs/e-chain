@@ -14,7 +14,7 @@ if (!envVars.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL || (!envVars.MULTIBAAS_API_KEY
 }
 
 const CHAIN_ID_TO_LABEL: Record<string, string> = {
-  '84532': 'ethereum',
+  '84532': 'base-sepolia', // Correct mapping for Base Sepolia
 };
 
 const explicitChain = envVars.NEXT_PUBLIC_MULTIBAAS_CHAIN;
@@ -33,6 +33,9 @@ export const CHAIN_NAME = (() => {
 
   return 'base-sepolia';
 })();
+
+// Log the chain name for debugging
+console.debug(`[multibaas] Using chain name: ${CHAIN_NAME}`);
 
 const normalizeBasePath = (raw?: string) => {
   if (!raw) return undefined;
@@ -81,13 +84,30 @@ export const getUnsignedTransactionForChain = async (chain: string, address: str
   const normalizeChainLabel = (input?: string) => {
     if (!input) return CHAIN_NAME;
     const s = String(input).trim();
+    
+    // Handle EIP-155 format
     const m = s.match(/^eip155[:\-]?(\d+)$/i);
-    if (m) return CHAIN_ID_TO_LABEL[m[1]] || CHAIN_NAME;
-    if (/^\d+$/.test(s)) return CHAIN_ID_TO_LABEL[s] || CHAIN_NAME;
+    if (m) {
+      const chainId = m[1];
+      const mappedLabel = CHAIN_ID_TO_LABEL[chainId];
+      console.debug(`[multibaas] Normalizing EIP-155 chain: ${s} -> chainId: ${chainId} -> mappedLabel: ${mappedLabel || 'none'}`);
+      return mappedLabel || 'base-sepolia';
+    }
+    
+    // Handle numeric chain ID
+    if (/^\d+$/.test(s)) {
+      const mappedLabel = CHAIN_ID_TO_LABEL[s];
+      console.debug(`[multibaas] Normalizing numeric chain: ${s} -> mappedLabel: ${mappedLabel || 'none'}`);
+      return mappedLabel || 'base-sepolia';
+    }
+    
+    console.debug(`[multibaas] Using chain as provided: ${s}`);
     return s;
   };
 
   const resolvedChain = normalizeChainLabel(chain);
+  console.debug(`[multibaas] getUnsignedTransactionForChain resolved chain: ${chain} -> ${resolvedChain}`);
+  
   const api = createContractsApi();
   const response = await api.callContractFunction(resolvedChain as any, address, contractLabel, method, { args, from, ...(value && { value }) });
   const result = response.data.result;

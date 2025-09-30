@@ -2,12 +2,138 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useMarketplaceListings } from "../hooks/useMarketplace";
+import { useAccount } from "wagmi";
+import { useMarketplaceListings, useBuyMarketplaceTicket } from "../hooks/useMarketplace";
+import { useWalletHelpers } from "../hooks/useWalletHelpers";
+import { toast } from "@/components/ui/use-toast";
+
+// Buy button component
+const BuyButton: React.FC<{ listing: any }> = ({ listing }) => {
+  const { address } = useAccount();
+  const { connectWallet, formatEth, ensureBaseSepoliaNetwork } = useWalletHelpers();
+  const buyMutation = useBuyMarketplaceTicket();
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const handleBuyClick = async () => {
+    try {
+      if (!address) {
+        connectWallet();
+        return;
+      }
+      
+      // Prevent buying your own listing
+      if (address.toLowerCase() === listing.seller.toLowerCase()) {
+        toast({
+          title: "Cannot buy your own listing",
+          description: "You cannot purchase a ticket that you've listed yourself.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      setIsProcessing(true);
+      
+      // Ensure user is on Base Sepolia
+      const networkOk = await ensureBaseSepoliaNetwork();
+      if (!networkOk) {
+        toast({
+          title: "Network Error",
+          description: "Please switch to Base Sepolia network to continue with your purchase.",
+          variant: "destructive"
+        });
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Confirm the purchase
+      if (!confirm(`Purchase this ticket for ${formatEth(listing.price)} ETH?`)) {
+        setIsProcessing(false);
+        return;
+      }
+      
+      await buyMutation.mutateAsync({
+        listingId: listing.id,
+        price: listing.price.toString(),
+      });
+      
+      toast({
+        title: "Purchase Successful!",
+        description: "Ticket purchased successfully! Check your wallet for the NFT.",
+        variant: "default"
+      });
+    } catch (error: any) {
+      console.error("Error buying ticket:", error);
+      toast({
+        title: "Purchase Failed",
+        description: error.message || "Failed to purchase ticket. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+  
+  const isLoading = buyMutation.isPending || isProcessing;
+  const isOwner = address && address.toLowerCase() === listing.seller.toLowerCase();
+  
+  let buttonLabel = "💳 Buy Now";
+  if (!address) buttonLabel = "Connect Wallet";
+  if (isLoading) buttonLabel = "Processing...";
+  if (isOwner) buttonLabel = "Your Listing";
+  
+  return (
+    <button 
+      className={`flex-1 text-center py-3 rounded-lg font-bold flex items-center justify-center gap-2 ${
+        isOwner 
+          ? "bg-slate-700 text-white cursor-not-allowed" 
+          : "bg-cyan-500 text-slate-900 hover:bg-cyan-400 transition-colors"
+      } disabled:opacity-50 disabled:cursor-not-allowed`}
+      onClick={handleBuyClick}
+      disabled={isLoading || isOwner}
+    >
+      {isLoading && (
+        <svg className="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      )}
+      {buttonLabel}
+    </button>
+  );
+};
 
 const MarketplacePage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("price-low");
   const { data: marketplaceItems, isLoading, error } = useMarketplaceListings();
+  
+  // Filter listings based on search term
+  const filteredListings = marketplaceItems?.filter(item => {
+    if (!searchTerm) return true;
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      item.eventName.toLowerCase().includes(searchLower) ||
+      item.ticketType.toLowerCase().includes(searchLower) ||
+      item.seller.toLowerCase().includes(searchLower) ||
+      item.location.toLowerCase().includes(searchLower)
+    );
+  });
+  
+  // Sort listings
+  const sortedListings = [...(filteredListings || [])].sort((a, b) => {
+    switch (sortBy) {
+      case 'price-low':
+        return Number(a.price - b.price);
+      case 'price-high':
+        return Number(b.price - a.price);
+      case 'date':
+        return a.eventDate - b.eventDate;
+      case 'recent':
+        return b.listedAt - a.listedAt;
+      default:
+        return 0;
+    }
+  });
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -29,28 +155,45 @@ const MarketplacePage: React.FC = () => {
       <section className="py-8 bg-slate-900">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col md:flex-row gap-4 mb-8">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  placeholder="Search events, tickets, or sellers..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-slate-800 text-white px-4 py-3 rounded-lg border border-slate-700 focus:border-cyan-500 focus:outline-none"
-                />
+            <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+              <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    placeholder="Search events, tickets, or sellers..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full bg-slate-800 text-white px-4 py-3 rounded-lg border border-slate-700 focus:border-cyan-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="bg-slate-800 text-white px-4 py-3 rounded-lg border border-slate-700 focus:border-cyan-500 focus:outline-none w-full md:w-auto"
+                    aria-label="Sort marketplace items"
+                  >
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="date">Event Date</option>
+                    <option value="recent">Recently Listed</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-slate-800 text-white px-4 py-3 rounded-lg border border-slate-700 focus:border-cyan-500 focus:outline-none"
-                  aria-label="Sort marketplace items"
+              
+              <div className="flex gap-3 mt-4 md:mt-0">
+                <Link
+                  href="/marketplace/my-listings"
+                  className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-3 rounded-lg border border-slate-700 transition-colors"
                 >
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
-                  <option value="date">Event Date</option>
-                  <option value="recent">Recently Listed</option>
-                </select>
+                  My Listings
+                </Link>
+                <Link
+                  href="/marketplace/create"
+                  className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-4 py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 font-semibold"
+                >
+                  List Ticket
+                </Link>
               </div>
             </div>
           </div>
@@ -73,9 +216,9 @@ const MarketplacePage: React.FC = () => {
                 <h2 className="text-2xl font-bold text-white mb-4">Error Loading Marketplace</h2>
                 <p className="text-gray-400">Unable to fetch marketplace data. Please try again later.</p>
               </div>
-            ) : marketplaceItems && marketplaceItems.length > 0 ? (
+            ) : sortedListings && sortedListings.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {marketplaceItems.map((item) => (
+                {sortedListings.map((item) => (
                   <div key={item.id} className="bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-700 overflow-hidden hover:border-cyan-500/50 transition-all duration-300 hover:scale-[1.02]">
                     {/* Ticket Image */}
                     <div className="h-48 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 relative">
@@ -134,9 +277,7 @@ const MarketplacePage: React.FC = () => {
 
                       {/* Action Buttons */}
                       <div className="flex gap-2">
-                        <button className="flex-1 bg-cyan-500 text-slate-900 text-center py-3 rounded-lg hover:bg-cyan-400 transition-colors font-bold flex items-center justify-center gap-2">
-                          💳 Buy Now
-                        </button>
+                        <BuyButton listing={item} />
                         <button className="p-3 border border-slate-600 rounded-lg hover:bg-slate-700 transition-colors">
                           <span className="text-gray-400">💬</span>
                         </button>
@@ -149,7 +290,9 @@ const MarketplacePage: React.FC = () => {
               <div className="text-center py-16">
                 <div className="text-6xl mb-6">🛒</div>
                 <h2 className="text-2xl font-bold text-white mb-4">No Tickets Available</h2>
-                <p className="text-gray-400 mb-8">Check back later for tickets on the secondary market.</p>
+                <p className="text-gray-400 mb-8">
+                  {searchTerm ? `No tickets matching "${searchTerm}" were found.` : "Check back later for tickets on the secondary market."}
+                </p>
                 <Link
                   href="/events"
                   className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 font-semibold"
@@ -169,9 +312,9 @@ const MarketplacePage: React.FC = () => {
           <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
             List your event tickets on our secure marketplace and reach thousands of potential buyers.
           </p>
-          <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-lg hover:from-purple-400 hover:to-pink-400 transition-all duration-200 font-semibold">
+          <Link href="/marketplace/create" className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-lg hover:from-purple-400 hover:to-pink-400 transition-all duration-200 font-semibold">
             List Your Tickets
-          </button>
+          </Link>
         </div>
       </section>
     </div>

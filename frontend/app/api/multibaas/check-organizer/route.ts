@@ -15,10 +15,11 @@ export async function POST(req: Request) {
     try {
       // Map known aliases to contract labels (from MultiBaas deployment)
       const aliasToContract: Record<string, string> = {
-        'eventfactory1': 'eventfactory',
-        'eventticket1': 'eventticket',
-        'incentivemanager1': 'incentivemanager',
-        'poapattendance1': 'poapattendance',
+        'eventfactory': 'eventfactory',
+        'eventticket': 'eventticket',
+        'incentivemanager': 'incentivemanager',
+        'poapattendance': 'poapattendance',
+        'marketplace': 'marketplace',
       };
       const contract = aliasToContract[contractLabel] || contractLabel; // fallback if not mapped
 

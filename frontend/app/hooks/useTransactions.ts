@@ -24,7 +24,8 @@ const callUnsignedTx = async (
   args: any[] = [],
   from: string,
   value?: string,
-  traceId?: string
+  traceId?: string,
+  blockchain: string = 'base-sepolia' // Default to base-sepolia
 ) => {
   try {
     console.debug('[useTransactions] proxy getUnsignedTransaction request', {
@@ -35,12 +36,13 @@ const callUnsignedTx = async (
       from,
       value,
       traceId,
+      blockchain,
     });
 
     const res = await fetch('/api/multibaas/unsigned', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address, contractLabel, method, args, from, value, traceId }),
+      body: JSON.stringify({ address, contractLabel, method, args, from, value, traceId, blockchain }),
     });
 
     const data = await res.json().catch(() => ({}));
@@ -679,7 +681,7 @@ export const useVerifyOrganizer = () => {
       console.debug('[useVerifyOrganizer] start', { traceId, address });
 
       try {
-        // Call selfVerifyOrganizer with 0.001 ETH payment
+        // Call selfVerifyOrganizer with 0.001 ETH payment, explicitly specifying the blockchain
         const result = await callUnsignedTx(
           CONTRACT_ADDRESSES.EventFactory,
           'EventFactory',
@@ -687,7 +689,8 @@ export const useVerifyOrganizer = () => {
           [address], // organizer address
           address,
           '1000000000000000', // 0.001 ETH in wei
-          traceId
+          traceId,
+          'base-sepolia' // Explicitly specify the chain
         );
 
         console.debug('[useVerifyOrganizer] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });

@@ -30,10 +30,11 @@ export async function POST(req: Request) {
     // Map known aliases to instance aliases (from MultiBaas deployment)
     // aliasToInstance maps a "contract label" (logical name) to a specific instance alias
     const aliasToInstance: Record<string, string> = {
-      'eventfactory': 'eventfactory1',
-      'eventticket': 'eventticket1',
-      'incentivemanager': 'incentivemanager1',
-      'poapattendance': 'poapattendance1',
+      'eventfactory': 'eventfactory',
+      'eventticket': 'eventticket',
+      'incentivemanager': 'incentivemanager',
+      'poapattendance': 'poapattendance',
+      'marketplace': 'marketplace',
     };
 
     // Determine the values to pass to the SDK:
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
     let contractToCall: string | undefined = normalizedContract;
 
     if (normalizedContract) {
-      // If we have a contract label and a known instance alias for it, use the instance as the address
+      // If we have a contract label and a known alias for it, use the alias as the address
       if (aliasToInstance[normalizedContract]) {
         addressOrAlias = aliasToInstance[normalizedContract];
         contractToCall = normalizedContract;
@@ -52,9 +53,28 @@ export async function POST(req: Request) {
         contractToCall = normalizedContract;
       }
     } else if (normalizedAddress && aliasToInstance[normalizedAddress]) {
-      // If caller passed the contract label in the `address` field, swap to use the instance alias and set contract label accordingly
+      // If caller passed the contract label in the `address` field, use the mapped alias and set contract label accordingly
       addressOrAlias = aliasToInstance[normalizedAddress];
       contractToCall = normalizedAddress;
+    }
+    
+    // Add additional check for direct hex addresses
+    if (normalizedAddress && /^0x[a-fA-F0-9]{40}$/.test(normalizedAddress)) {
+      // If it's a direct hex address, use it as is
+      addressOrAlias = normalizedAddress;
+      // Try to determine the contract label from the address if not already set
+      if (!contractToCall) {
+        // Look up contract label from address if possible
+        const addressToLabel: Record<string, string> = {
+          '0xA97cB40548905B05A67fCD4765438aFBEA4030fc': 'eventfactory',
+          '0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C': 'eventticket',
+          '0x08344CfBfB3afB2e114A0dbABbaF40e7eB62FD33': 'poapattendance',
+          '0x1cfDae689817B954b72512bC82f23F35B997617D': 'incentivemanager',
+          '0xD061393A54784da5Fea48CC845163aBc2B11537A': 'marketplace',
+        };
+        
+        contractToCall = addressToLabel[normalizedAddress] || contractLabel;
+      }
     }
 
     // Normalize args: convert hex strings to decimal strings for numeric fields
@@ -73,7 +93,18 @@ export async function POST(req: Request) {
     };
     const normalizedArgs = normalizeArgs(args || []);
 
-    console.debug('[app/api/multibaas/unsigned] start (sdk)', { traceId, address: normalizedAddress, contractLabel: normalizedContract, method, args: normalizedArgs, from, value, blockchain });
+    console.debug('[app/api/multibaas/unsigned] start (sdk)', { 
+      traceId, 
+      address: normalizedAddress, 
+      resolvedAddress: addressOrAlias,
+      contractLabel: normalizedContract, 
+      resolvedContract: contractToCall,
+      method, 
+      args: normalizedArgs, 
+      from, 
+      value, 
+      blockchain 
+    });
 
     // Use the server-side SDK helper which handles basePath, apiKey and correct method/path
     try {
@@ -88,8 +119,16 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Invalid contractLabel format', message: `Provided contractLabel '${contractToCall ?? contractLabel}' is not a valid MultiBaas contract alias.` }, { status: 400 });
       }
 
+      // Add better debugging for blockchain parameter
+      const resolvedBlockchain = blockchain || 'base-sepolia';
+      console.debug('[app/api/multibaas/unsigned] using blockchain', { 
+        providedBlockchain: blockchain,
+        resolvedBlockchain,
+        traceId
+      });
+      
       const result = blockchain
-        ? await getUnsignedTransactionForChain(blockchain, addressOrAlias || '', contractToCall || '', method, normalizedArgs, from, value)
+        ? await getUnsignedTransactionForChain(resolvedBlockchain, addressOrAlias || '', contractToCall || '', method, normalizedArgs, from, value)
         : await getUnsignedTransaction(addressOrAlias || '', contractToCall || '', method, normalizedArgs, from, value);
 
       console.debug('[app/api/multibaas/unsigned] sdk result', { traceId, result });
@@ -116,10 +155,32 @@ export async function POST(req: Request) {
       // Return the raw result (SDK returns TransactionToSignResponse)
       return NextResponse.json(result, { status: 200 });
     } catch (upstreamErr: any) {
-      console.error('[app/api/multibaas/unsigned] upstream SDK error', { traceId, message: upstreamErr?.message, status: upstreamErr?.response?.status, data: upstreamErr?.response?.data });
+      console.error('[app/api/multibaas/unsigned] upstream SDK error', { 
+        traceId, 
+        message: upstreamErr?.message, 
+        status: upstreamErr?.response?.status, 
+        data: upstreamErr?.response?.data,
+        contractInfo: {
+          addressOrAlias,
+          contractToCall,
+          method
+        }
+      });
+      
+      // Provide more helpful error messages based on common MultiBaas errors
+      let errorMessage = 'MultiBaas proxy error';
       const status = upstreamErr?.response?.status ?? 500;
-      const data = upstreamErr?.response?.data ?? { error: upstreamErr?.message ?? 'MultiBaas error' };
-      return NextResponse.json({ error: 'MultiBaas proxy error', status, body: data }, { status });
+      
+      if (status === 404) {
+        errorMessage = `Contract or method not found: ${contractToCall}`;
+      } else if (status === 400) {
+        errorMessage = `Invalid request to MultiBaas: ${upstreamErr?.message}`;
+      } else if (status === 401 || status === 403) {
+        errorMessage = 'Authentication error with MultiBaas';
+      }
+      
+      const data = upstreamErr?.response?.data ?? { error: upstreamErr?.message ?? errorMessage };
+      return NextResponse.json({ error: errorMessage, status, body: data }, { status });
     }
 
   } catch (err: any) {

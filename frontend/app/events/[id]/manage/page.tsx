@@ -195,7 +195,7 @@ const EventManagementPage: React.FC = () => {
               <div className="mt-3 bg-slate-700 rounded-full h-2">
                 <div
                   className={`${styles.progressBar} bg-blue-500 h-2 rounded-full transition-all duration-300`}
-                  style={{ '--progress-width': `${revenuePercentage}%` } as React.CSSProperties}
+                  style={{'--progress-width': `${revenuePercentage}%`} as React.CSSProperties}
                 ></div>
               </div>
             </div>
@@ -251,7 +251,7 @@ const EventManagementPage: React.FC = () => {
                 <div className="w-full bg-slate-700 rounded-full h-4">
                   <div
                     className="bg-gradient-to-r from-cyan-500 to-blue-500 h-4 rounded-full transition-all duration-500 ease-out"
-                    style={{ width: `${revenuePercentage}%` }}
+                    style={{width: `${revenuePercentage}%`}}
                   ></div>
                 </div>
                 <div className="text-center text-gray-400 text-sm">

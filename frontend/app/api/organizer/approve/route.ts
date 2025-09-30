@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 
 // Contract addresses and ABI
 const CONTRACT_ADDRESSES = {
-  EventFactory: '0xbE36039Bfe7f48604F73daD61411459B17fd2e85',
+  EventFactory: '0xA97cB40548905B05A67fCD4765438aFBEA4030fc',
 };
 
 const EVENT_FACTORY_ABI = [
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     // Use MultiBaas to call selfVerifyOrganizer with payment
     console.log('Calling selfVerifyOrganizer via MultiBaas...');
 
-    const verificationResponse = await fetch(`${multibaasEndpoint}/api/v0/chains/eip155-84532/contracts/EventFactory/selfVerifyOrganizer`, {
+    const verificationResponse = await fetch(`${multibaasEndpoint}/api/v0/chains/eip155-84532/contracts/eventfactory/selfVerifyOrganizer`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         args: [organizerAddress],
         from: organizerAddress, // User calls this themselves
-        value: '1000000000000000', // 0.001 ETH in wei
+        value: '2000000000000000', // 0.002 ETH in wei - updated verification fee
       }),
     });
 

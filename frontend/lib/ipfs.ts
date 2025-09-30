@@ -1,9 +1,24 @@
 // IPFS upload utility for event images and metadata
-// Using Web3.Storage for simplicity - can be replaced with Pinata or other service
+// Using Pinata for IPFS storage and pinning
 
+import { PinataSDK } from 'pinata-web3';
 import QRCode from 'qrcode';
 
-const WEB3_STORAGE_TOKEN = process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN;
+// Initialize Pinata SDK
+const PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT;
+const PINATA_GATEWAY_URL = process.env.NEXT_PUBLIC_PINATA_GATEWAY_URL || 'https://gateway.pinata.cloud';
+
+let pinataSDK: PinataSDK | null = null;
+
+function getPinataSDK(): PinataSDK {
+  if (!pinataSDK && PINATA_JWT) {
+    pinataSDK = new PinataSDK({
+      pinataJwt: PINATA_JWT,
+      pinataGateway: PINATA_GATEWAY_URL,
+    });
+  }
+  return pinataSDK!;
+}
 
 export interface IPFSUploadResult {
   cid: string;
@@ -24,34 +39,22 @@ export interface VerificationData {
 }
 
 /**
- * Upload a file to IPFS via Web3.Storage
+ * Upload a file to IPFS via Pinata
  */
 export async function uploadToIPFS(file: File): Promise<IPFSUploadResult> {
   try {
-    if (!WEB3_STORAGE_TOKEN) {
-      throw new Error('Web3.Storage token not configured');
+    if (!PINATA_JWT) {
+      throw new Error('Pinata JWT not configured');
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
+    const pinata = getPinataSDK();
 
-    const response = await fetch('https://api.web3.storage/upload', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${WEB3_STORAGE_TOKEN}`,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Upload failed: ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    // Upload file to Pinata
+    const upload = await pinata.upload.file(file);
 
     return {
-      cid: data.cid,
-      url: `https://${data.cid}.ipfs.w3s.link`,
+      cid: upload.IpfsHash,
+      url: `https://gateway.pinata.cloud/ipfs/${upload.IpfsHash}`,
       success: true,
     };
   } catch (error) {
@@ -78,34 +81,24 @@ export async function uploadEventMetadata(metadata: {
   }>;
 }): Promise<IPFSUploadResult> {
   try {
-    if (!WEB3_STORAGE_TOKEN) {
-      throw new Error('Web3.Storage token not configured');
+    if (!PINATA_JWT) {
+      throw new Error('Pinata JWT not configured');
     }
 
+    const pinata = getPinataSDK();
+
+    // Convert metadata to JSON blob and then to File
     const metadataBlob = new Blob([JSON.stringify(metadata)], {
       type: 'application/json',
     });
+    const metadataFile = new File([metadataBlob], 'event-metadata.json', { type: 'application/json' });
 
-    const formData = new FormData();
-    formData.append('file', metadataBlob);
-
-    const response = await fetch('https://api.web3.storage/upload', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${WEB3_STORAGE_TOKEN}`,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Metadata upload failed: ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    // Upload JSON to Pinata
+    const upload = await pinata.upload.file(metadataFile);
 
     return {
-      cid: data.cid,
-      url: `https://ipfs.io/ipfs/${data.cid}`,
+      cid: upload.IpfsHash,
+      url: `https://gateway.pinata.cloud/ipfs/${upload.IpfsHash}`,
       success: true,
     };
   } catch (error) {
@@ -137,34 +130,24 @@ export async function uploadTicketMetadata(metadata: {
   }>;
 }): Promise<IPFSUploadResult> {
   try {
-    if (!WEB3_STORAGE_TOKEN) {
-      throw new Error('Web3.Storage token not configured');
+    if (!PINATA_JWT) {
+      throw new Error('Pinata JWT not configured');
     }
 
+    const pinata = getPinataSDK();
+
+    // Convert metadata to JSON blob and then to File
     const metadataBlob = new Blob([JSON.stringify(metadata)], {
       type: 'application/json',
     });
+    const metadataFile = new File([metadataBlob], 'ticket-metadata.json', { type: 'application/json' });
 
-    const formData = new FormData();
-    formData.append('file', metadataBlob);
-
-    const response = await fetch('https://api.web3.storage/upload', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${WEB3_STORAGE_TOKEN}`,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Ticket metadata upload failed: ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    // Upload JSON to Pinata
+    const upload = await pinata.upload.file(metadataFile);
 
     return {
-      cid: data.cid,
-      url: `https://ipfs.io/ipfs/${data.cid}`,
+      cid: upload.IpfsHash,
+      url: `https://gateway.pinata.cloud/ipfs/${upload.IpfsHash}`,
       success: true,
     };
   } catch (error) {
@@ -183,10 +166,13 @@ export async function uploadTicketMetadata(metadata: {
  */
 export async function uploadVerificationData(verificationData: VerificationData): Promise<IPFSUploadResult> {
   try {
-    if (!WEB3_STORAGE_TOKEN) {
-      throw new Error('Web3.Storage token not configured');
+    if (!PINATA_JWT) {
+      throw new Error('Pinata JWT not configured');
     }
 
+    const pinata = getPinataSDK();
+
+    // Create verification data blob and convert to File
     const verificationBlob = new Blob([JSON.stringify({
       ...verificationData,
       verified: true,
@@ -195,27 +181,14 @@ export async function uploadVerificationData(verificationData: VerificationData)
     })], {
       type: 'application/json',
     });
+    const verificationFile = new File([verificationBlob], 'verification.json', { type: 'application/json' });
 
-    const formData = new FormData();
-    formData.append('file', verificationBlob);
-
-    const response = await fetch('https://api.web3.storage/upload', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${WEB3_STORAGE_TOKEN}`,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Verification data upload failed: ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    // Upload JSON to Pinata
+    const upload = await pinata.upload.file(verificationFile);
 
     return {
-      cid: data.cid,
-      url: `https://ipfs.io/ipfs/${data.cid}`,
+      cid: upload.IpfsHash,
+      url: `https://gateway.pinata.cloud/ipfs/${upload.IpfsHash}`,
       success: true,
     };
   } catch (error) {

@@ -39,6 +39,14 @@ export async function POST(req: Request) {
       data = text;
     }
 
+    // Log the specific unsigned transaction object if present
+    try {
+      const txObj = data?.result?.tx ?? null;
+      console.debug('[app/api/multibaas/unsigned] result.tx', { traceId, tx: txObj });
+    } catch (e) {
+      console.debug('[app/api/multibaas/unsigned] result.tx parse error', { traceId, err: String(e) });
+    }
+
     console.debug('[app/api/multibaas/unsigned] got response from MultiBaas', { traceId, status: response.status, data });
 
     return NextResponse.json(data, { status: response.status });

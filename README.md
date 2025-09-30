@@ -1,11 +1,10 @@
 # 🔗 Echain - Blockchain Event Platform
 
-[![Solidity](https://img.shields.io/badge/Solidity-363636?style=for-the-badge&logo=solidity&logoColor=white)](https://soliditylang.org/)
+[![Curvegrid MultiBaas](https://img.shields.io/badge/Curvegrid_MultiBaas-6366F1?style=for-the-badge&logo=ethereum&logoColor=white)](https://www.curvegrid.com/)[![Solidity](https://img.shields.io/badge/Solidity-363636?style=for-the-badge&logo=solidity&logoColor=white)](https://soliditylang.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Base](https://img.shields.io/badge/Base-0052FF?style=for-the-badge&logo=base&logoColor=white)](https://base.org/)
-[![Curvegrid MultiBaas](https://img.shields.io/badge/Curvegrid_MultiBaas-6366F1?style=for-the-badge&logo=ethereum&logoColor=white)](https://www.curvegrid.com/)
 [![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
 
 **A Web3-native event management platform built on Base using Curvegrid MultiBaas**

@@ -139,7 +139,7 @@ Build & Dev Tools:
 │   ├── /page.tsx                 # Homepage
 │   ├── /events/                  # Event discovery and details
 │   ├── /my-events/               # Organizer dashboard
-│   ├── /my-tickets/               # Attendee ticket collection
+│   ├── /my-tickets/              # Attendee ticket collection
 │   ├── /marketplace/             # Secondary ticket trading
 │   ├── /poaps/                   # Attendance certificate gallery
 │   └── /transparency/            # On-chain data transparency

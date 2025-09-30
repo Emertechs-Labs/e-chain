@@ -79,24 +79,23 @@ export function HeroSection() {
         </video>
       </div>
     );
-  }
+  };
 
   return (
     // Force hero to fit within one viewport minus header (header ~4rem)
     <section id="hero" className="relative py-8 md:py-12 overflow-hidden h-[calc(100vh-4rem)] flex items-center">
-      <div className="absolute inset-0 bg-slate-900">
+      <div className="absolute inset-0 bg-[url('/images/background.jpg')] bg-cover bg-center">
         {/* Optional video background (place a file at public/videos/hero-bg.mp4). If present it will be used; otherwise the animation will be visible. */}
         <VideoBackground />
         <BlockchainAnimation />
 
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-slate-900/80"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/80"></div>
 
         {/* Animated Grid Pattern */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,_#0f172a_70%)]"></div>
-        </div>
 
         {/* Floating Elements */}
         <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
@@ -108,6 +107,7 @@ export function HeroSection() {
         <div className="absolute top-48 right-32 w-6 h-6 bg-blue-400 rounded-lg rotate-45 animate-spin-slow delay-700"></div>
         <div className="absolute bottom-40 left-32 w-3 h-3 bg-purple-400 rounded-full animate-ping delay-1000"></div>
         <div className="absolute top-64 right-20 w-5 h-5 bg-pink-400 rounded-full animate-bounce delay-500"></div>
+      </div>
       </div>
 
       {/* Content */}

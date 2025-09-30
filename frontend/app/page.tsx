@@ -16,7 +16,7 @@ const FloatingActionButton = dynamic(() => import('./components/sections/Floatin
 
 const Home: React.FC = () => {
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-background">
       <HeroSection />
       <FeaturedEventsSection />
       <FeaturesSection />

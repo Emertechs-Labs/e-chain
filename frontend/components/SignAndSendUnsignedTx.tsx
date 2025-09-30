@@ -101,11 +101,34 @@ export default function SignAndSendUnsignedTx({
         await eth.request({ method: 'eth_requestAccounts' });
       }
 
+      // Check if wallet is on the correct network (Base Sepolia)
+      const chainId = await eth.request({ method: 'eth_chainId' });
+      console.log('[SignAndSendUnsignedTx] Current chain ID:', chainId);
+      if (chainId !== '0x14a34') { // Base Sepolia chain ID in hex
+        setError(`Wrong network! Please switch to Base Sepolia (Chain ID: 84532). Current chain: ${chainId}`);
+        setBusy(false);
+        return;
+      }
+
+      // Check balance to ensure sufficient funds
+      const balance = await eth.request({ method: 'eth_getBalance', params: [tx.from, 'latest'] });
+      const balanceWei = BigInt(balance);
+      const gasCost = BigInt(tx.gas || 21000) * BigInt(tx.gasFeeCap || '2000000000'); // Rough estimate
+      console.log('[SignAndSendUnsignedTx] Balance:', balanceWei.toString(), 'Gas cost estimate:', gasCost.toString());
+      
+      if (balanceWei < gasCost) {
+        setError(`Insufficient funds! Balance: ${Number(balanceWei) / 1e18} ETH, Estimated gas cost: ${Number(gasCost) / 1e18} ETH`);
+        setBusy(false);
+        return;
+      }
+
       // Send the transaction via the wallet
-  const txHash = await eth.request({ method: 'eth_sendTransaction', params: [txParams] });
-  const txHashStr = String(txHash);
-  setResult(txHashStr);
-  if (onSubmitted) onSubmitted(txHashStr);
+      console.log('[SignAndSendUnsignedTx] Sending transaction with params:', txParams);
+      const txHash = await eth.request({ method: 'eth_sendTransaction', params: [txParams] });
+      const txHashStr = String(txHash);
+      console.log('[SignAndSendUnsignedTx] Transaction submitted:', txHashStr);
+      setResult(txHashStr);
+      if (onSubmitted) onSubmitted(txHashStr);
     } catch (e: any) {
       setError(String(e?.message ?? e));
     } finally {

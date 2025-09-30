@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import './globals.css';
 import { Providers } from './providers';
 import Header from './components/layout/Header';
@@ -41,24 +40,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.variable}>
-        {/* Use Next's Script with beforeInteractive so script runs before hydration
-            and is correctly ordered by Next/webpack. This avoids invalid HTML
-            (script as child of <html>) and hydration mismatches. */}
-        <Script id="echain-theme" strategy="beforeInteractive">
-          {`(function(){
-            try {
-              var key = 'echain-theme';
-              var t = localStorage.getItem(key);
-              if (!t || ['light','dark','system'].indexOf(t) === -1) return;
-              if (t === 'system') {
-                var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                document.documentElement.classList.add(prefersDark ? 'dark' : 'light');
-              } else {
-                document.documentElement.classList.add(t);
-              }
-            } catch(e){}
-          })();`}
-        </Script>
         <Providers>
           <div className="min-h-screen flex flex-col">
             <Header />

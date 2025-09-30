@@ -61,69 +61,25 @@ export const useEvents = () => {
   return useQuery({
     queryKey: ['events'],
     queryFn: async (): Promise<Event[]> => {
-      console.log('[useEvents] Fetching events from contract...');
+      console.log('[useEvents] Fetching events from API...');
       try {
-        // Get total event count to validate event IDs
-        const eventCount = await readContract(config, {
-          address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
-          abi: CONTRACT_ABIS.EventFactory,
-          functionName: 'eventCount',
-          args: []
-        }) as bigint;
-
-        console.log('[useEvents] Total event count:', Number(eventCount));
-
-        // Fetch all events and filter active ones (since getActiveEvents may be unreliable)
-        const events: Event[] = [];
-        for (let eventId = 1; eventId <= Number(eventCount); eventId++) {
-          try {
-            const eventData = await readContract(config, {
-              address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
-              abi: CONTRACT_ABIS.EventFactory,
-              functionName: 'getEventDetails',
-              args: [BigInt(eventId)]
-            }) as any;
-
-            // Only include active events
-            if (eventData.isActive) {
-              const event: Event = {
-                id: Number(eventData.id),
-                name: eventData.name,
-                organizer: eventData.organizer,
-                ticketContract: eventData.ticketContract,
-                poapContract: eventData.poapContract || undefined,
-                incentiveContract: eventData.incentiveContract || undefined,
-                metadataURI: eventData.metadataURI,
-                ticketPrice: BigInt(eventData.ticketPrice),
-                maxTickets: Number(eventData.maxTickets),
-                startTime: Number(eventData.startTime),
-                endTime: Number(eventData.endTime),
-                isActive: eventData.isActive,
-                createdAt: Number(eventData.createdAt),
-                // Additional fields can be parsed from metadataURI if needed
-                description: '',
-                venue: '',
-                category: 'General'
-              };
-              events.push(event);
-            }
-          } catch (error) {
-            // Silently skip failed event fetches (expected for non-existent events)
-          }
+        const response = await fetch('/api/events');
+        if (!response.ok) {
+          throw new Error('Failed to fetch events');
         }
+        const events = await response.json();
+        console.log('[useEvents] Fetched events from API:', events.length);
 
-        console.log('[useEvents] Successfully fetched events:', events.length);
-
-        // If no events were fetched from contract, fall back to mock data
+        // If no events, fall back to mock data
         if (events.length === 0) {
-          console.log('[useEvents] No events found on contract, using mock data');
+          console.log('[useEvents] No events from API, using mock data');
           return mockEvents;
         }
 
         return events;
       } catch (error) {
-        console.error('Error fetching events:', error);
-        // Fallback to mock data if contract call fails
+        console.error('Error fetching events from API:', error);
+        // Fallback to mock data
         console.log('[useEvents] Falling back to mock data');
         return mockEvents;
       }
@@ -148,7 +104,8 @@ export const useEventsByOrganizer = (organizer?: string) => {
           address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
           abi: CONTRACT_ABIS.EventFactory,
           functionName: 'eventCount',
-          args: []
+          args: [],
+          chainId: 84532
         }) as bigint;
 
         // Fetch all events and filter by organizer and active status
@@ -158,8 +115,9 @@ export const useEventsByOrganizer = (organizer?: string) => {
             const eventData = await readContract(config, {
               address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
               abi: CONTRACT_ABIS.EventFactory,
-              functionName: 'getEventDetails',
-              args: [BigInt(eventId)]
+              functionName: 'events',
+              args: [BigInt(eventId)],
+              chainId: 84532
             }) as any;
 
             // Only include active events owned by this organizer
@@ -222,7 +180,8 @@ export const useEvent = (eventId: number) => {
           address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
           abi: CONTRACT_ABIS.EventFactory,
           functionName: 'eventCount',
-          args: []
+          args: [],
+          chainId: 84532
         }) as bigint;
 
         // Validate eventId
@@ -234,8 +193,9 @@ export const useEvent = (eventId: number) => {
         const eventData = await readContract(config, {
           address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
           abi: CONTRACT_ABIS.EventFactory,
-          functionName: 'getEventDetails',
-          args: [BigInt(eventId)]
+          functionName: 'events',
+          args: [BigInt(eventId)],
+          chainId: 84532
         }) as any;
 
         // Convert contract data to Event interface

@@ -53,12 +53,69 @@ const CreateEventPage: React.FC = () => {
     return end.toISOString().slice(0, 16);
   };
 
-  const getMaxSaleEndDateTime = (startDate: string) => {
-    if (!startDate) return '';
-    const start = new Date(startDate);
-    start.setMinutes(start.getMinutes() - 1); // Sale end must be before start
-    return start.toISOString().slice(0, 16);
+  const validateForm = (): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+
+    // Check required fields
+    if (!formData.name.trim()) errors.push("Event name is required");
+    if (!formData.description.trim()) errors.push("Description is required");
+    if (!formData.venue.trim()) errors.push("Venue is required");
+    if (!formData.category) errors.push("Category is required");
+    if (!formData.startDate) errors.push("Start date is required");
+    if (!formData.endDate) errors.push("End date is required");
+    if (!formData.saleEndDate) errors.push("Sale end date is required");
+    if (!formData.maxTickets) errors.push("Maximum tickets is required");
+    if (!formData.ticketPrice) errors.push("Ticket price is required");
+
+    // Check numeric validations
+    const maxTickets = parseInt(formData.maxTickets);
+    const ticketPrice = parseFloat(formData.ticketPrice);
+    
+    if (isNaN(maxTickets) || maxTickets <= 0) {
+      errors.push("Maximum tickets must be a positive number");
+    }
+    
+    if (isNaN(ticketPrice) || ticketPrice < 0) {
+      errors.push("Ticket price must be a valid non-negative number");
+    }
+
+    // Check date validations
+    if (formData.startDate && formData.endDate && formData.saleEndDate) {
+      const startTime = new Date(formData.startDate).getTime();
+      const endTime = new Date(formData.endDate).getTime();
+      const saleEndTime = new Date(formData.saleEndDate).getTime();
+      const now = Date.now();
+      const oneHourFromNow = now + 3600 * 1000;
+
+      if (isNaN(startTime) || isNaN(endTime) || isNaN(saleEndTime)) {
+        errors.push("Invalid date format");
+      } else {
+        if (startTime <= oneHourFromNow) {
+          errors.push("Event start time must be at least 1 hour in the future");
+        }
+        
+        if (endTime <= startTime) {
+          errors.push("Event end time must be after start time");
+        }
+        
+        if (endTime - startTime < 3600 * 1000) { // At least 1 hour duration
+          errors.push("Event must be at least 1 hour long");
+        }
+        
+        if (saleEndTime >= startTime) {
+          errors.push("Ticket sales must end before the event starts");
+        }
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
   };
+
+  const validation = validateForm();
+  const isFormValid = validation.isValid && isConnected;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -68,52 +125,34 @@ const CreateEventPage: React.FC = () => {
     }));
   };
 
+  const getMaxSaleEndDateTime = (startDate: string) => {
+    if (!startDate) return '';
+    const start = new Date(startDate);
+    start.setMinutes(start.getMinutes() - 1); // Sale end must be before start
+    return start.toISOString().slice(0, 16);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Use the validation function
+    const validation = validateForm();
+    if (!validation.isValid) {
+      toast.error("Please fix the form errors before submitting");
+      return;
+    }
+
     if (!isConnected) {
       toast.error("Please connect your wallet first");
       return;
     }
+
     setIsLoading(true);
     try {
-      // Validate required fields
-      if (!formData.startDate || !formData.endDate || !formData.saleEndDate) {
-        toast.error("Please fill in all required date fields");
-        return;
-      }
-
       // Convert form data to contract parameters
       const startTime = Math.floor(new Date(formData.startDate).getTime() / 1000);
       const endTime = Math.floor(new Date(formData.endDate).getTime() / 1000);
       const saleEndTime = Math.floor(new Date(formData.saleEndDate).getTime() / 1000);
-      const now = Math.floor(Date.now() / 1000);
-      const oneHourFromNow = now + 3600;
-
-      // Validate dates with detailed error messages
-      if (isNaN(startTime) || isNaN(endTime) || isNaN(saleEndTime)) {
-        toast.error("Invalid date format. Please use the date picker.");
-        return;
-      }
-
-      if (startTime <= oneHourFromNow) {
-        toast.error("Event start time must be at least 1 hour in the future");
-        return;
-      }
-
-      if (endTime <= startTime) {
-        toast.error("Event end time must be after start time");
-        return;
-      }
-
-      if (endTime - startTime < 3600) { // At least 1 hour duration
-        toast.error("Event must be at least 1 hour long");
-        return;
-      }
-
-      if (saleEndTime >= startTime) {
-        toast.error("Ticket sales must end before the event starts");
-        return;
-      }
 
       const eventData = {
         name: formData.name,
@@ -123,7 +162,8 @@ const CreateEventPage: React.FC = () => {
         startTime,
         endTime
       };
-  // Prepare payload for server-side unsigned tx creation
+
+      // Prepare payload for server-side unsigned tx creation
       const payload = {
         address: 'eventfactory',
         contractLabel: 'eventfactory',
@@ -406,17 +446,40 @@ const CreateEventPage: React.FC = () => {
 
               {/* Submit Button / Wallet signing flow */}
               <div className="text-center">
+                {/* Validation Errors */}
+                {!validation.isValid && validation.errors.length > 0 && (
+                  <div className="mb-6 p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
+                    <h3 className="text-red-400 font-semibold mb-2">Please fix the following issues:</h3>
+                    <ul className="text-red-300 text-sm space-y-1">
+                      {validation.errors.map((error, index) => (
+                        <li key={index}>• {error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Wallet Connection Warning */}
+                {!isConnected && (
+                  <div className="mb-6 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                    <p className="text-yellow-300">⚠️ Please connect your wallet to create events</p>
+                  </div>
+                )}
+
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={isLoading}
-                  className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-12 py-4 rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!isFormValid || isLoading}
+                  className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-12 py-4 rounded-lg hover:from-cyan-400 hover:to-blue-400 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all duration-200 font-bold text-lg"
                 >
                   {isLoading ? (
                     <span className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                       Preparing Transaction...
                     </span>
+                  ) : !isConnected ? (
+                    "🔗 Connect Wallet to Create Event"
+                  ) : !validation.isValid ? (
+                    "⚠️ Complete Form to Create Event"
                   ) : (
                     "🚀 Create Event"
                   )}
@@ -430,7 +493,7 @@ const CreateEventPage: React.FC = () => {
               {preparedPayload && (
                 <div id="wallet-sign-area" className="mt-6">
                   <SignAndSendUnsignedTx
-                    payload={{ ...preparedPayload, from: undefined }}
+                    payload={preparedPayload}
                     label={`Sign & Send: Create ${formData.name}`}
                     onSubmitted={(txHash) => {
                       // txHash is a string; cast to the template literal type expected by addTransaction

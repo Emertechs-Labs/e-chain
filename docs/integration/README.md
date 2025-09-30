@@ -1,359 +1,1266 @@
-# 🔗 MultiBaas Integration Guide
+# 🔗 Integration Documentation
 
-This guide covers the integration of Curvegrid MultiBaas into the Echain frontend for real-time blockchain data access and contract interactions.
+<div align="center">
 
-## 📋 Overview
+![MultiBaas](https://img.shields.io/badge/Curvegrid_MultiBaas-Integrated-00AEEF?style=for-the-badge&logo=api&logoColor=white)
+![RainbowKit](https://img.shields.io/badge/RainbowKit-2.1.3-7B3FE4?style=for-the-badge&logo=walletconnect&logoColor=white)
+![Base Sepolia](https://img.shields.io/badge/Base-Sepolia-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)
+![WebSocket](https://img.shields.io/badge/WebSocket-Real--time-010101?style=for-the-badge&logo=websocket&logoColor=white)
 
-Echain uses Curvegrid MultiBaas as its blockchain abstraction layer, providing:
-- REST API access to smart contract functions
-- Real-time event monitoring
-- Secure API key authentication
-- Multi-chain support (currently Base Sepolia testnet)
+**Complete integration guide for Echain platform components**
 
-## 🏗️ Architecture
+*MultiBaas API • Wallet Integration • Real-time Events • External Services*
 
-### Integration Layers
+[🏗️ Architecture](#-architecture-overview) • [🔧 Setup](#-setup--configuration) • [📚 SDK Integration](#-sdk-integration) • [🎣 React Hooks](#-react-hooks) • [🔄 Real-time Events](#-real-time-events) • [🧪 Testing](#-testing-strategy)
 
-```
-Frontend (Next.js + TypeScript)
-    ↓
-MultiBaas SDK (@curvegrid/multibaas-sdk)
-    ↓
-MultiBaas API (REST/WebSocket)
-    ↓
-Blockchain (Base Sepolia)
-```
-
-### Key Components
-
-- **MultiBaas SDK**: TypeScript client for API interactions
-- **Contract Hooks**: React hooks for blockchain data fetching
-- **Type Safety**: Full TypeScript integration with contract ABIs
-- **Error Handling**: Graceful fallbacks to mock data
-
-## 🔧 Setup & Configuration
-
-### Environment Variables
-
-Add these to your `.env.development` file:
-
-```env
-# Reown (WalletConnect) - Use a valid project ID or fallback for development
-NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=demo-project-id-for-development
-
-# MultiBaas Configuration
-NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL=https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com
-NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzU5MDUzNzQxLCJqdGkiOiI3ZmJhM2ZmZS03Y2NhLTRlM2ItODY2Ni00MTJmMDIwMmM0NjkifQ.5xoeq2EUzDE-NNC0R_mrMtQVAG2xWfDRoRz3RNkf_OY
-NEXT_PUBLIC_MULTIBAAS_WEB3_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzU5MDUzNDYxLCJqdGkiOiJkMDdhZTRjNC00OGQ0LTQ2NDItOTFmOC1iYmRjYjZhMWNkZDQifQ.FBsSW78nyYR_kWSmWYYW3iMqpCozu4L2SFl36Al_gr0
-
-# Network Configuration
-NEXT_PUBLIC_MULTIBAAS_CHAIN_ID=84532
-
-# Contract Labels (for MultiBaas)
-NEXT_PUBLIC_MULTIBAAS_EVENT_FACTORY_LABEL=event_factory
-NEXT_PUBLIC_MULTIBAAS_EVENT_FACTORY_ADDRESS=event_factory
-
-# Contract Addresses (Base Sepolia)
-NEXT_PUBLIC_EVENT_FACTORY_ADDRESS=0xbE36039Bfe7f48604F73daD61411459B17fd2e85
-NEXT_PUBLIC_EVENT_TICKET_ADDRESS=0x127b53D8f29DcDe4DDfcCb24ad8b88B515D08180
-NEXT_PUBLIC_POAP_ADDRESS=0x405061e2ef1F748fA95A1e7725fc1a008e8c2196
-NEXT_PUBLIC_INCENTIVE_ADDRESS=0x8290c12f874DF9D03FDadAbE10C7c6321B69Ded9
-```
-
-### API Key Setup
-
-1. **Login to MultiBaas**: Access your deployment dashboard
-2. **Navigate to API Keys**: Admin → API Keys
-3. **Create DApp User Key**:
-   - Group: "DApp Users"
-   - Permissions: Read access to contracts and events
-4. **Copy API Key**: Use in environment variables
-
-## 📚 SDK Integration
-
-### Installation
-
-```bash
-npm install @curvegrid/multibaas-sdk
-```
-
-### Basic Usage
-
-```typescript
-import { Configuration, ContractsApi } from '@curvegrid/multibaas-sdk';
-
-// Configure API client
-const config = new Configuration({
-  basePath: process.env.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL,
-  apiKey: process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY
-});
-
-const contractsApi = new ContractsApi(config);
-
-// Call contract function
-const result = await contractsApi.callContractFunction(
-  'ethereum',                    // chain
-  contractAddress,              // addressOrAlias
-  'ContractName',               // contract label
-  'functionName',               // method
-  { args: [arg1, arg2] }        // postMethodArgs
-);
-```
-
-## 🎣 React Hooks Integration
-
-### Contract Data Fetching
-
-The frontend uses custom React hooks built on top of TanStack Query for efficient data fetching:
-
-```typescript
-// lib/multibaas.ts - Core API functions
-export const callContractRead = async (
-  address: string,
-  contractLabel: string,
-  method: string,
-  args: any[] = []
-) => {
-  const response = await contractsApi.callContractFunction(
-    'ethereum',
-    address,
-    contractLabel,
-    method,
-    { args }
-  );
-
-  const result = response.data.result;
-  if (result.kind === 'MethodCallResponse') {
-    return result.output;
-  }
-  throw new Error('Unexpected response type');
-};
-```
-
-### Event Hooks
-
-```typescript
-// app/hooks/useEvents.ts
-export const useEvents = () => {
-  return useQuery({
-    queryKey: ['events'],
-    queryFn: async (): Promise<Event[]> => {
-      // Fetch active events from EventFactory contract
-      const [eventIds] = await callContractRead(
-        CONTRACT_ADDRESSES.EventFactory,
-        'EventFactory',
-        'getActiveEvents',
-        [0, 50] // offset, limit
-      );
-
-      // Fetch details for each event
-      const events = await Promise.all(
-        eventIds.map(id => callContractRead(
-          CONTRACT_ADDRESSES.EventFactory,
-          'EventFactory',
-          'getEvent',
-          [id]
-        ))
-      );
-
-      return events.map(convertContractEventToFrontendEvent);
-    }
-  });
-};
-```
-
-## 📋 Contract Methods
-
-### EventFactory Contract
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `getActiveEvents` | `uint256 offset, uint256 limit` | `uint256[] eventIds, bool hasMore` | Get paginated active events |
-| `getEvent` | `uint256 eventId` | `Event struct` | Get complete event details |
-| `getOrganizerEvents` | `address organizer` | `uint256[] eventIds` | Get events by organizer |
-| `createEvent` | `string name, string metadataURI, uint256 ticketPrice, uint256 maxTickets, uint256 startTime, uint256 endTime` | `uint256 eventId` | Create new event (write) |
-
-### Event Struct
-
-```solidity
-struct Event {
-    uint256 id;
-    address organizer;
-    address ticketContract;
-    address poapContract;
-    address incentiveContract;
-    string name;
-    string metadataURI;
-    uint256 ticketPrice;
-    uint256 maxTickets;
-    uint256 startTime;
-    uint256 endTime;
-    bool isActive;
-    uint256 createdAt;
-}
-```
-
-## 🔄 Data Flow
-
-### Event Listing Flow
-
-1. **Frontend Request**: User visits events page
-2. **Hook Execution**: `useEvents()` query triggers
-3. **Contract Call**: `getActiveEvents(0, 50)` via MultiBaas API
-4. **Data Processing**: Convert contract data to frontend format
-5. **UI Update**: Display events with real blockchain data
-
-### Error Handling
-
-```typescript
-try {
-  const events = await fetchEventsFromContract();
-  return events;
-} catch (error) {
-  console.error('Contract call failed, using mock data:', error);
-  return getMockEvents(); // Graceful fallback
-}
-```
-
-## 🔐 Security Considerations
-
-### API Key Management
-- Store API keys securely (environment variables only)
-- Use different keys for different environments
-- Rotate keys regularly
-- Monitor API usage in MultiBaas dashboard
-
-### Rate Limiting
-- MultiBaas enforces rate limits per API key
-- Implement client-side caching with React Query
-- Use optimistic updates for better UX
-
-### Data Validation
-- Always validate contract return data
-- Handle edge cases (empty arrays, invalid addresses)
-- Type-check all contract interactions
-
-## 🧪 Testing
-
-### Unit Tests
-
-```typescript
-describe('MultiBaas Integration', () => {
-  it('should fetch events from contract', async () => {
-    const mockApi = { callContractFunction: vi.fn() };
-    mockApi.callContractFunction.mockResolvedValue({
-      data: { result: { kind: 'MethodCallResponse', output: [] } }
-    });
-
-    const events = await callContractRead(
-      '0x...', 'EventFactory', 'getActiveEvents', [0, 10]
-    );
-
-    expect(events).toBeDefined();
-  });
-});
-```
-
-### Integration Tests
-
-- Test against testnet contracts
-- Verify data consistency between contract and frontend
-- Test error scenarios and fallbacks
-
-## 🚀 Deployment
-
-### Environment Setup
-
-1. **MultiBaas Deployment**: Set up your MultiBaas instance
-2. **Contract Deployment**: Deploy contracts via Hardhat/MultiBaas
-3. **Frontend Config**: Update environment variables
-4. **API Keys**: Generate and configure API keys
-
-### Production Checklist
-
-- [ ] MultiBaas deployment configured
-- [ ] API keys created and secured
-- [ ] Contract addresses updated
-- [ ] Environment variables set
-- [ ] Error handling implemented
-- [ ] Fallback mechanisms tested
-- [ ] Rate limiting configured
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**API Key Errors**
-```
-Error: Unauthorized
-```
-- Check API key is correct and has proper permissions
-- Verify key is in "DApp Users" group
-- Check MultiBaas deployment URL
-
-**Contract Call Failures**
-```
-Error: Contract not found
-```
-- Verify contract is deployed and registered in MultiBaas
-- Check contract label matches MultiBaas registration
-- Ensure address is correct
-
-**Network Issues**
-```
-Error: Network timeout
-```
-- Check MultiBaas service status
-- Verify network connectivity
-- Check rate limits and back off if needed
-
-### Debug Mode
-
-Enable debug logging:
-
-```typescript
-// Add to multibaas.ts
-const config = new Configuration({
-  basePath: process.env.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL,
-  apiKey: process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY,
-  // Enable debug logging in development
-  ...(process.env.NODE_ENV === 'development' && {
-    debug: true
-  })
-});
-```
-
-## 📈 Monitoring & Analytics
-
-### MultiBaas Dashboard
-- Monitor API usage and performance
-- Track contract interaction metrics
-- Set up alerts for errors or high usage
-
-### Frontend Monitoring
-- Track contract call success/failure rates
-- Monitor response times
-- Log fallback usage
-
-## 🔗 Additional Resources
-
-- [MultiBaas Documentation](https://docs.curvegrid.com/)
-- [Echain Contract Documentation](../contracts/README.md)
-- [API Reference](../api/README.md)
-- [Deployment Guide](../deployment/README.md)
-
-## 🤝 Contributing
-
-When adding new contract integrations:
-
-1. Update contract addresses in `lib/contracts.ts`
-2. Add new methods to `lib/multibaas.ts`
-3. Create/update React hooks in `app/hooks/`
-4. Update TypeScript types in `types/`
-5. Add tests and documentation
-6. Update this integration guide
+</div>
 
 ---
 
-**Need help with MultiBaas integration?** Check the [troubleshooting section](#-troubleshooting) or reach out to the development team.</content>
+## 🎯 Integration Overview
+
+### Current Implementation Status
+- **✅ MultiBaas API**: Fully integrated with REST and WebSocket support
+- **✅ Wallet Integration**: RainbowKit + Reown for seamless wallet connections
+- **✅ Real-time Events**: WebSocket streaming for live updates
+- **✅ Type Safety**: Complete TypeScript integration with contract ABIs
+- **✅ Error Handling**: Comprehensive fallback mechanisms and error recovery
+- **✅ Production Ready**: Deployed on Base Sepolia with monitoring
+
+### Integration Components
+```mermaid
+graph TB
+    subgraph "Frontend Layer"
+        A[Next.js App Router]
+        B[React Components]
+        C[Custom Hooks]
+        D[TypeScript Types]
+    end
+
+    subgraph "Integration Layer"
+        E[MultiBaas SDK]
+        F[RainbowKit Provider]
+        G[WebSocket Client]
+        H[Error Boundaries]
+    end
+
+    subgraph "Blockchain Layer"
+        I[Base Sepolia]
+        J[Smart Contracts]
+        K[Event Streaming]
+    end
+
+    subgraph "External Services"
+        L[IPFS Gateway]
+        M[The Graph]
+        N[Analytics]
+    end
+
+    A --> E
+    B --> C
+    C --> E
+    C --> F
+    C --> G
+    E --> I
+    F --> I
+    G --> K
+    J --> L
+    J --> M
+    A --> N
+```
+
+---
+
+## 🏗️ Architecture Overview
+
+### Multi-Layer Integration Architecture
+
+#### Frontend Integration Layer
+```typescript
+// lib/providers.tsx - Main provider setup
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider theme={rainbowTheme}>
+          <ThemeProvider>
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
+          </ThemeProvider>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  );
+}
+```
+
+#### API Abstraction Layer
+```typescript
+// lib/multibaas/client.ts - MultiBaas client configuration
+export const multibaasClient = new MultiBaasClient({
+  deploymentUrl: process.env.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL!,
+  dappUserApiKey: process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY!,
+  web3ApiKey: process.env.NEXT_PUBLIC_MULTIBAAS_WEB3_API_KEY!,
+  chainId: 84532, // Base Sepolia
+});
+```
+
+#### Real-time Event Layer
+```typescript
+// lib/websocket/events.ts - WebSocket event handling
+export class EventWebSocketManager {
+  private ws: WebSocket | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 5;
+
+  connect(eventId?: string) {
+    const wsUrl = `${process.env.NEXT_PUBLIC_MULTIBAAS_WS_URL}/events`;
+    this.ws = new WebSocket(wsUrl);
+
+    this.ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      this.handleEventMessage(data);
+    };
+
+    this.ws.onclose = () => this.handleReconnect();
+  }
+}
+```
+
+### Data Flow Patterns
+
+#### Read Operations (REST API)
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant H as React Hook
+    participant M as MultiBaas API
+    participant C as Smart Contract
+
+    U->>F: Navigate to events page
+    F->>H: useEvents() hook
+    H->>M: GET /api/v0/chains/ethereum/contracts/{address}/methods/getActiveEvents
+    M->>C: Call contract method
+    C->>M: Return event data
+    M->>H: JSON response
+    H->>F: Formatted events
+    F->>U: Display events
+```
+
+#### Write Operations (Transaction)
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant W as Wallet
+    participant M as MultiBaas
+    participant B as Blockchain
+
+    U->>F: Click "Purchase Ticket"
+    F->>W: Request signature
+    W->>U: Show transaction details
+    U->>W: Approve transaction
+    W->>M: Submit signed transaction
+    M->>B: Broadcast to network
+    B->>M: Transaction mined
+    M->>F: Transaction receipt
+    F->>U: Success confirmation
+```
+
+#### Real-time Updates (WebSocket)
+```mermaid
+sequenceDiagram
+    participant F as Frontend
+    participant WS as WebSocket
+    participant M as MultiBaas
+    participant C as Contract
+
+    F->>WS: Connect to event stream
+    WS->>M: Subscribe to contract events
+    M->>C: Monitor for events
+    C->>M: Event emitted
+    M->>WS: Send event data
+    WS->>F: Update UI in real-time
+    F->>F: Show live updates
+```
+
+---
+
+## 🔧 Setup & Configuration
+
+### Environment Configuration
+
+#### Required Environment Variables
+```env
+# ============================================================================
+# MULTIBAAS CONFIGURATION
+# ============================================================================
+
+# MultiBaas Deployment URL (from your MultiBaas console)
+NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL=https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com
+
+# API Keys (generate in MultiBaas console under Admin → API Keys)
+NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzU5MDUzNzQxLCJqdGkiOiI3ZmJhM2ZmZS03Y2NhLTRlM2ItODY2Ni00MTJmMDIwMmM0NjkifQ.5xoeq2EUzDE-NNC0R_mrMtQVAG2xWfDRoRz3RNkf_OY
+NEXT_PUBLIC_MULTIBAAS_WEB3_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzU5MDUzNDYxLCJqdGkiOiJkMDdhZTRjNC00OGQ0LTQ2NDItOTFmOC1iYmRjYjZhMWNkZDQifQ.FBsSW78nyYR_kWSmWYYW3iMqpCozu4L2SFl36Al_gr0
+
+# WebSocket URL for real-time events
+NEXT_PUBLIC_MULTIBAAS_WS_URL=wss://kwp44rxeifggriyd4hmbjq7dey.multibaas.com
+
+# ============================================================================
+# WALLET CONFIGURATION
+# ============================================================================
+
+# Reown Project ID (get from https://cloud.reown.com/)
+NEXT_PUBLIC_REOWN_PROJECT_ID=your-reown-project-id
+
+# ============================================================================
+# CONTRACT ADDRESSES (Base Sepolia)
+# ============================================================================
+
+NEXT_PUBLIC_EVENT_FACTORY_ADDRESS=0xbE36039Bfe7f48604F73daD61411459B17fd2e85
+NEXT_PUBLIC_INCENTIVE_MANAGER_ADDRESS=0x8290c12f874DF9D03FDadAbE10C7c6321B69Ded9
+
+# ============================================================================
+# NETWORK CONFIGURATION
+# ============================================================================
+
+NEXT_PUBLIC_CHAIN_ID=84532
+NEXT_PUBLIC_RPC_URL=https://sepolia.base.org
+NEXT_PUBLIC_BLOCK_EXPLORER_URL=https://sepolia.basescan.org
+```
+
+### MultiBaas Setup Steps
+
+#### 1. Create MultiBaas Account
+```bash
+# Visit https://console.curvegrid.com/
+# Sign up for a new account
+# Create a new deployment for Base Sepolia
+```
+
+#### 2. Deploy Contracts via MultiBaas
+```typescript
+// scripts/deploy-multibaas.ts
+import { MultiBaasClient } from '@curvegrid/multibaas-sdk';
+
+const client = new MultiBaasClient({
+  deploymentUrl: process.env.MULTIBAAS_DEPLOYMENT_URL,
+  web3ApiKey: process.env.MULTIBAAS_WEB3_API_KEY
+});
+
+async function deployContracts() {
+  // Deploy EventFactory
+  const factoryDeployment = await client.deployContract({
+    chain: 'ethereum',
+    contractName: 'EventFactory',
+    source: 'contracts/core/EventFactory.sol',
+    constructorArgs: [],
+    label: 'event_factory'
+  });
+
+  console.log('EventFactory deployed:', factoryDeployment.address);
+
+  // Deploy IncentiveManager
+  const incentiveDeployment = await client.deployContract({
+    chain: 'ethereum',
+    contractName: 'IncentiveManager',
+    source: 'contracts/modules/IncentiveManager.sol',
+    constructorArgs: [factoryDeployment.address],
+    label: 'incentive_manager'
+  });
+
+  console.log('IncentiveManager deployed:', incentiveDeployment.address);
+}
+```
+
+#### 3. Generate API Keys
+```typescript
+// In MultiBaas console: Admin → API Keys
+const dappUserKey = await client.createApiKey({
+  name: 'Echain Frontend',
+  group: 'DApp Users',
+  permissions: ['read:contracts', 'read:events', 'write:transactions']
+});
+
+const web3Key = await client.createApiKey({
+  name: 'Echain Web3',
+  group: 'Web3 Users',
+  permissions: ['write:contracts', 'read:events', 'write:events']
+});
+```
+
+### Wallet Integration Setup
+
+#### RainbowKit Configuration
+```typescript
+// lib/wagmi.ts
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { baseSepolia } from 'wagmi/chains';
+
+export const config = getDefaultConfig({
+  appName: 'Echain',
+  projectId: process.env.NEXT_PUBLIC_REOWN_PROJECT_ID!,
+  chains: [baseSepolia],
+  ssr: true,
+});
+```
+
+#### Theme Integration
+```typescript
+// lib/rainbow-theme.ts
+import { darkTheme, lightTheme } from '@rainbow-me/rainbowkit';
+
+export const getRainbowTheme = (isDark: boolean) =>
+  isDark
+    ? darkTheme({
+        accentColor: '#00D4FF',
+        accentColorForeground: 'white',
+        borderRadius: 'medium',
+      })
+    : lightTheme({
+        accentColor: '#00D4FF',
+        accentColorForeground: 'white',
+        borderRadius: 'medium',
+      });
+```
+
+---
+
+## 📚 SDK Integration
+
+### MultiBaas SDK Installation
+```bash
+npm install @curvegrid/multibaas-sdk
+# or
+yarn add @curvegrid/multibaas-sdk
+```
+
+### Core Client Setup
+```typescript
+// lib/multibaas/client.ts
+import {
+  Configuration,
+  ContractsApi,
+  EventsApi,
+  TransactionsApi
+} from '@curvegrid/multibaas-sdk';
+
+export class MultiBaasClient {
+  private config: Configuration;
+  public contracts: ContractsApi;
+  public events: EventsApi;
+  public transactions: TransactionsApi;
+
+  constructor(options: {
+    deploymentUrl: string;
+    dappUserApiKey: string;
+    web3ApiKey?: string;
+    chainId?: number;
+  }) {
+    this.config = new Configuration({
+      basePath: options.deploymentUrl,
+      apiKey: options.dappUserApiKey,
+      headers: {
+        'X-API-Key': options.dappUserApiKey,
+      },
+    });
+
+    this.contracts = new ContractsApi(this.config);
+    this.events = new EventsApi(this.config);
+    this.transactions = new TransactionsApi(this.config);
+  }
+
+  // Utility methods
+  async callContract(
+    address: string,
+    contractLabel: string,
+    method: string,
+    args: any[] = [],
+    options?: { from?: string; value?: string }
+  ) {
+    const response = await this.contracts.callContractFunction(
+      'ethereum',
+      address,
+      contractLabel,
+      method,
+      {
+        args,
+        ...options,
+      }
+    );
+
+    return response.data.result;
+  }
+}
+```
+
+### Contract Interaction Examples
+
+#### Reading Contract Data
+```typescript
+// Get active events
+const events = await multibaasClient.callContract(
+  CONTRACT_ADDRESSES.EventFactory,
+  'EventFactory',
+  'getActiveEvents',
+  [0, 50] // offset, limit
+);
+
+// Get specific event details
+const eventDetails = await multibaasClient.callContract(
+  CONTRACT_ADDRESSES.EventFactory,
+  'EventFactory',
+  'getEvent',
+  [eventId]
+);
+```
+
+#### Writing to Contracts
+```typescript
+// Create new event
+const createEventTx = await multibaasClient.callContract(
+  CONTRACT_ADDRESSES.EventFactory,
+  'EventFactory',
+  'createEvent',
+  [
+    'Summer Music Festival',
+    'ipfs://Qm...',
+    ethers.utils.parseEther('0.1'), // 0.1 ETH
+    1000, // max tickets
+    Math.floor(Date.now() / 1000) + 86400, // tomorrow
+    Math.floor(Date.now() / 1000) + 86400 * 2 // day after
+  ],
+  {
+    from: userAddress,
+    value: '0' // No ETH sent for creation
+  }
+);
+```
+
+#### Transaction Monitoring
+```typescript
+// Submit and monitor transaction
+const txResponse = await multibaasClient.transactions.submitTransaction({
+  chain: 'ethereum',
+  from: userAddress,
+  to: contractAddress,
+  data: encodedFunctionData,
+  gasLimit: '200000'
+});
+
+// Poll for confirmation
+const receipt = await multibaasClient.transactions.getTransactionReceipt(
+  'ethereum',
+  txResponse.data.txHash
+);
+```
+
+---
+
+## 🎣 React Hooks
+
+### Custom Hook Architecture
+```typescript
+// lib/hooks/useContract.ts - Base contract hook
+export function useContract<T>(
+  address: string,
+  contractLabel: string,
+  method: string,
+  args: any[] = [],
+  options?: {
+    enabled?: boolean;
+    refetchInterval?: number;
+    onSuccess?: (data: T) => void;
+    onError?: (error: Error) => void;
+  }
+) {
+  return useQuery({
+    queryKey: ['contract', address, method, ...args],
+    queryFn: () => multibaasClient.callContract(address, contractLabel, method, args),
+    enabled: options?.enabled ?? true,
+    refetchInterval: options?.refetchInterval,
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+    retry: (failureCount, error) => {
+      // Don't retry on user errors (4xx)
+      if (error?.response?.status >= 400 && error?.response?.status < 500) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+  });
+}
+```
+
+### Event Management Hooks
+```typescript
+// app/hooks/useEvents.ts
+export function useEvents(options?: {
+  limit?: number;
+  offset?: number;
+  organizer?: string;
+}) {
+  return useContract(
+    CONTRACT_ADDRESSES.EventFactory,
+    'EventFactory',
+    'getActiveEvents',
+    [options?.offset ?? 0, options?.limit ?? 20]
+  );
+}
+
+export function useEvent(eventId: number) {
+  return useContract(
+    CONTRACT_ADDRESSES.EventFactory,
+    'EventFactory',
+    'getEvent',
+    [eventId],
+    {
+      enabled: !!eventId,
+    }
+  );
+}
+
+export function useCreateEvent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (eventData: CreateEventParams) => {
+      const result = await multibaasClient.callContract(
+        CONTRACT_ADDRESSES.EventFactory,
+        'EventFactory',
+        'createEvent',
+        [
+          eventData.name,
+          eventData.metadataURI,
+          eventData.ticketPrice,
+          eventData.maxTickets,
+          eventData.startTime,
+          eventData.endTime,
+        ]
+      );
+
+      return result;
+    },
+    onSuccess: () => {
+      // Invalidate and refetch events
+      queryClient.invalidateQueries({ queryKey: ['contract'] });
+    },
+  });
+}
+```
+
+### Ticket Management Hooks
+```typescript
+// app/hooks/useTickets.ts
+export function useUserTickets(userAddress?: string) {
+  const { address } = useAccount();
+
+  return useContract(
+    CONTRACT_ADDRESSES.EventFactory,
+    'EventFactory',
+    'getUserTickets',
+    [userAddress || address],
+    {
+      enabled: !!(userAddress || address),
+    }
+  );
+}
+
+export function usePurchaseTickets() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      eventId,
+      quantity,
+      recipient
+    }: PurchaseTicketsParams) => {
+      // Get ticket price from event
+      const event = await multibaasClient.callContract(
+        CONTRACT_ADDRESSES.EventFactory,
+        'EventFactory',
+        'getEvent',
+        [eventId]
+      );
+
+      const totalCost = BigNumber.from(event.ticketPrice).mul(quantity);
+
+      // Purchase tickets
+      const result = await multibaasClient.callContract(
+        CONTRACT_ADDRESSES.EventFactory,
+        'EventFactory',
+        'purchaseTickets',
+        [eventId, quantity, recipient],
+        {
+          value: totalCost.toString(),
+        }
+      );
+
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contract'] });
+    },
+  });
+}
+```
+
+### Incentive System Hooks
+```typescript
+// app/hooks/useRewards.ts
+export function useUserRewards(userAddress?: string) {
+  const { address } = useAccount();
+
+  return useContract(
+    CONTRACT_ADDRESSES.IncentiveManager,
+    'IncentiveManager',
+    'getUserRewards',
+    [userAddress || address],
+    {
+      enabled: !!(userAddress || address),
+    }
+  );
+}
+
+export function useClaimReward() {
+  return useMutation({
+    mutationFn: async (rewardId: string) => {
+      return multibaasClient.callContract(
+        CONTRACT_ADDRESSES.IncentiveManager,
+        'IncentiveManager',
+        'claimReward',
+        [rewardId]
+      );
+    },
+  });
+}
+```
+
+---
+
+## 🔄 Real-time Events
+
+### WebSocket Integration
+```typescript
+// lib/websocket/events.ts
+export class EventWebSocketManager {
+  private ws: WebSocket | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 5;
+  private listeners: Map<string, (data: any) => void> = new Map();
+
+  connect(options?: { eventId?: string; contractAddress?: string }) {
+    const wsUrl = new URL(process.env.NEXT_PUBLIC_MULTIBAAS_WS_URL!);
+    wsUrl.pathname = '/events';
+    wsUrl.searchParams.set('chain', 'ethereum');
+
+    if (options?.contractAddress) {
+      wsUrl.searchParams.set('address', options.contractAddress);
+    }
+
+    this.ws = new WebSocket(wsUrl.toString());
+
+    this.ws.onopen = () => {
+      console.log('WebSocket connected');
+      this.reconnectAttempts = 0;
+    };
+
+    this.ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        this.handleEventMessage(data);
+      } catch (error) {
+        console.error('Failed to parse WebSocket message:', error);
+      }
+    };
+
+    this.ws.onclose = () => {
+      console.log('WebSocket disconnected');
+      this.handleReconnect();
+    };
+
+    this.ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+  }
+
+  private handleEventMessage(data: any) {
+    const eventType = data.eventType;
+    const listener = this.listeners.get(eventType);
+
+    if (listener) {
+      listener(data);
+    }
+
+    // Broadcast to all listeners for this event type
+    this.listeners.forEach((callback, key) => {
+      if (key === eventType || key === '*') {
+        callback(data);
+      }
+    });
+  }
+
+  private handleReconnect() {
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++;
+      const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+
+      setTimeout(() => {
+        console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+        this.connect();
+      }, delay);
+    }
+  }
+
+  subscribe(eventType: string, callback: (data: any) => void) {
+    this.listeners.set(eventType, callback);
+  }
+
+  unsubscribe(eventType: string) {
+    this.listeners.delete(eventType);
+  }
+
+  disconnect() {
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
+  }
+}
+```
+
+### React Hook for Real-time Updates
+```typescript
+// app/hooks/useWebSocket.ts
+export function useWebSocketEvents(eventId?: string) {
+  const [events, setEvents] = useState<any[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const wsManager = useRef<EventWebSocketManager | null>(null);
+
+  useEffect(() => {
+    wsManager.current = new EventWebSocketManager();
+
+    const handleConnect = () => setIsConnected(true);
+    const handleDisconnect = () => setIsConnected(false);
+    const handleEvent = (data: any) => {
+      setEvents(prev => [...prev, data]);
+    };
+
+    wsManager.current.subscribe('connect', handleConnect);
+    wsManager.current.subscribe('disconnect', handleDisconnect);
+    wsManager.current.subscribe('TicketsPurchased', handleEvent);
+    wsManager.current.subscribe('EventCreated', handleEvent);
+
+    wsManager.current.connect({ eventId });
+
+    return () => {
+      wsManager.current?.disconnect();
+    };
+  }, [eventId]);
+
+  return { events, isConnected };
+}
+```
+
+### Event Types and Handling
+```typescript
+// types/events.ts
+export interface ContractEvent {
+  eventType: string;
+  contractAddress: string;
+  transactionHash: string;
+  blockNumber: number;
+  logIndex: number;
+  timestamp: number;
+  eventData: Record<string, any>;
+}
+
+export interface TicketsPurchasedEvent extends ContractEvent {
+  eventType: 'TicketsPurchased';
+  eventData: {
+    buyer: string;
+    eventId: number;
+    quantity: number;
+    totalCost: string;
+    tokenIds: number[];
+  };
+}
+
+export interface EventCreatedEvent extends ContractEvent {
+  eventType: 'EventCreated';
+  eventData: {
+    eventId: number;
+    organizer: string;
+    name: string;
+    ticketPrice: string;
+    maxTickets: number;
+  };
+}
+
+// Event handler utilities
+export const eventHandlers = {
+  TicketsPurchased: (event: TicketsPurchasedEvent) => {
+    console.log(`Tickets purchased: ${event.eventData.quantity} for event ${event.eventData.eventId}`);
+    // Update UI, show notifications, etc.
+  },
+
+  EventCreated: (event: EventCreatedEvent) => {
+    console.log(`New event created: ${event.eventData.name}`);
+    // Refresh events list, show success message, etc.
+  },
+};
+```
+
+---
+
+## 🧪 Testing Strategy
+
+### Unit Testing
+```typescript
+// __tests__/hooks/useEvents.test.ts
+import { renderHook, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useEvents } from '@/hooks/useEvents';
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+};
+
+describe('useEvents', () => {
+  it('should fetch events successfully', async () => {
+    const { result } = renderHook(() => useEvents(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(result.current.data).toBeDefined();
+    expect(Array.isArray(result.current.data)).toBe(true);
+  });
+
+  it('should handle errors gracefully', async () => {
+    // Mock API error
+    const { result } = renderHook(() => useEvents(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+
+    expect(result.current.error).toBeDefined();
+  });
+});
+```
+
+### Integration Testing
+```typescript
+// __tests__/integration/multibaas.test.ts
+describe('MultiBaas Integration', () => {
+  let client: MultiBaasClient;
+
+  beforeAll(() => {
+    client = new MultiBaasClient({
+      deploymentUrl: process.env.TEST_MULTIBAAS_URL!,
+      dappUserApiKey: process.env.TEST_API_KEY!,
+    });
+  });
+
+  it('should call contract read function', async () => {
+    const result = await client.callContract(
+      TEST_CONTRACT_ADDRESS,
+      'TestContract',
+      'getValue'
+    );
+
+    expect(result).toBeDefined();
+    expect(typeof result).toBe('string');
+  });
+
+  it('should handle contract write operations', async () => {
+    const txResult = await client.callContract(
+      TEST_CONTRACT_ADDRESS,
+      'TestContract',
+      'setValue',
+      ['42'],
+      { from: TEST_WALLET_ADDRESS }
+    );
+
+    expect(txResult).toHaveProperty('transactionHash');
+  });
+});
+```
+
+### E2E Testing
+```typescript
+// e2e/events.spec.ts
+import { test, expect } from '@playwright/test';
+
+test('should create and display event', async ({ page }) => {
+  // Connect wallet
+  await page.goto('/events/create');
+  await page.click('[data-testid="connect-wallet"]');
+  await page.click('[data-testid="metamask-wallet"]');
+
+  // Fill event form
+  await page.fill('[data-testid="event-name"]', 'Test Event');
+  await page.fill('[data-testid="ticket-price"]', '0.1');
+  await page.fill('[data-testid="max-tickets"]', '100');
+
+  // Submit form
+  await page.click('[data-testid="create-event"]');
+
+  // Verify event appears in list
+  await page.goto('/events');
+  await expect(page.locator('text=Test Event')).toBeVisible();
+});
+```
+
+### Mock Data for Testing
+```typescript
+// lib/mocks/contractData.ts
+export const mockEvents = [
+  {
+    id: 1,
+    organizer: '0x1234...',
+    name: 'Summer Music Festival',
+    ticketPrice: '100000000000000000', // 0.1 ETH
+    maxTickets: 1000,
+    soldTickets: 150,
+    startTime: Date.now() + 86400000,
+    endTime: Date.now() + 172800000,
+    isActive: true,
+  },
+];
+
+export const mockUserTickets = [
+  {
+    tokenId: 1,
+    eventId: 1,
+    purchaseTime: Date.now(),
+    checkedIn: false,
+  },
+];
+```
+
+---
+
+## 🔒 Security Considerations
+
+### API Key Security
+```typescript
+// Secure key management
+export const getSecureApiKey = () => {
+  // Never expose keys in client-side code
+  if (typeof window !== 'undefined') {
+    throw new Error('API keys should not be accessed on client side');
+  }
+
+  return process.env.MULTIBAAS_DAPP_USER_API_KEY;
+};
+```
+
+### Input Validation
+```typescript
+// Contract input validation
+export const validateEventCreation = (data: CreateEventParams) => {
+  if (!data.name || data.name.length < 3) {
+    throw new Error('Event name must be at least 3 characters');
+  }
+
+  if (data.ticketPrice <= 0) {
+    throw new Error('Ticket price must be greater than 0');
+  }
+
+  if (data.maxTickets <= 0 || data.maxTickets > 10000) {
+    throw new Error('Max tickets must be between 1 and 10,000');
+  }
+
+  if (data.startTime <= Date.now()) {
+    throw new Error('Event start time must be in the future');
+  }
+};
+```
+
+### Rate Limiting
+```typescript
+// Client-side rate limiting
+export class RateLimiter {
+  private requests: number[] = [];
+  private maxRequests = 10;
+  private windowMs = 60000; // 1 minute
+
+  canMakeRequest(): boolean {
+    const now = Date.now();
+    this.requests = this.requests.filter(
+      time => now - time < this.windowMs
+    );
+
+    if (this.requests.length >= this.maxRequests) {
+      return false;
+    }
+
+    this.requests.push(now);
+    return true;
+  }
+}
+```
+
+### Error Handling
+```typescript
+// Comprehensive error handling
+export const handleContractError = (error: any) => {
+  if (error.response?.status === 401) {
+    throw new Error('Authentication failed. Please check your API key.');
+  }
+
+  if (error.response?.status === 429) {
+    throw new Error('Rate limit exceeded. Please try again later.');
+  }
+
+  if (error.response?.data?.error?.message) {
+    throw new Error(`Contract error: ${error.response.data.error.message}`);
+  }
+
+  throw new Error('An unexpected error occurred. Please try again.');
+};
+```
+
+---
+
+## 📊 Monitoring & Analytics
+
+### Performance Monitoring
+```typescript
+// lib/monitoring.ts
+export const monitorContractCall = async (
+  contractName: string,
+  methodName: string,
+  callFn: () => Promise<any>
+) => {
+  const startTime = Date.now();
+
+  try {
+    const result = await callFn();
+    const duration = Date.now() - startTime;
+
+    // Log successful call
+    console.log(`Contract call ${contractName}.${methodName} took ${duration}ms`);
+
+    // Send to analytics
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'contract_call', {
+        contract: contractName,
+        method: methodName,
+        duration,
+        success: true,
+      });
+    }
+
+    return result;
+  } catch (error) {
+    const duration = Date.now() - startTime;
+
+    // Log failed call
+    console.error(`Contract call ${contractName}.${methodName} failed after ${duration}ms:`, error);
+
+    // Send to analytics
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'contract_call', {
+        contract: contractName,
+        method: methodName,
+        duration,
+        success: false,
+        error: error.message,
+      });
+    }
+
+    throw error;
+  }
+};
+```
+
+### MultiBaas Dashboard Monitoring
+- **API Usage**: Monitor request counts and response times
+- **Error Rates**: Track failed contract calls and error types
+- **Gas Usage**: Monitor transaction costs and optimization opportunities
+- **Event Streaming**: Track WebSocket connection health and message volumes
+
+---
+
+## 🚀 Deployment & Production
+
+### Production Environment Setup
+```bash
+# 1. Environment variables
+cp .env.example .env.production
+# Edit with production values
+
+# 2. Build application
+npm run build
+
+# 3. Deploy to Vercel/Netlify
+npm run deploy
+
+# 4. Verify integrations
+npm run test:integration
+```
+
+### Health Checks
+```typescript
+// lib/health.ts
+export const healthChecks = {
+  async multibaas() {
+    try {
+      await multibaasClient.callContract(
+        CONTRACT_ADDRESSES.EventFactory,
+        'EventFactory',
+        'getActiveEvents',
+        [0, 1]
+      );
+      return { status: 'healthy', latency: 0 };
+    } catch (error) {
+      return { status: 'unhealthy', error: error.message };
+    }
+  },
+
+  async websocket() {
+    return new Promise((resolve) => {
+      const ws = new WebSocket(process.env.NEXT_PUBLIC_MULTIBAAS_WS_URL!);
+      const timeout = setTimeout(() => {
+        ws.close();
+        resolve({ status: 'unhealthy', error: 'Connection timeout' });
+      }, 5000);
+
+      ws.onopen = () => {
+        clearTimeout(timeout);
+        ws.close();
+        resolve({ status: 'healthy' });
+      };
+
+      ws.onerror = () => {
+        clearTimeout(timeout);
+        resolve({ status: 'unhealthy', error: 'Connection failed' });
+      };
+    });
+  },
+};
+```
+
+### Troubleshooting Guide
+
+#### Common Issues
+
+**WebSocket Connection Issues**
+```typescript
+// Check network connectivity
+const testConnection = async () => {
+  try {
+    const response = await fetch(process.env.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL!);
+    return response.ok;
+  } catch {
+    return false;
+  }
+};
+```
+
+**API Rate Limiting**
+```typescript
+// Implement exponential backoff
+const retryWithBackoff = async (fn: () => Promise<any>, maxRetries = 3) => {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (error.response?.status === 429) {
+        const delay = Math.pow(2, i) * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+};
+```
+
+**Contract Call Failures**
+```typescript
+// Debug contract calls
+const debugContractCall = async (
+  address: string,
+  method: string,
+  args: any[]
+) => {
+  console.log('Calling contract:', {
+    address,
+    method,
+    args,
+    network: 'Base Sepolia',
+    timestamp: new Date().toISOString(),
+  });
+
+  try {
+    const result = await multibaasClient.callContract(address, 'ContractLabel', method, args);
+    console.log('Contract call successful:', result);
+    return result;
+  } catch (error) {
+    console.error('Contract call failed:', {
+      error: error.message,
+      address,
+      method,
+      args,
+    });
+    throw error;
+  }
+};
+```
+
+---
+
+## 📞 Support & Resources
+
+### Documentation Links
+- **[MultiBaas Docs](https://docs.curvegrid.com/)**: Official API documentation
+- **[RainbowKit Docs](https://www.rainbowkit.com/)**: Wallet integration guide
+- **[Wagmi Docs](https://wagmi.sh/)**: React hooks for Ethereum
+- **[Base Docs](https://docs.base.org/)**: Network-specific information
+
+### Development Resources
+- **[Echain Contracts](../contracts/README.md)**: Smart contract documentation
+- **[API Reference](../api/README.md)**: REST API endpoints
+- **[Testing Guide](../testing/README.md)**: Comprehensive testing strategies
+
+### Community Support
+- **Discord**: Join our developer community
+- **GitHub Issues**: Report bugs and request features
+- **Documentation PRs**: Contribute to our docs
+
+---
+
+**This integration documentation provides the complete technical foundation for connecting all Echain platform components, ensuring reliable, secure, and performant blockchain interactions.**
+
+<div align="center">
+
+[![MultiBaas](https://img.shields.io/badge/Curvegrid_MultiBaas-Integrated-00AEEF?style=for-the-badge&logo=api&logoColor=white)](https://docs.curvegrid.com/)
+[![RainbowKit](https://img.shields.io/badge/RainbowKit-Connected-7B3FE4?style=for-the-badge&logo=walletconnect&logoColor=white)](https://www.rainbowkit.com/)
+[![WebSocket](https://img.shields.io/badge/WebSocket-Streaming-010101?style=for-the-badge&logo=websocket&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
+[![Base Sepolia](https://img.shields.io/badge/Base-Sepolia-Deployed-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)](https://sepolia.basescan.org/)
+
+</div></content>
 <parameter name="filePath">e:\Polymath Universata\Projects\Echain\docs\integration\README.md

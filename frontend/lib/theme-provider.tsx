@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'light' | 'system';
+type Theme = 'dark' | 'light';
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -16,7 +16,7 @@ type ThemeProviderState = {
 };
 
 const initialState: ThemeProviderState = {
-  theme: 'system',
+  theme: 'dark',
   setTheme: () => null,
 };
 
@@ -24,7 +24,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
-  defaultTheme = 'system',
+  defaultTheme = 'dark',
   // Use a consistent storage key across the app
   storageKey = 'echain-theme',
   ...props
@@ -32,45 +32,23 @@ export function ThemeProvider({
   // Initialize theme synchronously from localStorage when possible to
   // avoid a brief mismatch between the UI and the saved user preference.
   const [theme, setTheme] = useState<Theme>(() => {
-    // During SSR we don't know the user's preference. Use 'system' so
-    // the server doesn't render a concrete theme class (light/dark).
-    // The client-side script in `app/layout.tsx` runs before hydration
-    // and will set the correct class from localStorage or system prefs.
-    if (typeof window === 'undefined') return 'system';
+    // During SSR we don't know the user's preference. Use 'dark' as a default.
+    if (typeof window === 'undefined') return 'dark';
     try {
       const stored = localStorage.getItem(storageKey) as Theme | null;
-      if (stored && ['light', 'dark', 'system'].includes(stored)) return stored;
+      if (stored && ['light', 'dark'].includes(stored)) return stored;
     } catch (e) {
       // ignore
     }
     return defaultTheme;
   });
 
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-
     const root = window.document.documentElement;
 
     root.classList.remove('light', 'dark');
-
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
-        .matches
-        ? 'dark'
-        : 'light';
-
-      root.classList.add(systemTheme);
-      return;
-    }
-
     root.classList.add(theme);
-  }, [theme, mounted]);
+  }, [theme]);
 
   const value = {
     theme,

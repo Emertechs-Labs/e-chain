@@ -13,28 +13,14 @@ export function ThemeToggle() {
   }, []);
 
   const toggleTheme = () => {
-    // Cycle dark -> light -> system -> dark
-    if (theme === 'dark') setTheme('light');
-    else if (theme === 'light') setTheme('system');
-    else setTheme('dark');
+    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
   const getIcon = () => {
-    // When using 'system', detect effective theme for correct icon
-    if (theme === 'system') {
-      if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return <Moon className="h-4 w-4" />;
-      }
-      return <Sun className="h-4 w-4" />;
-    }
     return theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />;
   };
 
   const getLabel = () => {
-    if (theme === 'system') {
-      const prefersDark = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      return prefersDark ? 'Using system (dark) — switch to dark/light/system' : 'Using system (light) — switch to dark/light/system';
-    }
     return theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
   };
 

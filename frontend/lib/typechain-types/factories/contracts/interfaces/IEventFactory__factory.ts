@@ -163,7 +163,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    stateMutability: "nonpayable",
+    stateMutability: "payable",
     type: "function",
   },
   {
@@ -370,6 +370,19 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "organizer",
+        type: "address",
+      },
+    ],
+    name: "selfVerifyOrganizer",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "treasury",
     outputs: [
@@ -380,6 +393,19 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "organizer",
+        type: "address",
+      },
+    ],
+    name: "unverifyOrganizer",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {

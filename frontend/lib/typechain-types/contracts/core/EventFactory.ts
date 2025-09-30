@@ -74,11 +74,14 @@ export declare namespace IEventFactory {
 export interface EventFactoryInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "ORGANIZER_VERIFICATION_FEE"
+      | "TIMELOCK_DELAY"
       | "createEvent"
       | "emergencyDeactivateEvent"
       | "eventCount"
       | "eventTicketTemplate"
       | "events"
+      | "executeTreasuryChange"
       | "getActiveEvents"
       | "getEventDetails"
       | "getOrganizerEvents"
@@ -88,9 +91,13 @@ export interface EventFactoryInterface extends Interface {
       | "owner"
       | "pause"
       | "paused"
+      | "pendingTreasuryChange"
       | "platformFeeBps"
       | "poapTemplate"
+      | "predictTicketContractAddress"
+      | "proposeTreasuryChange"
       | "renounceOwnership"
+      | "selfVerifyOrganizer"
       | "setEventStatus"
       | "setIncentiveContract"
       | "setIncentiveTemplate"
@@ -104,7 +111,6 @@ export interface EventFactoryInterface extends Interface {
       | "unverifyOrganizer"
       | "updateEvent"
       | "verifiedOrganizers"
-      | "verifyOrganizer"
   ): FunctionFragment;
 
   getEvent(
@@ -117,10 +123,19 @@ export interface EventFactoryInterface extends Interface {
       | "OwnershipTransferred"
       | "Paused"
       | "PlatformFeeUpdated"
+      | "TreasuryChangeProposed"
       | "TreasuryUpdated"
       | "Unpaused"
   ): EventFragment;
 
+  encodeFunctionData(
+    functionFragment: "ORGANIZER_VERIFICATION_FEE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "TIMELOCK_DELAY",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "createEvent",
     values: [
@@ -147,6 +162,10 @@ export interface EventFactoryInterface extends Interface {
   encodeFunctionData(
     functionFragment: "events",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "executeTreasuryChange",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getActiveEvents",
@@ -176,6 +195,10 @@ export interface EventFactoryInterface extends Interface {
   encodeFunctionData(functionFragment: "pause", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "pendingTreasuryChange",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "platformFeeBps",
     values?: undefined
   ): string;
@@ -184,8 +207,20 @@ export interface EventFactoryInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "predictTicketContractAddress",
+    values: [AddressLike, BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "proposeTreasuryChange",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "selfVerifyOrganizer",
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setEventStatus",
@@ -233,11 +268,15 @@ export interface EventFactoryInterface extends Interface {
     functionFragment: "verifiedOrganizers",
     values: [AddressLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "verifyOrganizer",
-    values: [AddressLike]
-  ): string;
 
+  decodeFunctionResult(
+    functionFragment: "ORGANIZER_VERIFICATION_FEE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "TIMELOCK_DELAY",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "createEvent",
     data: BytesLike
@@ -252,6 +291,10 @@ export interface EventFactoryInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "events", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "executeTreasuryChange",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getActiveEvents",
     data: BytesLike
@@ -280,6 +323,10 @@ export interface EventFactoryInterface extends Interface {
   decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "pendingTreasuryChange",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "platformFeeBps",
     data: BytesLike
   ): Result;
@@ -288,7 +335,19 @@ export interface EventFactoryInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "predictTicketContractAddress",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "proposeTreasuryChange",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "selfVerifyOrganizer",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -335,10 +394,6 @@ export interface EventFactoryInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "verifiedOrganizers",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "verifyOrganizer",
     data: BytesLike
   ): Result;
 }
@@ -470,6 +525,22 @@ export namespace PlatformFeeUpdatedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace TreasuryChangeProposedEvent {
+  export type InputTuple = [
+    newTreasury: AddressLike,
+    executeAfter: BigNumberish
+  ];
+  export type OutputTuple = [newTreasury: string, executeAfter: bigint];
+  export interface OutputObject {
+    newTreasury: string;
+    executeAfter: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export namespace TreasuryUpdatedEvent {
   export type InputTuple = [newTreasury: AddressLike];
   export type OutputTuple = [newTreasury: string];
@@ -537,6 +608,10 @@ export interface EventFactory extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  ORGANIZER_VERIFICATION_FEE: TypedContractMethod<[], [bigint], "view">;
+
+  TIMELOCK_DELAY: TypedContractMethod<[], [bigint], "view">;
+
   createEvent: TypedContractMethod<
     [
       name: string,
@@ -547,7 +622,7 @@ export interface EventFactory extends BaseContract {
       endTime: BigNumberish
     ],
     [bigint],
-    "nonpayable"
+    "payable"
   >;
 
   emergencyDeactivateEvent: TypedContractMethod<
@@ -596,6 +671,8 @@ export interface EventFactory extends BaseContract {
     "view"
   >;
 
+  executeTreasuryChange: TypedContractMethod<[], [void], "nonpayable">;
+
   getActiveEvents: TypedContractMethod<
     [offset: BigNumberish, limit: BigNumberish],
     [[bigint[], boolean] & { eventIds: bigint[]; hasMore: boolean }],
@@ -634,11 +711,46 @@ export interface EventFactory extends BaseContract {
 
   paused: TypedContractMethod<[], [boolean], "view">;
 
+  pendingTreasuryChange: TypedContractMethod<
+    [],
+    [
+      [string, bigint, boolean] & {
+        newTreasury: string;
+        executeAfter: bigint;
+        executed: boolean;
+      }
+    ],
+    "view"
+  >;
+
   platformFeeBps: TypedContractMethod<[], [bigint], "view">;
 
   poapTemplate: TypedContractMethod<[], [string], "view">;
 
+  predictTicketContractAddress: TypedContractMethod<
+    [
+      organizer: AddressLike,
+      eventId: BigNumberish,
+      timestamp: BigNumberish,
+      blockNumber: BigNumberish
+    ],
+    [string],
+    "view"
+  >;
+
+  proposeTreasuryChange: TypedContractMethod<
+    [newTreasury: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
+
+  selfVerifyOrganizer: TypedContractMethod<
+    [organizer: AddressLike],
+    [void],
+    "payable"
+  >;
 
   setEventStatus: TypedContractMethod<
     [eventId: BigNumberish, isActive: boolean],
@@ -710,16 +822,16 @@ export interface EventFactory extends BaseContract {
     "view"
   >;
 
-  verifyOrganizer: TypedContractMethod<
-    [organizer: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
 
+  getFunction(
+    nameOrSignature: "ORGANIZER_VERIFICATION_FEE"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "TIMELOCK_DELAY"
+  ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "createEvent"
   ): TypedContractMethod<
@@ -732,7 +844,7 @@ export interface EventFactory extends BaseContract {
       endTime: BigNumberish
     ],
     [bigint],
-    "nonpayable"
+    "payable"
   >;
   getFunction(
     nameOrSignature: "emergencyDeactivateEvent"
@@ -781,6 +893,9 @@ export interface EventFactory extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "executeTreasuryChange"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "getActiveEvents"
   ): TypedContractMethod<
     [offset: BigNumberish, limit: BigNumberish],
@@ -820,14 +935,45 @@ export interface EventFactory extends BaseContract {
     nameOrSignature: "paused"
   ): TypedContractMethod<[], [boolean], "view">;
   getFunction(
+    nameOrSignature: "pendingTreasuryChange"
+  ): TypedContractMethod<
+    [],
+    [
+      [string, bigint, boolean] & {
+        newTreasury: string;
+        executeAfter: bigint;
+        executed: boolean;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "platformFeeBps"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "poapTemplate"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
+    nameOrSignature: "predictTicketContractAddress"
+  ): TypedContractMethod<
+    [
+      organizer: AddressLike,
+      eventId: BigNumberish,
+      timestamp: BigNumberish,
+      blockNumber: BigNumberish
+    ],
+    [string],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "proposeTreasuryChange"
+  ): TypedContractMethod<[newTreasury: AddressLike], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "renounceOwnership"
   ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "selfVerifyOrganizer"
+  ): TypedContractMethod<[organizer: AddressLike], [void], "payable">;
   getFunction(
     nameOrSignature: "setEventStatus"
   ): TypedContractMethod<
@@ -883,9 +1029,6 @@ export interface EventFactory extends BaseContract {
   getFunction(
     nameOrSignature: "verifiedOrganizers"
   ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "verifyOrganizer"
-  ): TypedContractMethod<[organizer: AddressLike], [void], "nonpayable">;
 
   getEvent(
     key: "EventCreated"
@@ -942,6 +1085,13 @@ export interface EventFactory extends BaseContract {
     PlatformFeeUpdatedEvent.InputTuple,
     PlatformFeeUpdatedEvent.OutputTuple,
     PlatformFeeUpdatedEvent.OutputObject
+  >;
+  getEvent(
+    key: "TreasuryChangeProposed"
+  ): TypedContractEvent<
+    TreasuryChangeProposedEvent.InputTuple,
+    TreasuryChangeProposedEvent.OutputTuple,
+    TreasuryChangeProposedEvent.OutputObject
   >;
   getEvent(
     key: "TreasuryUpdated"
@@ -1045,6 +1195,17 @@ export interface EventFactory extends BaseContract {
       PlatformFeeUpdatedEvent.InputTuple,
       PlatformFeeUpdatedEvent.OutputTuple,
       PlatformFeeUpdatedEvent.OutputObject
+    >;
+
+    "TreasuryChangeProposed(address,uint256)": TypedContractEvent<
+      TreasuryChangeProposedEvent.InputTuple,
+      TreasuryChangeProposedEvent.OutputTuple,
+      TreasuryChangeProposedEvent.OutputObject
+    >;
+    TreasuryChangeProposed: TypedContractEvent<
+      TreasuryChangeProposedEvent.InputTuple,
+      TreasuryChangeProposedEvent.OutputTuple,
+      TreasuryChangeProposedEvent.OutputObject
     >;
 
     "TreasuryUpdated(address)": TypedContractEvent<

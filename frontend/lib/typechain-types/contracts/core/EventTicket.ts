@@ -66,18 +66,22 @@ export interface EventTicketInterface extends Interface {
       | "isApprovedForAll"
       | "isValidTicket"
       | "maxSupply"
+      | "maxTicketsPerAddress"
       | "mintTicket"
       | "name"
       | "organizer"
+      | "organizerBalance"
       | "owner"
       | "ownerOf"
       | "pause"
       | "paused"
+      | "purchaseTicket"
       | "renounceOwnership"
       | "royaltyInfo"
       | "safeTransferFrom(address,address,uint256)"
       | "safeTransferFrom(address,address,uint256,bytes)"
       | "setApprovalForAll"
+      | "setMaxTicketsPerAddress"
       | "setRoyaltyInfo"
       | "setTokenURI"
       | "setTransferRestriction"
@@ -100,6 +104,7 @@ export interface EventTicketInterface extends Interface {
       | "ApprovalForAll"
       | "BatchMetadataUpdate"
       | "FundsWithdrawn"
+      | "MaxTicketsPerAddressUpdated"
       | "MetadataUpdate"
       | "OwnershipTransferred"
       | "Paused"
@@ -160,11 +165,19 @@ export interface EventTicketInterface extends Interface {
   ): string;
   encodeFunctionData(functionFragment: "maxSupply", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "maxTicketsPerAddress",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "mintTicket",
     values: [AddressLike, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "organizer", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "organizerBalance",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "ownerOf",
@@ -172,6 +185,10 @@ export interface EventTicketInterface extends Interface {
   ): string;
   encodeFunctionData(functionFragment: "pause", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "purchaseTicket",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
@@ -191,6 +208,10 @@ export interface EventTicketInterface extends Interface {
   encodeFunctionData(
     functionFragment: "setApprovalForAll",
     values: [AddressLike, boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setMaxTicketsPerAddress",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setRoyaltyInfo",
@@ -268,13 +289,25 @@ export interface EventTicketInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "maxSupply", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "maxTicketsPerAddress",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "mintTicket", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "organizer", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "organizerBalance",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "purchaseTicket",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
@@ -293,6 +326,10 @@ export interface EventTicketInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setApprovalForAll",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setMaxTicketsPerAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -397,6 +434,18 @@ export namespace FundsWithdrawnEvent {
   export interface OutputObject {
     owner: string;
     amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace MaxTicketsPerAddressUpdatedEvent {
+  export type InputTuple = [newLimit: BigNumberish];
+  export type OutputTuple = [newLimit: bigint];
+  export interface OutputObject {
+    newLimit: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -652,6 +701,8 @@ export interface EventTicket extends BaseContract {
 
   maxSupply: TypedContractMethod<[], [bigint], "view">;
 
+  maxTicketsPerAddress: TypedContractMethod<[], [bigint], "view">;
+
   mintTicket: TypedContractMethod<
     [to: AddressLike, seatNumber: BigNumberish, tier: BigNumberish],
     [bigint],
@@ -662,6 +713,8 @@ export interface EventTicket extends BaseContract {
 
   organizer: TypedContractMethod<[], [string], "view">;
 
+  organizerBalance: TypedContractMethod<[], [bigint], "view">;
+
   owner: TypedContractMethod<[], [string], "view">;
 
   ownerOf: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
@@ -669,6 +722,12 @@ export interface EventTicket extends BaseContract {
   pause: TypedContractMethod<[], [void], "nonpayable">;
 
   paused: TypedContractMethod<[], [boolean], "view">;
+
+  purchaseTicket: TypedContractMethod<
+    [quantity: BigNumberish],
+    [bigint[]],
+    "payable"
+  >;
 
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
@@ -697,6 +756,12 @@ export interface EventTicket extends BaseContract {
 
   setApprovalForAll: TypedContractMethod<
     [operator: AddressLike, approved: boolean],
+    [void],
+    "nonpayable"
+  >;
+
+  setMaxTicketsPerAddress: TypedContractMethod<
+    [newLimit: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -825,6 +890,9 @@ export interface EventTicket extends BaseContract {
     nameOrSignature: "maxSupply"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "maxTicketsPerAddress"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
     nameOrSignature: "mintTicket"
   ): TypedContractMethod<
     [to: AddressLike, seatNumber: BigNumberish, tier: BigNumberish],
@@ -838,6 +906,9 @@ export interface EventTicket extends BaseContract {
     nameOrSignature: "organizer"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
+    nameOrSignature: "organizerBalance"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
     nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
@@ -849,6 +920,9 @@ export interface EventTicket extends BaseContract {
   getFunction(
     nameOrSignature: "paused"
   ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "purchaseTicket"
+  ): TypedContractMethod<[quantity: BigNumberish], [bigint[]], "payable">;
   getFunction(
     nameOrSignature: "renounceOwnership"
   ): TypedContractMethod<[], [void], "nonpayable">;
@@ -885,6 +959,9 @@ export interface EventTicket extends BaseContract {
     [void],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "setMaxTicketsPerAddress"
+  ): TypedContractMethod<[newLimit: BigNumberish], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "setRoyaltyInfo"
   ): TypedContractMethod<
@@ -971,6 +1048,13 @@ export interface EventTicket extends BaseContract {
     FundsWithdrawnEvent.InputTuple,
     FundsWithdrawnEvent.OutputTuple,
     FundsWithdrawnEvent.OutputObject
+  >;
+  getEvent(
+    key: "MaxTicketsPerAddressUpdated"
+  ): TypedContractEvent<
+    MaxTicketsPerAddressUpdatedEvent.InputTuple,
+    MaxTicketsPerAddressUpdatedEvent.OutputTuple,
+    MaxTicketsPerAddressUpdatedEvent.OutputObject
   >;
   getEvent(
     key: "MetadataUpdate"
@@ -1079,6 +1163,17 @@ export interface EventTicket extends BaseContract {
       FundsWithdrawnEvent.InputTuple,
       FundsWithdrawnEvent.OutputTuple,
       FundsWithdrawnEvent.OutputObject
+    >;
+
+    "MaxTicketsPerAddressUpdated(uint256)": TypedContractEvent<
+      MaxTicketsPerAddressUpdatedEvent.InputTuple,
+      MaxTicketsPerAddressUpdatedEvent.OutputTuple,
+      MaxTicketsPerAddressUpdatedEvent.OutputObject
+    >;
+    MaxTicketsPerAddressUpdated: TypedContractEvent<
+      MaxTicketsPerAddressUpdatedEvent.InputTuple,
+      MaxTicketsPerAddressUpdatedEvent.OutputTuple,
+      MaxTicketsPerAddressUpdatedEvent.OutputObject
     >;
 
     "MetadataUpdate(uint256)": TypedContractEvent<

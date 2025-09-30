@@ -3,3 +3,4 @@
 /* eslint-disable */
 export { EventFactory__factory } from "./EventFactory__factory";
 export { EventTicket__factory } from "./EventTicket__factory";
+export { Marketplace__factory } from "./Marketplace__factory";

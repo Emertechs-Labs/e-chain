@@ -82,7 +82,9 @@ export interface IEventFactoryInterface extends Interface {
       | "isVerifiedOrganizer"
       | "organizerEvents"
       | "platformFeeBps"
+      | "selfVerifyOrganizer"
       | "treasury"
+      | "unverifyOrganizer"
       | "verifiedOrganizers"
   ): FunctionFragment;
 
@@ -134,7 +136,15 @@ export interface IEventFactoryInterface extends Interface {
     functionFragment: "platformFeeBps",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "selfVerifyOrganizer",
+    values: [AddressLike]
+  ): string;
   encodeFunctionData(functionFragment: "treasury", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "unverifyOrganizer",
+    values: [AddressLike]
+  ): string;
   encodeFunctionData(
     functionFragment: "verifiedOrganizers",
     values: [AddressLike]
@@ -169,7 +179,15 @@ export interface IEventFactoryInterface extends Interface {
     functionFragment: "platformFeeBps",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "selfVerifyOrganizer",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "treasury", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "unverifyOrganizer",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "verifiedOrganizers",
     data: BytesLike
@@ -319,7 +337,7 @@ export interface IEventFactory extends BaseContract {
       endTime: BigNumberish
     ],
     [bigint],
-    "nonpayable"
+    "payable"
   >;
 
   eventCount: TypedContractMethod<[], [bigint], "view">;
@@ -356,7 +374,19 @@ export interface IEventFactory extends BaseContract {
 
   platformFeeBps: TypedContractMethod<[], [bigint], "view">;
 
+  selfVerifyOrganizer: TypedContractMethod<
+    [organizer: AddressLike],
+    [void],
+    "payable"
+  >;
+
   treasury: TypedContractMethod<[], [string], "view">;
+
+  unverifyOrganizer: TypedContractMethod<
+    [organizer: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
   verifiedOrganizers: TypedContractMethod<
     [organizer: AddressLike],
@@ -380,7 +410,7 @@ export interface IEventFactory extends BaseContract {
       endTime: BigNumberish
     ],
     [bigint],
-    "nonpayable"
+    "payable"
   >;
   getFunction(
     nameOrSignature: "eventCount"
@@ -416,8 +446,14 @@ export interface IEventFactory extends BaseContract {
     nameOrSignature: "platformFeeBps"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "selfVerifyOrganizer"
+  ): TypedContractMethod<[organizer: AddressLike], [void], "payable">;
+  getFunction(
     nameOrSignature: "treasury"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "unverifyOrganizer"
+  ): TypedContractMethod<[organizer: AddressLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "verifiedOrganizers"
   ): TypedContractMethod<[organizer: AddressLike], [boolean], "view">;

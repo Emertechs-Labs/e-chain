@@ -3,3 +3,4 @@
 /* eslint-disable */
 export type { EventFactory } from "./EventFactory";
 export type { EventTicket } from "./EventTicket";
+export type { Marketplace } from "./Marketplace";

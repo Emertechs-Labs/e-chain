@@ -82,6 +82,19 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "uint256",
+        name: "newLimit",
+        type: "uint256",
+      },
+    ],
+    name: "MaxTicketsPerAddressUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "address",
         name: "recipient",
@@ -526,6 +539,19 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "organizerBalance",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",
@@ -542,6 +568,25 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "quantity",
+        type: "uint256",
+      },
+    ],
+    name: "purchaseTicket",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "tokenIds",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "payable",
     type: "function",
   },
   {
@@ -609,6 +654,19 @@ const _abi = [
       },
     ],
     name: "setApprovalForAll",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "newLimit",
+        type: "uint256",
+      },
+    ],
+    name: "setMaxTicketsPerAddress",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

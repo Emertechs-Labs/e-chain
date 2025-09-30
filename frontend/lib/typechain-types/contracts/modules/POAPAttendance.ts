@@ -45,6 +45,7 @@ export interface POAPAttendanceInterface extends Interface {
       | "approve"
       | "attendances"
       | "balanceOf"
+      | "eip712Domain"
       | "eventFactory"
       | "getApproved"
       | "getAttendance"
@@ -72,6 +73,7 @@ export interface POAPAttendanceInterface extends Interface {
       | "Approval"
       | "ApprovalForAll"
       | "AttendanceMinted"
+      | "EIP712DomainChanged"
       | "OwnershipTransferred"
       | "Transfer"
   ): EventFragment;
@@ -87,6 +89,10 @@ export interface POAPAttendanceInterface extends Interface {
   encodeFunctionData(
     functionFragment: "balanceOf",
     values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "eip712Domain",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "eventFactory",
@@ -110,7 +116,7 @@ export interface POAPAttendanceInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "mintAttendance",
-    values: [BigNumberish, AddressLike, BigNumberish, BytesLike]
+    values: [BigNumberish, AddressLike, BigNumberish, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "nonces", values: [AddressLike]): string;
@@ -163,6 +169,10 @@ export interface POAPAttendanceInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "eip712Domain",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "eventFactory",
     data: BytesLike
@@ -286,6 +296,16 @@ export namespace AttendanceMintedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace EIP712DomainChangedEvent {
+  export type InputTuple = [];
+  export type OutputTuple = [];
+  export interface OutputObject {}
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export namespace OwnershipTransferredEvent {
   export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
   export type OutputTuple = [previousOwner: string, newOwner: string];
@@ -381,6 +401,22 @@ export interface POAPAttendance extends BaseContract {
 
   balanceOf: TypedContractMethod<[owner: AddressLike], [bigint], "view">;
 
+  eip712Domain: TypedContractMethod<
+    [],
+    [
+      [string, string, string, bigint, string, string, bigint[]] & {
+        fields: string;
+        name: string;
+        version: string;
+        chainId: bigint;
+        verifyingContract: string;
+        salt: string;
+        extensions: bigint[];
+      }
+    ],
+    "view"
+  >;
+
   eventFactory: TypedContractMethod<[], [string], "view">;
 
   getApproved: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
@@ -408,6 +444,7 @@ export interface POAPAttendance extends BaseContract {
       eventId: BigNumberish,
       attendee: AddressLike,
       nonce: BigNumberish,
+      deadline: BigNumberish,
       signature: BytesLike
     ],
     [void],
@@ -504,6 +541,23 @@ export interface POAPAttendance extends BaseContract {
     nameOrSignature: "balanceOf"
   ): TypedContractMethod<[owner: AddressLike], [bigint], "view">;
   getFunction(
+    nameOrSignature: "eip712Domain"
+  ): TypedContractMethod<
+    [],
+    [
+      [string, string, string, bigint, string, string, bigint[]] & {
+        fields: string;
+        name: string;
+        version: string;
+        chainId: bigint;
+        verifyingContract: string;
+        salt: string;
+        extensions: bigint[];
+      }
+    ],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "eventFactory"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
@@ -537,6 +591,7 @@ export interface POAPAttendance extends BaseContract {
       eventId: BigNumberish,
       attendee: AddressLike,
       nonce: BigNumberish,
+      deadline: BigNumberish,
       signature: BytesLike
     ],
     [void],
@@ -628,6 +683,13 @@ export interface POAPAttendance extends BaseContract {
     AttendanceMintedEvent.OutputObject
   >;
   getEvent(
+    key: "EIP712DomainChanged"
+  ): TypedContractEvent<
+    EIP712DomainChangedEvent.InputTuple,
+    EIP712DomainChangedEvent.OutputTuple,
+    EIP712DomainChangedEvent.OutputObject
+  >;
+  getEvent(
     key: "OwnershipTransferred"
   ): TypedContractEvent<
     OwnershipTransferredEvent.InputTuple,
@@ -674,6 +736,17 @@ export interface POAPAttendance extends BaseContract {
       AttendanceMintedEvent.InputTuple,
       AttendanceMintedEvent.OutputTuple,
       AttendanceMintedEvent.OutputObject
+    >;
+
+    "EIP712DomainChanged()": TypedContractEvent<
+      EIP712DomainChangedEvent.InputTuple,
+      EIP712DomainChangedEvent.OutputTuple,
+      EIP712DomainChangedEvent.OutputObject
+    >;
+    EIP712DomainChanged: TypedContractEvent<
+      EIP712DomainChangedEvent.InputTuple,
+      EIP712DomainChangedEvent.OutputTuple,
+      EIP712DomainChangedEvent.OutputObject
     >;
 
     "OwnershipTransferred(address,address)": TypedContractEvent<

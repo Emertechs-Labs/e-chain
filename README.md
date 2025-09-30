@@ -5,6 +5,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Base](https://img.shields.io/badge/Base-0052FF?style=for-the-badge&logo=base&logoColor=white)](https://base.org/)
+[![Curvegrid MultiBaas](https://img.shields.io/badge/Curvegrid_MultiBaas-6366F1?style=for-the-badge&logo=ethereum&logoColor=white)](https://www.curvegrid.com/)
 [![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
 
 **A Web3-native event management platform built on Base using Curvegrid MultiBaas**
@@ -32,7 +33,7 @@ Echain transforms traditional events into blockchain-powered experiences with NF
 
 ## 🛠️ Technology Stack
 
-- **Blockchain**: Base (Ethereum L2), Solidity, MultiBaas API
+- **Blockchain**: Base (Ethereum L2), Solidity, Curvegrid MultiBaas API
 - **Frontend**: Next.js, TypeScript, RainbowKit, Tailwind CSS
 - **Infrastructure**: Vercel, IPFS storage
 
@@ -60,6 +61,11 @@ For more detailed information, explore our documentation:
 - [User Guides](./docs/guides/README.md)
 - [Deployment Guide](./docs/deployment/README.md)
 - [Security Info](./docs/security/README.md)
+- [Curvegrid MultiBaas Integration](./docs/curvegridDocs/README.md)
+  - [Backend Integration](./docs/curvegridDocs/backendintegration.md)
+  - [Frontend Integration](./docs/curvegridDocs/frontendintegration.md)
+  - [TypeScript SDK](./docs/curvegridDocs/typescriptsdk.md)
+  - [Webhooks](./docs/curvegridDocs/webhooks.md)
 
 ## 📞 Support & Resources
 

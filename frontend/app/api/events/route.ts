@@ -36,21 +36,9 @@ async function initTable() {
 // Insert initial test event if not exists
 async function seedData() {
   if (!client) return;
-  try {
-    const result = await client.execute({
-      sql: 'SELECT COUNT(*) as count FROM events WHERE id = ?',
-      args: [1]
-    });
-    if (result.rows[0].count === 0) {
-      await client.execute({
-        sql: `INSERT INTO events (id, name, organizer, ticket_contract, metadata_uri, ticket_price, max_tickets, start_time, end_time, is_active, created_at)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        args: [1, 'Test001', '0x5474bA789F5CbD31aea2BcA1939989746242680D', '0xb4a07ce953946936083cd8214070b74a1ac94b3e', 'ipfs://placeholder', '0', 100, 1759810380, 1759939980, 1, Math.floor(Date.now() / 1000)]
-      });
-    }
-  } catch (error) {
-    console.error('Error seeding data:', error);
-  }
+  // Commenting out automatic seeding to prevent placeholder events
+  // in production. Events should be created through the UI or real transactions.
+  console.log('Seeding disabled in production to prevent placeholder events');
 }
 
 // Initialize database only if client is available

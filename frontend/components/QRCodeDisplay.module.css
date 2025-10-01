@@ -26,3 +26,50 @@
   align-items: center;
   width: 100%;
 }
+
+/* QR Container styles with dynamic sizing */
+.qrContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+}
+
+/* Size classes */
+.size128 {
+  width: 128px;
+  height: 128px;
+}
+
+.size192 {
+  width: 192px;
+  height: 192px;
+}
+
+.size256 {
+  width: 256px;
+  height: 256px;
+}
+
+.size320 {
+  width: 320px;
+  height: 320px;
+}
+
+.size384 {
+  width: 384px;
+  height: 384px;
+}
+
+.size512 {
+  width: 512px;
+  height: 512px;
+}
+
+.qrLoading {
+  background-color: white;
+}
+
+.qrError {
+  background-color: #f3f4f6;
+}

@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useAccount } from "wagmi";
+import { formatEther } from "viem";
 import { EnhancedConnectButton } from "../components/EnhancedConnectButton";
 import { useEventsByOrganizer } from "../hooks/useEvents";
 
@@ -73,7 +74,7 @@ const MyEventsPage: React.FC = () => {
                             <span className="text-cyan-400">📅</span> Event ID: {event.id}
                           </div>
                           <div>
-                            <span className="text-cyan-400">💰</span> Price: {event.ticketPrice ? `${Number(event.ticketPrice) / 1e18} ETH` : 'N/A'}
+                            <span className="text-cyan-400">💰</span> Price: {event.ticketPrice ? `${Number(formatEther(BigInt(event.ticketPrice)))} ETH` : 'N/A'}
                           </div>
                           <div>
                             <span className="text-cyan-400">🎫</span> Max Tickets: {event.maxTickets}

@@ -12,9 +12,10 @@ export interface Event {
   endTime: number;
   isActive: boolean;
   createdAt: number;
-  // Additional frontend fields
+  // Additional frontend fields (populated from metadata or defaults)
   description?: string;
-  imageUrl?: string;
+  image?: string; // IPFS image URL from metadata
+  imageUrl?: string; // For backward compatibility
   venue?: string;
   category?: string;
   symbol?: string; // For backward compatibility

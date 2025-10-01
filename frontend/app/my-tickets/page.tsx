@@ -3,7 +3,7 @@
 import React from "react";
 import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { callContractRead } from "../../lib/multibaas";
+import { readContract } from "../../lib/contract-wrapper";
 import { CONTRACT_ADDRESSES } from "../../lib/contracts";
 import { formatEther } from "viem";
 import Link from "next/link";
@@ -30,9 +30,8 @@ const useUserTickets = () => {
       if (!address) return [];
 
       try {
-        // Get all events first
-        const [eventIds] = await callContractRead(
-          CONTRACT_ADDRESSES.EventFactory,
+        // Get all events first (with automatic fallback)
+        const [eventIds] = await readContract(
           'EventFactory',
           'getActiveEvents',
           [0, 100] // Get up to 100 events
@@ -43,17 +42,15 @@ const useUserTickets = () => {
         // For each event, check if user owns tickets
         for (const eventId of eventIds) {
           try {
-            const eventData = await callContractRead(
-              CONTRACT_ADDRESSES.EventFactory,
+            const eventData = await readContract(
               'EventFactory',
               'getEvent',
               [eventId]
             );
 
             if (eventData.ticketContract) {
-              // Get user's tickets for this event
-              const userTicketIds = await callContractRead(
-                eventData.ticketContract,
+              // Get user's tickets for this event (with automatic fallback)
+              const userTicketIds = await readContract(
                 'EventTicket',
                 'getOwnerTickets',
                 [address]
@@ -62,8 +59,7 @@ const useUserTickets = () => {
               // Get details for each ticket
               for (const ticketId of userTicketIds) {
                 try {
-                  const ticketInfo = await callContractRead(
-                    eventData.ticketContract,
+                  const ticketInfo = await readContract(
                     'EventTicket',
                     'getTicketInfo',
                     [ticketId]

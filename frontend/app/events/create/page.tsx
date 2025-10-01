@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useAccount } from "wagmi";
-import { useCreateEvent, useOrganizerVerification, useVerifyOrganizer } from "../../hooks/useTransactions";
+import { useOrganizerVerification, useVerifyOrganizer } from "../../hooks/useTransactions";
+import { useCreateEventDirect } from "../../hooks/useTransactionsDirect"; // Direct wallet (no MultiBaas)
 import SignAndSendUnsignedTx from '../../../components/SignAndSendUnsignedTx';
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -34,7 +35,7 @@ interface ImageUploadState {
 const CreateEventPage: React.FC = () => {
   const { isConnected, address } = useAccount();
   const router = useRouter();
-  const createEventMutation = useCreateEvent();
+  const createEventMutation = useCreateEventDirect(); // ✅ Using direct wallet hook
   const { data: verificationStatus, isLoading: verificationLoading } = useOrganizerVerification();
   const verifyOrganizerMutation = useVerifyOrganizer();
   const [isLoading, setIsLoading] = useState(false);
@@ -269,7 +270,7 @@ const CreateEventPage: React.FC = () => {
         address: 'eventfactory',
         contractLabel: 'eventfactory',
         method: 'createEvent',
-        blockchain: 'eip155-84532',
+        blockchain: 'base-sepolia', // Using the format that works with MultiBaas
         args: [
           eventData.name,
           eventData.metadataURI,

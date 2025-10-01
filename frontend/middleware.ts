@@ -31,6 +31,10 @@ export function middleware(request: NextRequest) {
       wss://*.walletconnect.com
       https://*.infura.io
       wss://*.infura.io
+      https://*.pinata.cloud
+      https://api.pinata.cloud
+      https://gateway.pinata.cloud
+      https://ipfs.io
       http://localhost:*;
     frame-src 'self' https://*.walletconnect.com https://*.coinbase.com;
     worker-src 'self' blob:;

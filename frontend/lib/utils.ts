@@ -83,7 +83,7 @@ export function sleep(ms: number): Promise<void> {
 
 // ============ Blockchain Security Utilities ============
 
-import { callContractRead } from './multibaas';
+import { readContract } from './contract-wrapper';
 import { CONTRACT_ADDRESSES, EIP712_DOMAINS, EIP712_TYPES } from './contracts';
 
 /**
@@ -101,8 +101,7 @@ export async function predictTicketContractAddress(
   blockNumber: number
 ): Promise<string> {
   try {
-    const predictedAddress = await callContractRead(
-      CONTRACT_ADDRESSES.EventFactory,
+    const predictedAddress = await readContract(
       'EventFactory',
       'predictTicketContractAddress',
       [organizer, eventId, timestamp, blockNumber]

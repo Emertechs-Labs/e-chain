@@ -4,6 +4,7 @@ import { Configuration, ContractsApi } from '@curvegrid/multibaas-sdk';
 const envVars = {
   MULTIBAAS_API_KEY: process.env.MULTIBAAS_API_KEY,
   NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY: process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY,
+  NEXT_PUBLIC_MULTIBAAS_WEB3_API_KEY: process.env.NEXT_PUBLIC_MULTIBAAS_WEB3_API_KEY,
   NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL: process.env.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL,
   NEXT_PUBLIC_MULTIBAAS_CHAIN: process.env.NEXT_PUBLIC_MULTIBAAS_CHAIN,
   NEXT_PUBLIC_MULTIBAAS_CHAIN_ID: process.env.NEXT_PUBLIC_MULTIBAAS_CHAIN_ID,
@@ -43,7 +44,7 @@ const normalizeBasePath = (raw?: string) => {
   return raw.replace(/\/$/, '') + '/api/v0';
 };
 
-const getAccessToken = () => envVars.MULTIBAAS_API_KEY || envVars.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY;
+const getAccessToken = () => envVars.MULTIBAAS_API_KEY || envVars.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY || envVars.NEXT_PUBLIC_MULTIBAAS_WEB3_API_KEY;
 
 const createContractsApi = () => {
   const basePath = normalizeBasePath(envVars.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL);

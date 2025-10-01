@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
-import { callContractRead } from '../../lib/multibaas';
+import { readContract } from '../../lib/contract-wrapper';
 import { CONTRACT_ADDRESSES } from '../../lib/contracts';
 
 export interface Reward {
@@ -22,8 +22,7 @@ export const useUserRewards = () => {
 
       try {
         // Get user's reward balance
-        const balance = await callContractRead(
-          CONTRACT_ADDRESSES.IncentiveManager,
+        const balance = await readContract(
           'IncentiveManager',
           'balanceOf',
           [address]
@@ -35,16 +34,14 @@ export const useUserRewards = () => {
         for (let i = 0; i < Number(balance); i++) {
           try {
             // Get token ID by index
-            const tokenId = await callContractRead(
-              CONTRACT_ADDRESSES.IncentiveManager,
+            const tokenId = await readContract(
               'IncentiveManager',
               'tokenOfOwnerByIndex',
               [address, i]
             );
 
             // Get reward data
-            const rewardData = await callContractRead(
-              CONTRACT_ADDRESSES.IncentiveManager,
+            const rewardData = await readContract(
               'IncentiveManager',
               'getReward',
               [tokenId]
@@ -97,8 +94,7 @@ export const useEarlyBirdStatus = (eventId: number, ticketContract?: string) => 
 
       try {
         // Check if user has already claimed
-        const hasClaimed = await callContractRead(
-          CONTRACT_ADDRESSES.IncentiveManager,
+        const hasClaimed = await readContract(
           'IncentiveManager',
           'earlyBirdClaimed',
           [eventId, address]
@@ -115,8 +111,8 @@ export const useEarlyBirdStatus = (eventId: number, ticketContract?: string) => 
         }
 
         // Check if user owns tickets for this event
-        const ticketBalance = await callContractRead(
-          ticketContract,
+        // Note: We need to use the direct contract address here since it's dynamic
+        const ticketBalance = await readContract(
           'EventTicket',
           'balanceOf',
           [address]
@@ -133,15 +129,13 @@ export const useEarlyBirdStatus = (eventId: number, ticketContract?: string) => 
         }
 
         // Check total tickets sold vs early bird limit
-        const totalSold = await callContractRead(
-          ticketContract,
+        const totalSold = await readContract(
           'EventTicket',
           'totalSold',
           []
         );
 
-        const earlyBirdLimit = await callContractRead(
-          CONTRACT_ADDRESSES.IncentiveManager,
+        const earlyBirdLimit = await readContract(
           'IncentiveManager',
           'earlyBirdLimit',
           []
@@ -181,8 +175,7 @@ export const useUserLoyaltyPoints = () => {
       if (!address) return 0;
 
       try {
-        const points = await callContractRead(
-          CONTRACT_ADDRESSES.IncentiveManager,
+        const points = await readContract(
           'IncentiveManager',
           'loyaltyPoints',
           [address]
@@ -233,8 +226,7 @@ export const useUserReferralRewards = () => {
       if (!address) return 0;
 
       try {
-        const rewards = await callContractRead(
-          CONTRACT_ADDRESSES.IncentiveManager,
+        const rewards = await readContract(
           'IncentiveManager',
           'referralRewards',
           [address]

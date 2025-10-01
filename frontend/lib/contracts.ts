@@ -39,5 +39,6 @@ export const CONTRACT_ABIS = {
   EventFactory: require('./typechain-types/factories/contracts/core/EventFactory__factory').EventFactory__factory.abi,
   EventTicket: require('./typechain-types/factories/contracts/core/EventTicket__factory').EventTicket__factory.abi,
   POAPAttendance: require('./typechain-types/factories/contracts/modules/POAPAttendance__factory').POAPAttendance__factory.abi,
-  IncentiveManager: require('./typechain-types/factories/contracts/modules/IncentiveManager.sol/IncentiveManager__factory').IncentiveManager__factory.abi
+  IncentiveManager: require('./typechain-types/factories/contracts/modules/IncentiveManager.sol/IncentiveManager__factory').IncentiveManager__factory.abi,
+  Marketplace: [] as any // TODO: Generate typechain for Marketplace
 } as const;

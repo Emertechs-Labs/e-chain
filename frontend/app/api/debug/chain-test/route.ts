@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Configuration, ContractsApi, MetricsApi } from '@curvegrid/multibaas-sdk';
+import { Configuration, ContractsApi } from '@curvegrid/multibaas-sdk';
 
 // Helper function to create API client with different base paths for testing
 const createApiClient = (basePath?: string) => {
@@ -19,8 +19,7 @@ const createApiClient = (basePath?: string) => {
   });
   
   return {
-    contractsApi: new ContractsApi(cfg),
-    metricsApi: new MetricsApi(cfg)
+    contractsApi: new ContractsApi(cfg)
   };
 };
 
@@ -36,8 +35,8 @@ export async function GET(req: Request) {
     const client = createApiClient();
     
     try {
-      // Try to get blockchain info with the provided chain parameter
-      const response = await client.metricsApi.blockchainMetrics(chain as any);
+      // Try to get contract list with the provided chain parameter
+      const response = await client.contractsApi.listContracts(chain as any);
       
       return NextResponse.json({
         chain,

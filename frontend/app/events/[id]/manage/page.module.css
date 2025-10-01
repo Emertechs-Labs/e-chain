@@ -5,3 +5,42 @@
   transition: width 0.3s ease;
   width: var(--progress-width, 0%);
 }
+
+.ticketProgressBar {
+  background-color: rgb(59 130 246); /* blue-500 */
+  height: 0.5rem;
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+}
+
+.salesProgressBar {
+  background-image: linear-gradient(to right, rgb(6 182 212), rgb(59 130 246)); /* from-cyan-500 to-blue-500 */
+  height: 1rem;
+  border-radius: 9999px;
+  transition: all 0.5s ease-out;
+}
+
+/* Progress percentage classes - generated dynamically */
+.ticketProgressBar[data-progress="0"] { width: 0%; }
+.ticketProgressBar[data-progress="10"] { width: 10%; }
+.ticketProgressBar[data-progress="20"] { width: 20%; }
+.ticketProgressBar[data-progress="30"] { width: 30%; }
+.ticketProgressBar[data-progress="40"] { width: 40%; }
+.ticketProgressBar[data-progress="50"] { width: 50%; }
+.ticketProgressBar[data-progress="60"] { width: 60%; }
+.ticketProgressBar[data-progress="70"] { width: 70%; }
+.ticketProgressBar[data-progress="80"] { width: 80%; }
+.ticketProgressBar[data-progress="90"] { width: 90%; }
+.ticketProgressBar[data-progress="100"] { width: 100%; }
+
+.salesProgressBar[data-progress="0"] { width: 0%; }
+.salesProgressBar[data-progress="10"] { width: 10%; }
+.salesProgressBar[data-progress="20"] { width: 20%; }
+.salesProgressBar[data-progress="30"] { width: 30%; }
+.salesProgressBar[data-progress="40"] { width: 40%; }
+.salesProgressBar[data-progress="50"] { width: 50%; }
+.salesProgressBar[data-progress="60"] { width: 60%; }
+.salesProgressBar[data-progress="70"] { width: 70%; }
+.salesProgressBar[data-progress="80"] { width: 80%; }
+.salesProgressBar[data-progress="90"] { width: 90%; }
+.salesProgressBar[data-progress="100"] { width: 100%; }

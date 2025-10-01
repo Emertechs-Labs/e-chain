@@ -160,6 +160,9 @@ export async function POST(req: Request) {
       // Return the raw result (SDK returns TransactionToSignResponse)
       return NextResponse.json(result, { status: 200 });
     } catch (upstreamErr: any) {
+      // Add better debugging for blockchain parameter
+      const resolvedBlockchain = blockchain || 'base-sepolia';
+      
       console.error('[app/api/multibaas/unsigned] upstream SDK error', { 
         traceId, 
         message: upstreamErr?.message, 
@@ -179,7 +182,17 @@ export async function POST(req: Request) {
       if (status === 404) {
         errorMessage = `Contract or method not found: ${contractToCall}`;
       } else if (status === 400) {
-        errorMessage = `Invalid request to MultiBaas: ${upstreamErr?.message}`;
+        errorMessage = `Invalid request to MultiBaas: ${upstreamErr?.message || 'Bad request'}. Check contract address, method signature, and parameters.`;
+        console.error('[DEBUG 400 Error Details]', {
+          addressOrAlias,
+          contractToCall,
+          method,
+          normalizedArgs,
+          from,
+          value,
+          blockchain: resolvedBlockchain,
+          fullError: upstreamErr?.response?.data
+        });
       } else if (status === 401 || status === 403) {
         errorMessage = 'Authentication error with MultiBaas';
       }

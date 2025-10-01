@@ -12,10 +12,16 @@ let pinataSDK: PinataSDK | null = null;
 
 function getPinataSDK(): PinataSDK {
   if (!pinataSDK && PINATA_JWT) {
-    pinataSDK = new PinataSDK({
-      pinataJwt: PINATA_JWT,
-      pinataGateway: PINATA_GATEWAY_URL,
-    });
+    try {
+      pinataSDK = new PinataSDK({
+        pinataJwt: PINATA_JWT,
+        pinataGateway: PINATA_GATEWAY_URL,
+      });
+      console.log('Pinata SDK initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize Pinata SDK:', error);
+      pinataSDK = null;
+    }
   }
   return pinataSDK!;
 }
@@ -43,14 +49,31 @@ export interface VerificationData {
  */
 export async function uploadToIPFS(file: File): Promise<IPFSUploadResult> {
   try {
+    console.log('uploadToIPFS: Starting upload, PINATA_JWT present:', !!PINATA_JWT);
+    
     if (!PINATA_JWT) {
-      throw new Error('Pinata JWT not configured');
+      return {
+        cid: '',
+        url: '',
+        success: false,
+        error: 'Pinata JWT not configured',
+      };
     }
 
     const pinata = getPinataSDK();
+    if (!pinata) {
+      return {
+        cid: '',
+        url: '',
+        success: false,
+        error: 'Failed to initialize Pinata SDK',
+      };
+    }
 
+    console.log('uploadToIPFS: Uploading to Pinata...');
     // Upload file to Pinata
     const upload = await pinata.upload.file(file);
+    console.log('uploadToIPFS: Pinata upload successful:', upload);
 
     return {
       cid: upload.IpfsHash,
@@ -68,6 +91,8 @@ export async function uploadToIPFS(file: File): Promise<IPFSUploadResult> {
   }
 }
 
+
+
 /**
  * Upload event metadata to IPFS
  */
@@ -82,7 +107,12 @@ export async function uploadEventMetadata(metadata: {
 }): Promise<IPFSUploadResult> {
   try {
     if (!PINATA_JWT) {
-      throw new Error('Pinata JWT not configured');
+      return {
+        cid: '',
+        url: '',
+        success: false,
+        error: 'Pinata JWT not configured',
+      };
     }
 
     const pinata = getPinataSDK();
@@ -112,6 +142,8 @@ export async function uploadEventMetadata(metadata: {
   }
 }
 
+
+
 /**
  * Upload ticket metadata to IPFS
  */
@@ -131,7 +163,12 @@ export async function uploadTicketMetadata(metadata: {
 }): Promise<IPFSUploadResult> {
   try {
     if (!PINATA_JWT) {
-      throw new Error('Pinata JWT not configured');
+      return {
+        cid: '',
+        url: '',
+        success: false,
+        error: 'Pinata JWT not configured',
+      };
     }
 
     const pinata = getPinataSDK();

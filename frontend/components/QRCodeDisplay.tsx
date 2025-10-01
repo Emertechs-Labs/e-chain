@@ -53,10 +53,25 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
     }
   }, [data, size]);
 
+  // Map size to CSS class name
+  const getSizeClass = (size: number): string => {
+    const sizeMap: { [key: number]: string } = {
+      128: styles.size128,
+      192: styles.size192,
+      256: styles.size256,
+      320: styles.size320,
+      384: styles.size384,
+      512: styles.size512
+    };
+    
+    return sizeMap[size] || styles.size256; // Default to 256px
+  };
+
+  const sizeClass = getSizeClass(size);
+
   if (loading) {
     return (
-      <div className={`flex items-center justify-center bg-white rounded-lg ${className}`} 
-           style={{width: size, height: size}}>
+      <div className={`${styles.qrContainer} ${styles.qrLoading} ${sizeClass} ${className}`}>
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
       </div>
     );
@@ -64,8 +79,7 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
 
   if (error || !qrCodeUrl) {
     return (
-      <div className={`flex items-center justify-center bg-gray-100 rounded-lg ${className}`}
-           style={{width: size, height: size}}>
+      <div className={`${styles.qrContainer} ${styles.qrError} ${sizeClass} ${className}`}>
         <div className="text-center text-gray-500 text-sm">
           <div className="text-red-500 mb-2">⚠️</div>
           <div>QR Code Error</div>

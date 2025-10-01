@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAccount, useWalletClient, useChainId, useSwitchChain } from 'wagmi';
-import { readContract } from 'wagmi/actions';
+import { readContract as readContractWagmi } from 'wagmi/actions';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESSES } from '../../lib/contracts';
 import { config } from '../../lib/wagmi';
-import { callContractRead } from '../../lib/multibaas';
+import { readContract } from '../../lib/contract-wrapper';
 import { formatForWallet, callUnsignedTx, handleTransactionError } from '../../lib/transaction-utils';
 
 export interface MarketplaceListing {
@@ -80,33 +80,29 @@ const mockListings: MarketplaceListing[] = [
 async function fetchListingDetails(listingId: string): Promise<MarketplaceListing> {
   try {
     // First get raw listing data from contract
-    const rawListing = await callContractRead(
-      CONTRACT_ADDRESSES.Marketplace,
-      'marketplace',
+    const rawListing = await readContract(
+      'Marketplace',
       'getListing',
       [listingId]
     );
     
     // Get event ID and metadata from ticket contract
-    const eventId = await callContractRead(
-      rawListing.ticketContract,
-      'eventticket',
+    const eventId = await readContract(
+      'EventTicket',
       'ticketToEvent',
       [rawListing.tokenId]
     );
     
     // Get event details from factory
-    const eventDetails = await callContractRead(
-      CONTRACT_ADDRESSES.EventFactory,
-      'eventfactory',
+    const eventDetails = await readContract(
+      'EventFactory',
       'getEventDetails',
       [eventId]
     );
     
     // Calculate original price (ticket face value)
-    const originalPrice = await callContractRead(
-      CONTRACT_ADDRESSES.EventFactory,
-      'eventfactory',
+    const originalPrice = await readContract(
+      'EventFactory',
       'events',
       [eventId]
     );
@@ -143,9 +139,8 @@ export const useMarketplaceListings = () => {
     queryFn: async (): Promise<MarketplaceListing[]> => {
       try {
         // First try to query listing IDs from contract
-        const result = await callContractRead(
-          CONTRACT_ADDRESSES.Marketplace,
-          'marketplace',
+        const result = await readContract(
+          'Marketplace',
           'getActiveListings',
           [CONTRACT_ADDRESSES.EventTicket, 0, 100] // Query for our primary ticket contract
         );
@@ -185,9 +180,8 @@ export const useUserListings = (userAddress?: string) => {
 
       try {
         // Query all listings and filter by seller
-        const allListings = await callContractRead(
-          CONTRACT_ADDRESSES.Marketplace,
-          'marketplace',
+        const allListings = await readContract(
+          'Marketplace',
           'getActiveListings',
           [CONTRACT_ADDRESSES.EventTicket, 0, 100]
         );
@@ -204,7 +198,7 @@ export const useUserListings = (userAddress?: string) => {
         const listingsPromises = listingIds.map((id: string) => fetchListingDetails(id));
         const allListingDetails = await Promise.all(listingsPromises);
         
-        return allListingDetails.filter(listing => 
+        return allListingDetails.filter((listing: MarketplaceListing) => 
           listing.active && 
           listing.seller.toLowerCase() === targetAddress.toLowerCase()
         );

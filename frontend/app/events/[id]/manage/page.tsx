@@ -7,10 +7,10 @@ import { useEvent } from "../../../hooks/useEvents";
 import { formatEther } from "viem";
 import Link from "next/link";
 import { ArrowLeft, Users, DollarSign, Calendar, Settings, BarChart3 } from "lucide-react";
-import { readContract } from "wagmi/actions";
+import { readContract as readContractWagmi } from "wagmi/actions";
 import { config } from "../../../../lib/wagmi";
 import { CONTRACT_ABIS } from "../../../../lib/contracts";
-import { callContractRead } from "../../../../lib/multibaas";
+import { readContract } from "../../../../lib/contract-wrapper";
 import { CONTRACT_ADDRESSES } from "../../../../lib/contracts";
 import styles from "./page.module.css";
 
@@ -36,7 +36,7 @@ const EventManagementPage: React.FC = () => {
       if (event && event.ticketContract) {
         try {
           // Get real sold tickets from blockchain
-          const soldTickets = await readContract(config, {
+          const soldTickets = await readContractWagmi(config, {
             address: event.ticketContract as `0x${string}`,
             abi: CONTRACT_ABIS.EventTicket,
             functionName: 'totalSold',
@@ -45,7 +45,7 @@ const EventManagementPage: React.FC = () => {
           }) as bigint;
 
           const soldTicketsNum = Number(soldTickets);
-          const revenue = soldTicketsNum * parseFloat(formatEther(event.ticketPrice));
+          const revenue = soldTicketsNum * Number(formatEther(event.ticketPrice));
 
           // Get real POAP claims count for this event
           let poapClaims = 0;
@@ -53,8 +53,7 @@ const EventManagementPage: React.FC = () => {
             // Query the POAP contract to count claims for this event
             // Since the contract doesn't have a direct count, we'll need to check total supply
             // and iterate through tokens to count those for this event
-            const totalSupply = await callContractRead(
-              CONTRACT_ADDRESSES.POAPAttendance,
+            const totalSupply = await readContract(
               'POAPAttendance',
               'totalSupply',
               []
@@ -82,7 +81,7 @@ const EventManagementPage: React.FC = () => {
           setMetrics({
             totalTickets: event.maxTickets,
             soldTickets: Math.floor(Math.random() * event.maxTickets * 0.8),
-            revenue: (Math.floor(Math.random() * event.maxTickets * 0.8) * parseFloat(formatEther(event.ticketPrice))).toFixed(3),
+            revenue: (Math.floor(Math.random() * event.maxTickets * 0.8) * Number(formatEther(event.ticketPrice))).toFixed(3),
             uniqueAttendees: Math.floor(Math.random() * event.maxTickets * 0.6),
             poapClaims: Math.floor(Math.random() * event.maxTickets * 0.4),
             eventStatus: event.isActive ? 'active' : 'inactive'
@@ -192,10 +191,10 @@ const EventManagementPage: React.FC = () => {
               </div>
               <h3 className="text-2xl font-bold text-white mb-1">{metrics.soldTickets}/{metrics.totalTickets}</h3>
               <p className="text-gray-400 text-sm">Tickets Sold</p>
-              <div className="mt-3 bg-slate-700 rounded-full h-2">
+                <div className="mt-3 bg-slate-700 rounded-full h-2">
                 <div
-                  className={`${styles.progressBar} bg-blue-500 h-2 rounded-full transition-all duration-300`}
-                  style={{'--progress-width': `${revenuePercentage}%`} as React.CSSProperties}
+                  className={styles.ticketProgressBar}
+                  data-progress={Math.round(revenuePercentage / 10) * 10}
                 ></div>
               </div>
             </div>
@@ -250,8 +249,8 @@ const EventManagementPage: React.FC = () => {
                 </div>
                 <div className="w-full bg-slate-700 rounded-full h-4">
                   <div
-                    className="bg-gradient-to-r from-cyan-500 to-blue-500 h-4 rounded-full transition-all duration-500 ease-out"
-                    style={{width: `${revenuePercentage}%`}}
+                    className={styles.salesProgressBar}
+                    data-progress={Math.round(revenuePercentage / 10) * 10}
                   ></div>
                 </div>
                 <div className="text-center text-gray-400 text-sm">

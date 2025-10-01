@@ -3,7 +3,7 @@
 import React from "react";
 import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { callContractRead } from "../../lib/multibaas";
+import { readContract } from "../../lib/contract-wrapper";
 import { CONTRACT_ADDRESSES } from "../../lib/contracts";
 import Link from "next/link";
 import { RewardsDashboard } from "@/components/rewards/RewardsDashboard";
@@ -28,38 +28,36 @@ const useUserPOAPs = () => {
       if (!address) return [];
 
       try {
-        // Get user's POAP balance
-        const balance = await callContractRead(
-          CONTRACT_ADDRESSES.POAPAttendance,
+        // Get user's POAP balance (with automatic fallback)
+        const balance = await readContract(
           'POAPAttendance',
           'balanceOf',
           [address]
         );
+
+        console.log('POAP balance for user:', balance);
 
         const poaps: POAP[] = [];
 
         // Get each POAP token
         for (let i = 0; i < Number(balance); i++) {
           try {
-            // Get token ID by index
-            const tokenId = await callContractRead(
-              CONTRACT_ADDRESSES.POAPAttendance,
+            // Get token ID by index (with automatic fallback)
+            const tokenId = await readContract(
               'POAPAttendance',
               'tokenOfOwnerByIndex',
               [address, i]
             );
 
-            // Get attendance data
-            const attendanceData = await callContractRead(
-              CONTRACT_ADDRESSES.POAPAttendance,
+            // Get attendance data (with automatic fallback)
+            const attendanceData = await readContract(
               'POAPAttendance',
               'getAttendance',
               [tokenId]
             );
 
-            // Get event data
-            const eventData = await callContractRead(
-              CONTRACT_ADDRESSES.EventFactory,
+            // Get event data (with automatic fallback)
+            const eventData = await readContract(
               'EventFactory',
               'getEvent',
               [attendanceData.eventId]
@@ -84,10 +82,21 @@ const useUserPOAPs = () => {
         return poaps;
       } catch (error) {
         console.error('Error fetching user POAPs:', error);
+        // Return empty array instead of throwing error to prevent the "K" error
         return [];
       }
     },
     enabled: !!address,
+    // Add retry and error handling
+    retry: (failureCount, error) => {
+      // Don't retry if it's a contract call error (likely no POAPs minted)
+      if (error?.message?.includes('execution reverted') || error?.message?.includes('call revert')) {
+        return false;
+      }
+      // Retry up to 2 times for network errors
+      return failureCount < 2;
+    },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 };
 

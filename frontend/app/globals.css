@@ -1,7 +1,7 @@
 /* Tailwind directives */
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Custom styles */
 
@@ -89,35 +89,35 @@ html {
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
+    --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 180 100% 50%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 210 40% 92%;
+    --primary: 180 98% 25%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
     --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 94%;
+    --muted: 210 40% 98%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 180 20% 95%;
+    --accent: 180 30% 90%;
     --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 180 100% 50%;
+    --ring: 180 98% 25%;
     --radius: 0.5rem;
-    --chart-1: 180 100% 50%;
+    --chart-1: 180 98% 25%;
     --chart-2: 270 95% 75%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     
-    /* Echain-specific colors */
-    --neon-cyan: 180 100% 50%;
-    --neon-purple: 270 95% 75%;
+    /* Echain-specific light theme colors */
+    --neon-cyan: 180 98% 25%;
+    --neon-purple: 270 95% 45%;
     --success-green: 142 76% 36%;
     --warning-orange: 25 95% 53%;
     /* Height of the fixed header to offset anchored scroll positions */
@@ -183,6 +183,46 @@ html {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  /* Light theme overrides */
+  .light .gradient-bg {
+    background: linear-gradient(135deg, #0891b2 0%, #2563eb 50%, #7c3aed 100%);
+  }
+  
+  /* Mobile-first responsive design utilities */
+  @layer components {
+    .container-responsive {
+      @apply w-full px-4 sm:px-6 lg:px-8 mx-auto;
+      max-width: 1200px;
+    }
+    
+    .grid-responsive {
+      @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
+    }
+    
+    .card-responsive {
+      @apply bg-card border border-border rounded-lg p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow;
+    }
+    
+    .text-responsive {
+      @apply text-sm sm:text-base lg:text-lg;
+    }
+  }
+  
+  @layer components {
+    .heading-responsive {
+      @apply text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold;
+    }
+
+    /* Mobile navigation */
+    .mobile-menu {
+      @apply fixed inset-0 z-50 bg-background/95 backdrop-blur-sm md:hidden;
+    }
+    
+    .mobile-menu-content {
+      @apply flex flex-col h-full pt-16 px-4 pb-4 space-y-4;
+    }
   }
 }
 

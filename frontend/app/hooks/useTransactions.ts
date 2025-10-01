@@ -303,13 +303,18 @@ export const usePurchaseTicket = () => {
       try {
         // Calculate total cost for the quantity
         const quantity = purchaseData.quantity || 1;
-        const totalCost = purchaseData.ticketPrice * BigInt(quantity);
+        // Fix BigInt conversion - ensure both values are BigInt before multiplication
+        const ticketPriceBigInt = typeof purchaseData.ticketPrice === 'bigint' 
+          ? purchaseData.ticketPrice 
+          : BigInt(purchaseData.ticketPrice);
+        const quantityBigInt = BigInt(quantity);
+        const totalCost = ticketPriceBigInt * quantityBigInt;
 
         const result = await callUnsignedTx(
           purchaseData.ticketContract,
           'EventTicket',
           'purchaseTicket', // ✅ Now matches the contract function
-          [quantity], // ✅ Only quantity parameter needed
+          [Number(quantity)], // ✅ Convert to number for contract call
           address,
           totalCost.toString(), // ✅ Correct total cost calculation
           traceId
@@ -640,7 +645,7 @@ export const useOrganizerVerification = () => {
         // For view functions, we need to call the contract directly
         // Import the contract address and ABI
         const CONTRACT_ADDRESSES = {
-          EventFactory: '0xbE36039Bfe7f48604F73daD61411459B17fd2e85',
+          EventFactory: '0xA97cB40548905B05A67fCD4765438aFBEA4030fc',
         };
 
         const EVENT_FACTORY_ABI = [

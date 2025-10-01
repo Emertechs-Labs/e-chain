@@ -4,6 +4,9 @@ import { useEffect, useRef } from 'react';
 import { Event } from '../../../types/event';
 import { formatEther } from 'viem';
 import Link from 'next/link';
+import Image from 'next/image';
+import { getOrganizerDisplayName, formatEventDate, generateDefaultMetadata } from '../../../lib/metadata';
+import { useEventTicketsSold } from '../../hooks/useTickets';
 
 interface EventCardProps {
   event: Event;
@@ -13,17 +16,24 @@ export default function EventCard({ event }: EventCardProps) {
   const isEventEnded = event.endTime * 1000 < Date.now();
   const ticketPriceInEth = formatEther(event.ticketPrice);
   
-  // Calculate ticket sales progress deterministically based on event ID
-  // This ensures server and client render the same values
-  const ticketsSold = Math.floor((event.id * 37) % (event.maxTickets * 0.8)); // Max 80% sold
-  const soldPercentage = (ticketsSold / event.maxTickets) * 100;
+  // Get real ticket sales data
+  const { data: ticketsSold = 0 } = useEventTicketsSold(event.id, event.ticketContract);
+  
+  const soldPercentage = event.maxTickets > 0 ? (ticketsSold / event.maxTickets) * 100 : 0;
   const progressRef = useRef<HTMLDivElement | null>(null);
+
+  // Generate default metadata if event doesn't have proper description/venue
+  const defaultMetadata = generateDefaultMetadata(event);
+  const displayDescription = event.description || defaultMetadata.description;
+  const displayVenue = event.venue || defaultMetadata.venue;
+  const displayCategory = event.category || defaultMetadata.category;
+  const organizerName = getOrganizerDisplayName(event);
 
   useEffect(() => {
     const el = progressRef.current;
     if (!el) return;
     // Set width after mount so the tailwind transition animates
-    const width = `${Math.min(Math.round(soldPercentage), 100)}%`;
+    const width = `${Math.min(Math.round(soldPercentage || 0), 100)}%`;
     // Use requestAnimationFrame to ensure this runs after paint
     requestAnimationFrame(() => {
       el.style.width = width;
@@ -34,13 +44,28 @@ export default function EventCard({ event }: EventCardProps) {
     <div className="bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-700 overflow-hidden hover:border-cyan-500/50 transition-all duration-300 hover:scale-[1.02]">
       {/* Event Image/Banner */}
       <div className="h-40 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 relative">
+        {/* Background image from metadata if available */}
+        {(event.image || event.imageUrl) && (
+          <Image 
+            src={event.image || event.imageUrl || ''} 
+            alt={event.name}
+            fill
+            className="object-cover"
+            unoptimized={true} // Allow external URLs including blob storage
+            onError={(e) => {
+              // Hide broken images and fall back to gradient
+              console.warn('Failed to load event image:', event.image || event.imageUrl);
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-blue-500/20 to-purple-500/20"></div>
         <div className="absolute top-4 left-4 flex gap-2">
           <span className="bg-green-500/90 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
             ✓ Verified
           </span>
           <span className="bg-slate-800/80 text-cyan-400 px-3 py-1 rounded-full text-xs font-medium">
-            {event.category || 'Conference'}
+            {displayCategory}
           </span>
           <span className="bg-slate-800/80 text-purple-400 px-3 py-1 rounded-full text-xs font-medium">
             Limited NFT
@@ -51,26 +76,29 @@ export default function EventCard({ event }: EventCardProps) {
             {ticketPriceInEth} ETH
           </span>
         </div>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-6xl">🎪</div>
-        </div>
+        {/* Default emoji icon when no image available */}
+        {!(event.image || event.imageUrl) && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-6xl">🎪</div>
+          </div>
+        )}
       </div>
 
       <div className="p-5">
         <h3 className="text-lg font-bold text-white mb-2">{event.name}</h3>
         <p className="text-gray-400 text-sm mb-3 line-clamp-2">
-          {event.description || 'A premier blockchain development conference featuring the latest in DeFi, NFTs, and decentralized technologies.'}
+          {displayDescription}
         </p>
         
         {/* Event Details */}
         <div className="space-y-1 mb-3">
           <div className="flex items-center text-sm text-gray-400">
             <span className="text-cyan-400 mr-2">📅</span>
-            {new Date(event.endTime * 1000).toLocaleDateString()} at 09:00 AM
+            {formatEventDate(event.startTime)}
           </div>
           <div className="flex items-center text-sm text-gray-400">
             <span className="text-cyan-400 mr-2">📍</span>
-            {event.venue || 'San Francisco, CA'}
+            {displayVenue}
           </div>
           <div className="flex items-center text-sm text-gray-400">
             <span className="text-cyan-400 mr-2">👥</span>
@@ -101,7 +129,7 @@ export default function EventCard({ event }: EventCardProps) {
         {/* Organizer */}
         <div className="mb-3 pb-3 border-b border-slate-700">
           <span className="text-xs text-gray-500">Organized by</span>
-          <div className="text-sm text-white font-medium">BlockchainEvents LLC</div>
+          <div className="text-sm text-white font-medium">{organizerName}</div>
         </div>
         
         {/* Action Buttons */}

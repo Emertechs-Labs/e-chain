@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAccount } from "wagmi";
 import { formatEther } from "viem";
 import { EnhancedConnectButton } from "../components/EnhancedConnectButton";
-import { useEventsByOrganizer } from "../hooks/useEvents";
+import { useEventsByOrganizer, useOrganizerMetrics } from "../hooks/useEvents";
 import { readContract } from "../../lib/contract-wrapper";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart3, Users, DollarSign, TrendingUp, Calendar, MapPin } from "lucide-react";
@@ -172,17 +172,7 @@ const EventCard: React.FC<{ event: any }> = ({ event }) => {
 const MyEventsPage: React.FC = () => {
   const { address, isConnected } = useAccount();
   const { data: events = [], isLoading } = useEventsByOrganizer();
-
-  // Calculate total metrics from all events
-  const totalMetrics = events.reduce((acc, event) => {
-    // This is a simplified calculation - we'll use real data from individual event cards
-    // In a real implementation, you'd aggregate data from all events
-    return {
-      totalSold: acc.totalSold + Math.floor(Math.random() * event.maxTickets * 0.3), // Conservative estimate
-      totalRevenue: acc.totalRevenue + (Math.floor(Math.random() * event.maxTickets * 0.3) * Number(formatEther(event.ticketPrice))),
-      totalPOAPs: acc.totalPOAPs + Math.floor(Math.random() * event.maxTickets * 0.3 * 0.7)
-    };
-  }, { totalSold: 0, totalRevenue: 0, totalPOAPs: 0 });
+  const { data: metrics } = useOrganizerMetrics();
 
   if (!isConnected) {
     return (
@@ -225,7 +215,7 @@ const MyEventsPage: React.FC = () => {
           </div>
 
           {/* Metrics Overview */}
-          {events.length > 0 && (
+          {events.length > 0 && metrics && (
             <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-6">
                 <div className="flex items-center gap-3 mb-4">
@@ -233,7 +223,7 @@ const MyEventsPage: React.FC = () => {
                     <Calendar className="w-6 h-6 text-blue-400" />
                   </div>
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-1">{events.length}</h3>
+                <h3 className="text-2xl font-bold text-white mb-1">{metrics.totalEvents}</h3>
                 <p className="text-gray-400 text-sm">Total Events</p>
               </div>
 
@@ -244,7 +234,7 @@ const MyEventsPage: React.FC = () => {
                   </div>
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-1">
-                  {totalMetrics.totalSold}
+                  {metrics.totalTicketsSold}
                 </h3>
                 <p className="text-gray-400 text-sm">Tickets Sold</p>
               </div>
@@ -256,7 +246,7 @@ const MyEventsPage: React.FC = () => {
                   </div>
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-1">
-                  {totalMetrics.totalRevenue.toFixed(2)}
+                  {metrics.totalRevenue}
                 </h3>
                 <p className="text-gray-400 text-sm">Total Revenue (ETH)</p>
               </div>
@@ -268,7 +258,7 @@ const MyEventsPage: React.FC = () => {
                   </div>
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-1">
-                  {totalMetrics.totalPOAPs}
+                  {metrics.totalPOAPClaims}
                 </h3>
                 <p className="text-gray-400 text-sm">POAP Claims</p>
               </div>

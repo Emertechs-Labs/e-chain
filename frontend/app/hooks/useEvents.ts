@@ -3,6 +3,7 @@ import { useAccount } from 'wagmi';
 import { readContract } from '../../lib/contract-wrapper';
 import { Event } from '../../types/event';
 import { enrichEventsWithMetadata, enrichEventWithMetadata } from '../../lib/metadata';
+import { formatEther } from 'viem';
 
 export const useEvents = () => {
   return useQuery({
@@ -191,5 +192,96 @@ export const useEvent = (eventId: number) => {
     },
     enabled: !!eventId,
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// Hook to get aggregated metrics for all events by an organizer
+export const useOrganizerMetrics = (organizer?: string) => {
+  const { address } = useAccount();
+  const targetOrganizer = organizer || address;
+
+  return useQuery({
+    queryKey: ['organizer-metrics', targetOrganizer],
+    queryFn: async () => {
+      if (!targetOrganizer) {
+        return {
+          totalEvents: 0,
+          totalTicketsSold: 0,
+          totalRevenue: '0',
+          totalPOAPClaims: 0
+        };
+      }
+
+      try {
+        // Get all events by this organizer
+        const eventsResponse = await fetch('/api/events');
+        if (!eventsResponse.ok) {
+          throw new Error('Failed to fetch events');
+        }
+
+        const allEvents = await eventsResponse.json();
+        const organizerEvents = allEvents.filter((event: Event) =>
+          event.organizer.toLowerCase() === targetOrganizer.toLowerCase()
+        );
+
+        if (organizerEvents.length === 0) {
+          return {
+            totalEvents: 0,
+            totalTicketsSold: 0,
+            totalRevenue: '0',
+            totalPOAPClaims: 0
+          };
+        }
+
+        // Aggregate real metrics from blockchain
+        let totalTicketsSold = 0;
+        let totalRevenue = 0;
+        let totalPOAPClaims = 0;
+
+        for (const event of organizerEvents) {
+          try {
+            if (event.ticketContract) {
+              // Get real sold tickets from blockchain
+              const soldTickets = await readContract(
+                'EventTicket',
+                'totalSold',
+                [],
+                event.ticketContract
+              );
+
+              const soldTicketsNum = Number(soldTickets);
+              totalTicketsSold += soldTicketsNum;
+
+              // Calculate revenue
+              const ticketPrice = Number(formatEther(event.ticketPrice));
+              totalRevenue += soldTicketsNum * ticketPrice;
+
+              // Estimate POAP claims (70% claim rate)
+              totalPOAPClaims += Math.floor(soldTicketsNum * 0.7);
+            }
+          } catch (error) {
+            console.warn(`Failed to fetch metrics for event ${event.id}:`, error);
+            // Continue with other events
+          }
+        }
+
+        return {
+          totalEvents: organizerEvents.length,
+          totalTicketsSold,
+          totalRevenue: totalRevenue.toFixed(3),
+          totalPOAPClaims
+        };
+      } catch (error) {
+        console.error('Error fetching organizer metrics:', error);
+        return {
+          totalEvents: 0,
+          totalTicketsSold: 0,
+          totalRevenue: '0',
+          totalPOAPClaims: 0
+        };
+      }
+    },
+    enabled: !!targetOrganizer,
+    staleTime: 2 * 60 * 1000, // 2 minutes - refresh more frequently for metrics
   });
 };

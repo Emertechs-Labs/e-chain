@@ -497,6 +497,105 @@ const EventDetailPage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Blockchain Verification */}
+      <section className="py-12 sm:py-16 bg-background">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">Blockchain Verification</h2>
+            <div className="bg-card border border-border rounded-xl sm:rounded-2xl p-6 sm:p-8">
+              <p className="text-muted-foreground mb-6 text-sm sm:text-base">
+                This event is permanently recorded on the Base blockchain. Click the links below to verify all transactions and smart contract interactions on BaseScan.
+              </p>
+
+              <div className="space-y-4">
+                <div className="bg-muted/50 rounded-lg p-4 border border-border">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-foreground font-semibold mb-1">Event Creation</h3>
+                      <p className="text-muted-foreground text-sm">Smart contract deployment and event registration</p>
+                    </div>
+                    <a
+                      href={`https://sepolia.basescan.org/address/${CONTRACT_ADDRESSES.EventFactory}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+                    >
+                      View on BaseScan ↗
+                    </a>
+                  </div>
+                </div>
+
+                <div className="bg-muted/50 rounded-lg p-4 border border-border">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-foreground font-semibold mb-1">NFT Ticket Contract</h3>
+                      <p className="text-muted-foreground text-sm">ERC-721 contract for event tickets</p>
+                    </div>
+                    <a
+                      href={`https://sepolia.basescan.org/address/${event.ticketContract}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+                    >
+                      View on BaseScan ↗
+                    </a>
+                  </div>
+                </div>
+
+                {event.poapContract && (
+                  <div className="bg-muted/50 rounded-lg p-4 border border-border">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-foreground font-semibold mb-1">POAP Contract</h3>
+                        <p className="text-muted-foreground text-sm">Proof of Attendance Protocol certificates</p>
+                      </div>
+                      <a
+                        href={`https://sepolia.basescan.org/address/${event.poapContract}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+                      >
+                        View on BaseScan ↗
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-muted/50 rounded-lg p-4 border border-border">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-foreground font-semibold mb-1">Event Metadata</h3>
+                      <p className="text-muted-foreground text-sm">IPFS-stored event details and poster</p>
+                    </div>
+                    <a
+                      href={event.metadataURI}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/90 transition-colors text-sm font-medium"
+                    >
+                      View on IPFS ↗
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <div className="text-primary text-xl mt-0.5">🔒</div>
+                  <div>
+                    <h4 className="text-primary font-semibold mb-1">Immutable & Verifiable</h4>
+                    <p className="text-muted-foreground text-sm">
+                      All event data, ticket sales, and attendance records are permanently stored on the blockchain.
+                      Anyone can verify the authenticity of this event and its tickets at any time.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

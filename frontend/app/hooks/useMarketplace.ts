@@ -85,6 +85,7 @@ export const useMarketplaceListings = () => {
 
         const listings = await response.json();
 
+        // If we got listings from the API (even if empty), return them
         // Convert string prices back to BigInt
         return listings.map((listing: any) => ({
           ...listing,
@@ -93,7 +94,8 @@ export const useMarketplaceListings = () => {
         }));
       } catch (error) {
         console.error('Error fetching marketplace listings:', error);
-        // Fallback to mock data on error
+        // Only fallback to mock data on actual API errors
+        console.log('Falling back to mock marketplace data due to API error');
         return mockListings;
       }
     },

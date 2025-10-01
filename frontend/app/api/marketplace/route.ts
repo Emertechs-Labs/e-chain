@@ -61,7 +61,7 @@ async function seedMarketplaceData() {
     }
 
     // Get some real events from the database to create listings
-    const eventsResult = await client.execute('SELECT * FROM events WHERE is_active = 1 LIMIT 5');
+    const eventsResult = await client.execute('SELECT * FROM events WHERE is_active = 1 ORDER BY created_at DESC LIMIT 10');
     const events = eventsResult.rows;
 
     if (events.length === 0) {
@@ -73,37 +73,49 @@ async function seedMarketplaceData() {
     const listings = [];
 
     // Create some listings based on real events
-    for (let i = 0; i < Math.min(events.length, 3); i++) {
+    for (let i = 0; i < Math.min(events.length, 5); i++) {
       const event = events[i];
       const eventDate = event.start_time;
       const ticketPriceStr = event.ticket_price;
-      
+
       if (!ticketPriceStr) continue; // Skip if no ticket price
-      
+
       const ticketPrice = BigInt(String(ticketPriceStr));
 
-      // Create 1-2 listings per event
-      const numListings = Math.floor(Math.random() * 2) + 1;
+      // Create 1-3 listings per event with realistic discounts
+      const numListings = Math.floor(Math.random() * 3) + 1;
 
       for (let j = 0; j < numListings; j++) {
-        const tokenId = (i * 100) + j + 1;
-        const discountPercent = Math.random() * 0.3 + 0.1; // 10-40% discount
+        const tokenId = (Number(event.id) * 1000) + j + 1;
+        const discountPercent = Math.random() * 0.4 + 0.1; // 10-50% discount for resale
         const listingPrice = ticketPrice * BigInt(Math.floor((1 - discountPercent) * 100)) / BigInt(100);
 
+        // Get location from event metadata if available, otherwise use default
+        let location = 'Location TBA';
+        if (event.metadata_uri && event.metadata_uri !== 'ipfs://placeholder') {
+          try {
+            // Try to get location from metadata, but for seeding we'll use defaults
+            const defaultLocations = ['San Francisco, CA', 'New York, NY', 'Los Angeles, CA', 'Austin, TX', 'Miami, FL', 'Denver, CO', 'Seattle, WA'];
+            location = defaultLocations[i % defaultLocations.length];
+          } catch (error) {
+            location = 'Location TBA';
+          }
+        }
+
         listings.push({
-          id: `listing_${i}_${j}`,
+          id: `listing_${event.id}_${j}_${Date.now()}`,
           token_id: tokenId,
           event_id: event.id,
           event_name: event.name,
-          ticket_type: j === 0 ? 'VIP Access' : 'General Admission',
+          ticket_type: j === 0 ? 'VIP Access' : j === 1 ? 'Early Bird' : 'General Admission',
           price: listingPrice.toString(),
           original_price: ticketPrice.toString(),
-          seller: `0x${Math.random().toString(16).substr(2, 40)}`, // Random address
+          seller: `0x${Math.random().toString(16).substr(2, 40)}`, // Random seller address
           event_date: eventDate,
-          location: ['San Francisco, CA', 'New York, NY', 'Los Angeles, CA', 'Austin, TX', 'Miami, FL'][Math.floor(Math.random() * 5)],
-          verified: Math.random() > 0.2, // 80% verified
+          location: location,
+          verified: Math.random() > 0.15, // 85% verified for realism
           ticket_contract: event.ticket_contract || '0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C',
-          listed_at: now - Math.floor(Math.random() * 7 * 24 * 60 * 60), // Within last week
+          listed_at: now - Math.floor(Math.random() * 14 * 24 * 60 * 60), // Within last 2 weeks
           active: true,
           created_at: now
         });
@@ -136,7 +148,7 @@ async function seedMarketplaceData() {
       });
     }
 
-    console.log(`Seeded ${listings.length} marketplace listings`);
+    console.log(`Seeded ${listings.length} marketplace listings based on ${events.length} real events`);
   } catch (error) {
     console.error('Error seeding marketplace data:', error);
   }
@@ -176,6 +188,20 @@ export async function GET(request: NextRequest) {
       sql: query,
       args
     });
+
+    // If no listings found, try to seed some data
+    if (result.rows.length === 0) {
+      console.log('No marketplace listings found, seeding data...');
+      await seedMarketplaceData();
+
+      // Try the query again after seeding
+      const resultAfterSeed = await client.execute({
+        sql: query,
+        args
+      });
+
+      result.rows = resultAfterSeed.rows;
+    }
 
     // Convert to expected format
     const listings = result.rows.map((row: any) => ({

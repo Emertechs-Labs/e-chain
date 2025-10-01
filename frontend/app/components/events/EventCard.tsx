@@ -140,9 +140,15 @@ export default function EventCard({ event }: EventCardProps) {
           >
             🎫 Get NFT Ticket
           </Link>
-          <button className="p-2.5 border border-slate-600 rounded-lg hover:bg-slate-700 transition-colors">
-            <span className="text-gray-400">↗</span>
-          </button>
+          <a
+            href={`https://sepolia.basescan.org/address/${event.ticketContract}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2.5 border border-slate-600 rounded-lg hover:bg-slate-700 transition-colors"
+            title="View on BaseScan"
+          >
+            <span className="text-gray-400">🔗</span>
+          </a>
         </div>
       </div>
     </div>

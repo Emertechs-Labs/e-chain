@@ -67,6 +67,8 @@ export async function POST(request: NextRequest) {
           const name = inputs.find((i: any) => i.name === 'name')?.value;
           const ticketPrice = inputs.find((i: any) => i.name === 'ticketPrice')?.value;
           const maxTickets = parseInt(inputs.find((i: any) => i.name === 'maxTickets')?.value);
+          const startTime = parseInt(inputs.find((i: any) => i.name === 'startTime')?.value);
+          const endTime = parseInt(inputs.find((i: any) => i.name === 'endTime')?.value);
           const metadataUri = inputs.find((i: any) => i.name === 'metadataURI')?.value || '';
 
           // Insert event into database
@@ -80,12 +82,15 @@ export async function POST(request: NextRequest) {
                     name = EXCLUDED.name,
                     organizer = EXCLUDED.organizer,
                     ticket_contract = EXCLUDED.ticket_contract,
+                    metadata_uri = EXCLUDED.metadata_uri,
                     ticket_price = EXCLUDED.ticket_price,
-                    max_tickets = EXCLUDED.max_tickets`,
-            args: [eventId, name, organizer, ticketContract, metadataUri, ticketPrice, maxTickets, 1759810380, 1759939980, 1, Math.floor(Date.now() / 1000)]
+                    max_tickets = EXCLUDED.max_tickets,
+                    start_time = EXCLUDED.start_time,
+                    end_time = EXCLUDED.end_time`,
+            args: [eventId, name, organizer, ticketContract, metadataUri, ticketPrice, maxTickets, startTime, endTime, 1, Math.floor(Date.now() / 1000)]
           });
 
-          console.log('Stored new event:', { eventId, name, organizer });
+          console.log('Stored new event:', { eventId, name, organizer, startTime, endTime });
         }
       }
     }

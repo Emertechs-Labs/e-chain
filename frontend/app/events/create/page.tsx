@@ -246,13 +246,43 @@ const CreateEventPage: React.FC = () => {
 
     setIsLoading(true);
     try {
+      // Create comprehensive event metadata
+      const eventMetadata = {
+        name: formData.name,
+        description: formData.description,
+        venue: formData.venue,
+        category: formData.category,
+        image: imageUpload.ipfsUrl || formData.imageUrl || "",
+        attributes: [
+          { trait_type: "Event Type", value: formData.category },
+          { trait_type: "Venue", value: formData.venue },
+          { trait_type: "Max Tickets", value: formData.maxTickets.toString() },
+          { trait_type: "Ticket Price", value: `${formData.ticketPrice} ETH` },
+          { trait_type: "Start Date", value: new Date(formData.startDate).toISOString() },
+          { trait_type: "End Date", value: new Date(formData.endDate).toISOString() },
+          { trait_type: "Sale End Date", value: new Date(formData.saleEndDate).toISOString() },
+          { trait_type: "Organizer", value: address || "Unknown" },
+          { trait_type: "Blockchain", value: "Base Sepolia" }
+        ]
+      };
+
+      // Upload event metadata to IPFS
+      console.log('[CreateEventPage] Uploading event metadata to IPFS...');
+      const metadataResult = await uploadEventMetadata(eventMetadata);
+
+      if (!metadataResult.success) {
+        throw new Error(`Failed to upload metadata: ${metadataResult.error}`);
+      }
+
+      console.log('[CreateEventPage] Metadata uploaded successfully:', metadataResult.url);
+
       // Convert form data to contract parameters
       const startTime = Math.floor(new Date(formData.startDate).getTime() / 1000);
       const endTime = Math.floor(new Date(formData.endDate).getTime() / 1000);
 
       const eventData = {
         name: formData.name,
-        metadataURI: imageUpload.ipfsUrl || formData.imageUrl || "", // Use uploaded IPFS URL or empty
+        metadataURI: metadataResult.url, // Use the full metadata IPFS URL
         ticketPrice: formData.ticketPrice, // Keep as string, hook will convert to wei
         maxTickets: parseInt(formData.maxTickets),
         startTime,

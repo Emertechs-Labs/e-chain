@@ -212,9 +212,20 @@ const MarketplacePage: React.FC = () => {
               </div>
             ) : error ? (
               <div className="text-center py-16">
-                <div className="text-6xl mb-6">❌</div>
-                <h2 className="text-2xl font-bold text-white mb-4">Error Loading Marketplace</h2>
-                <p className="text-gray-400">Unable to fetch marketplace data. Please try again later.</p>
+                <div className="text-6xl mb-6">⚙️</div>
+                <h2 className="text-2xl font-bold text-white mb-4">Database Not Configured</h2>
+                <p className="text-gray-400 mb-4">
+                  The marketplace requires database configuration to display real listings.
+                </p>
+                <p className="text-sm text-gray-500 mb-8">
+                  Set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN environment variables to enable marketplace functionality.
+                </p>
+                <Link
+                  href="/events"
+                  className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 font-semibold"
+                >
+                  Browse Events Instead
+                </Link>
               </div>
             ) : sortedListings && sortedListings.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

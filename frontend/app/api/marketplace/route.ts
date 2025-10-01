@@ -156,7 +156,10 @@ async function seedMarketplaceData() {
 
 export async function GET(request: NextRequest) {
   if (!client) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
+    return NextResponse.json({
+      error: 'Database not configured',
+      message: 'Marketplace requires database configuration. Please set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN environment variables.'
+    }, { status: 503 });
   }
 
   try {
@@ -230,7 +233,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   if (!client) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
+    return NextResponse.json({
+      error: 'Database not configured',
+      message: 'Marketplace requires database configuration. Please set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN environment variables.'
+    }, { status: 503 });
   }
 
   try {
@@ -290,7 +296,10 @@ export async function POST(request: NextRequest) {
 // PUT endpoint to update listing (e.g., mark as inactive when sold)
 export async function PUT(request: NextRequest) {
   if (!client) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
+    return NextResponse.json({
+      error: 'Database not configured',
+      message: 'Marketplace requires database configuration. Please set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN environment variables.'
+    }, { status: 503 });
   }
 
   try {

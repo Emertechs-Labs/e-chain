@@ -20,56 +20,7 @@ export interface MarketplaceListing {
 }
 
 // Mock marketplace listings for fallback/testing
-const mockListings: MarketplaceListing[] = [
-  {
-    id: "1",
-    tokenId: 1,
-    eventId: 1,
-    eventName: "Web3 Developer Conference 2024",
-    ticketType: "VIP Access",
-    price: BigInt("150000000000000000"), // 0.15 ETH
-    originalPrice: BigInt("100000000000000000"), // 0.1 ETH
-    seller: "0x1234567890123456789012345678901234567890",
-    eventDate: Math.floor(new Date('2024-03-15T09:00:00').getTime() / 1000),
-    location: "San Francisco, CA",
-    verified: true,
-    ticketContract: '0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C',
-    listedAt: Math.floor(Date.now() / 1000) - 86400, // 1 day ago
-    active: true
-  },
-  {
-    id: "2",
-    tokenId: 2,
-    eventId: 2,
-    eventName: "DeFi Summit: Future of Finance",
-    ticketType: "General Admission",
-    price: BigInt("120000000000000000"), // 0.12 ETH
-    originalPrice: BigInt("80000000000000000"), // 0.08 ETH
-    seller: "0x2345678901234567890123456789012345678901",
-    eventDate: Math.floor(new Date('2024-03-22T10:00:00').getTime() / 1000),
-    location: "New York, NY",
-    verified: true,
-    ticketContract: '0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C',
-    listedAt: Math.floor(Date.now() / 1000) - 172800, // 2 days ago
-    active: true
-  },
-  {
-    id: "3",
-    tokenId: 3,
-    eventId: 3,
-    eventName: "NFT Art & Culture Festival",
-    ticketType: "Artist Pass",
-    price: BigInt("80000000000000000"), // 0.08 ETH
-    originalPrice: BigInt("50000000000000000"), // 0.05 ETH
-    seller: "0x3456789012345678901234567890123456789012",
-    eventDate: Math.floor(new Date('2024-04-05T14:00:00').getTime() / 1000),
-    location: "Los Angeles, CA",
-    verified: false,
-    ticketContract: '0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C',
-    listedAt: Math.floor(Date.now() / 1000) - 259200, // 3 days ago
-    active: true
-  }
-];
+const mockListings: MarketplaceListing[] = [];
 
 // Hook to fetch all marketplace listings
 export const useMarketplaceListings = () => {
@@ -94,9 +45,8 @@ export const useMarketplaceListings = () => {
         }));
       } catch (error) {
         console.error('Error fetching marketplace listings:', error);
-        // Only fallback to mock data on actual API errors
-        console.log('Falling back to mock marketplace data due to API error');
-        return mockListings;
+        // Return empty array instead of mock data when API fails
+        return [];
       }
     },
     // Cache for a short period since marketplace is dynamic
@@ -131,9 +81,7 @@ export const useUserListings = (userAddress?: string) => {
         }));
       } catch (error) {
         console.error('Error fetching user listings:', error);
-        return mockListings.filter(listing =>
-          listing.seller.toLowerCase() === targetAddress.toLowerCase()
-        );
+        return [];
       }
     },
     enabled: !!targetAddress,

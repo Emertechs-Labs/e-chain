@@ -1,0 +1,197 @@
+#!/bin/bash
+
+# Master Test Runner for Echain Production Testing
+# Runs all production tests in sequence
+
+echo "🚀 ECHAIN PRODUCTION TESTING SUITE 🚀"
+echo "======================================"
+echo "Testing live application at: https://echain-eight.vercel.app/"
+echo "Date: $(date)"
+echo ""
+
+# Create results directory
+RESULTS_DIR="test_results_$(date +%Y%m%d_%H%M%S)"
+mkdir -p "$RESULTS_DIR"
+echo "Results will be saved to: $RESULTS_DIR/"
+echo ""
+
+# Function to run test and capture results
+run_test() {
+    local test_name=$1
+    local script_path=$2
+    local description=$3
+    
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "🧪 Running: $test_name"
+    echo "Description: $description"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    
+    if [ -f "$script_path" ]; then
+        cd "$(dirname "$0")" || exit 1
+        bash "$script_path" > "$RESULTS_DIR/${test_name}_results.log" 2>&1
+        local exit_code=$?
+        
+        if [ $exit_code -eq 0 ]; then
+            echo "✅ $test_name completed successfully"
+        else
+            echo "❌ $test_name failed with exit code $exit_code"
+        fi
+        
+        echo "📄 Results saved to: $RESULTS_DIR/${test_name}_results.log"
+    else
+        echo "❌ Test script not found: $script_path"
+    fi
+    
+    echo ""
+    sleep 2
+}
+
+# Run individual tests
+echo "Starting comprehensive production testing..."
+echo ""
+
+# Test 1: Basic Production Tests
+run_test "basic_production" \
+         "./test_production.sh" \
+         "Basic contract interactions, API health, and MultiBaas connectivity"
+
+# Test 2: Ticket Purchase Tests  
+run_test "ticket_purchase" \
+         "./test_tickets.sh" \
+         "Ticket pricing, purchase transactions, transfers, and refunds"
+
+# Test 3: POAP Functionality Tests
+run_test "poap_functionality" \
+         "./test_poap.sh" \
+         "POAP claims, eligibility, metadata, and attendance verification"
+
+# Generate summary report
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📊 GENERATING SUMMARY REPORT"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+SUMMARY_FILE="$RESULTS_DIR/SUMMARY_REPORT.md"
+
+cat > "$SUMMARY_FILE" << EOF
+# Echain Production Testing Summary Report
+
+**Test Date:** $(date)  
+**Application URL:** https://echain-eight.vercel.app/  
+**Network:** Base Sepolia Testnet (Chain ID: 84532)  
+**Results Directory:** $RESULTS_DIR/
+
+## Test Overview
+
+This report summarizes the results of comprehensive production testing for the Echain DApp.
+
+## Tests Performed
+
+### 1. Basic Production Tests
+- **File:** basic_production_results.log
+- **Focus:** Core API functionality, contract connectivity, MultiBaas integration
+- **Key Areas:** 
+  - API health checks
+  - Contract version verification
+  - Event counting and platform fee checks
+  - Event creation transactions
+  - Organizer verification
+  - Storage services
+  - Error handling
+
+### 2. Ticket Purchase Tests
+- **File:** ticket_purchase_results.log
+- **Focus:** Complete ticket lifecycle testing
+- **Key Areas:**
+  - Event listing and details
+  - Ticket pricing and availability
+  - Purchase transaction generation
+  - Batch purchasing
+  - Ticket transfers
+  - Refund functionality
+  - Capacity management
+
+### 3. POAP Functionality Tests
+- **File:** poap_functionality_results.log
+- **Focus:** POAP claiming and management
+- **Key Areas:**
+  - POAP eligibility verification
+  - Claim transaction generation
+  - Token metadata and URIs
+  - Ownership verification
+  - Transfer functionality
+  - Attendance requirements
+
+## Quick Results Analysis
+
+To analyze the results:
+
+1. **Check HTTP Status Codes:** Look for 200 (success) vs 4xx/5xx (errors)
+2. **Review Response Times:** Identify performance bottlenecks
+3. **Examine Error Messages:** Understand any integration issues
+4. **Validate Transaction Data:** Ensure unsigned transactions are properly formatted
+
+## Common Issues to Look For
+
+- **401/403 Errors:** API key or permission issues
+- **404 Errors:** Contract or method not found
+- **500 Errors:** Server-side integration problems
+- **Timeout Issues:** Network connectivity problems
+- **Invalid Transaction Format:** MultiBaas integration issues
+
+## Next Steps
+
+Based on the test results:
+
+1. **If all tests pass:** Ready for production deployment
+2. **If basic tests fail:** Fix MultiBaas integration issues first
+3. **If ticket tests fail:** Review EventTicket contract configuration
+4. **If POAP tests fail:** Check POAPAttendance contract setup
+
+## Detailed Results
+
+Review the individual log files in this directory for complete test output and debugging information.
+
+---
+
+**Generated by Echain Production Testing Suite**  
+**Timestamp:** $(date)
+EOF
+
+echo "📄 Summary report generated: $SUMMARY_FILE"
+echo ""
+
+# Display quick overview
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🎯 QUICK OVERVIEW"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+# Count success/error indicators in log files
+for test_file in "$RESULTS_DIR"/*_results.log; do
+    if [ -f "$test_file" ]; then
+        test_name=$(basename "$test_file" _results.log)
+        success_count=$(grep -c "Status: 200" "$test_file" 2>/dev/null || echo "0")
+        error_count=$(grep -c "Status: [45][0-9][0-9]" "$test_file" 2>/dev/null || echo "0")
+        
+        echo "📋 $test_name:"
+        echo "   ✅ Successful responses: $success_count"
+        echo "   ❌ Error responses: $error_count"
+        echo ""
+    fi
+done
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🏁 TESTING COMPLETE!"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "📁 All results saved to: $RESULTS_DIR/"
+echo "📊 Review the summary report: $SUMMARY_FILE"
+echo ""
+echo "To review detailed results:"
+echo "  cd $RESULTS_DIR && ls -la"
+echo ""
+echo "To analyze specific test results:"
+echo "  cat $RESULTS_DIR/basic_production_results.log"
+echo "  cat $RESULTS_DIR/ticket_purchase_results.log"
+echo "  cat $RESULTS_DIR/poap_functionality_results.log"

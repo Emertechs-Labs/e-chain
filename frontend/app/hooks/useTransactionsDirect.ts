@@ -161,7 +161,7 @@ export const usePurchaseTicketDirect = () => {
         setTimeout(async () => {
           try {
             // Get event details to include in ticket metadata
-            const eventDetails = await readContract('EventFactory', 'events', [data.eventId]);
+            const eventDetails = await readContract('EventFactory', 'getEventDetails', [data.eventId]);
             
             // For each ticket that was purchased, generate metadata
             // This is a simplified version - in production you'd need to track which tokenIds were minted

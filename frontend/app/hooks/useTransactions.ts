@@ -17,72 +17,6 @@ const safeStringify = (v: any) => {
   }
 };
 
-// Helper to call our server-side proxy that calls MultiBaas to avoid CORS and hide API keys
-const callUnsignedTx = async (
-  address: string,
-  contractLabel: string,
-  method: string,
-  args: any[] = [],
-  from: string,
-  value?: string,
-  traceId?: string,
-  blockchain: string = 'base-sepolia' // Default to base-sepolia
-) => {
-  try {
-    // Add more explicit debugging for the blockchain parameter
-    console.log('[DEBUG] callUnsignedTx - Starting with blockchain param:', blockchain);
-    
-    console.debug('[useTransactions] proxy getUnsignedTransaction request', {
-      address,
-      contractLabel,
-      method,
-      args,
-      from,
-      value,
-      traceId,
-      blockchain,
-    });
-
-    const res = await fetch('/api/multibaas/unsigned', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address, contractLabel, method, args, from, value, traceId, blockchain }),
-    });
-
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      const err: any = new Error(data?.error || `MultiBaas proxy failed with status ${res.status}`);
-      err.response = { status: res.status, data };
-
-      // Provide actionable guidance based on common upstream failures
-      const guidance: string[] = [];
-      if (res.status === 401) guidance.push('401 Unauthorized — check MULTIBAAS_API_KEY value and server env');
-      if (res.status === 403) guidance.push('403 Forbidden — check API key permissions (DApp User vs Administrator) and MultiBaas group roles');
-      if (res.status === 405) guidance.push('405 Method Not Allowed — ensure proxy calls use the SDK or correct HTTP method/path');
-      if (data?.error || data?.message) guidance.push(`Upstream message: ${data?.error || data?.message}`);
-
-      console.error('[useTransactions] proxy getUnsignedTransaction failed:', {
-        status: res.status,
-        error: data?.error ?? data?.message,
-        upstreamBody: data?.body ?? data,
-        upstreamStatus: data?.status,
-        guidance: guidance.join(' | '),
-      });
-
-      throw err;
-    }
-
-    console.debug('[useTransactions] proxy getUnsignedTransaction response', { status: res.status, data });
-
-    // MultiBaas SDK previously returned response.data.result, our proxy returns the raw response body
-    return data?.result ?? data;
-  } catch (err) {
-    console.error('[useTransactions] proxy getUnsignedTransaction error:', safeStringify(err));
-    throw err;
-  }
-};
-
 // Error handling utility
 const handleTransactionError = (error: any): string => {
   // Handle CORS errors
@@ -236,9 +170,8 @@ export const useCreateEvent = () => {
       }
 
       try {
-        console.log('[useCreateEvent] Calling callUnsignedTx');
-        const result = await callUnsignedTx(
-          CONTRACT_ADDRESSES.EventFactory,
+        console.log('[useCreateEvent] Calling writeContract with fallback');
+        const txHash = await writeContract(
           'EventFactory',
           'createEvent',
           [
@@ -249,34 +182,14 @@ export const useCreateEvent = () => {
             eventData.startTime,
             eventData.endTime,
           ],
-          address,
-          undefined,
-          traceId
+          {
+            account: address,
+            value: undefined, // No ETH value for event creation
+            waitForConfirmation: false,
+          }
         );
 
-        console.log('[useCreateEvent] callUnsignedTx success');
-        console.debug('[useCreateEvent] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });
-
-        const txData = result?.tx || result;
-        const formatted = formatForWallet(txData, address);
-
-        console.log('[useCreateEvent] formatted tx, checking walletClient');
-        console.debug('[useCreateEvent] formatted tx ready for wallet', { traceId, formatted: safeStringify(formatted) });
-
-        // Ensure wallet client is available then send transaction
-        if (!walletClient) {
-          console.error('[useCreateEvent] No wallet client available');
-          throw new Error('No wallet client available');
-        }
-
-        console.log('[useCreateEvent] walletClient available, sending transaction');
-        console.log('[useCreateEvent] walletClient.account:', walletClient.account?.address);
-        console.log('[useCreateEvent] useAccount address:', address);
-        console.debug('[useCreateEvent] calling walletClient.sendTransaction', { traceId, payload: safeStringify(formatted) });
-        const txHash = await walletClient.sendTransaction(formatted as any);
-
-        console.log('[useCreateEvent] sendTransaction success, txHash:', txHash);
-        console.debug('[useCreateEvent] wallet sendTransaction result', { traceId, txHash });
+        console.log('[useCreateEvent] writeContract success, txHash:', txHash);
 
         // Return the transaction hash so callers can track status
         return { txHash };
@@ -310,7 +223,7 @@ export const usePurchaseTicket = () => {
   return useMutation({
     mutationFn: async (purchaseData: {
       eventId: number;
-      ticketContract: string;
+      ticketContract: `0x${string}`;
       ticketPrice: bigint;
       quantity?: number;
       eventData?: {
@@ -336,29 +249,11 @@ export const usePurchaseTicket = () => {
         const quantityBigInt = BigInt(quantity);
         const totalCost = ticketPriceBigInt * quantityBigInt;
 
-        const result = await callUnsignedTx(
-          purchaseData.ticketContract,
-          'EventTicket',
-          'purchaseTicket', // ✅ Now matches the contract function
-          [Number(quantity)], // ✅ Convert to number for contract call
-          address,
-          totalCost.toString(), // ✅ Correct total cost calculation
-          traceId
-        );
+        // Use writeContract wrapper with automatic fallback
+        const options: { account: `0x${string}`; value: bigint; waitForConfirmation: boolean } = { account: address, value: totalCost, waitForConfirmation: false };
+        const txHash = await writeContract(purchaseData.ticketContract, 'purchaseTicket', [Number(quantity)], options);
 
-        console.debug('[usePurchaseTicket] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });
-
-        const txData = result?.tx || result;
-        const formatted = formatForWallet(txData, address);
-
-        console.debug('[usePurchaseTicket] formatted tx ready for wallet', { traceId, formatted: safeStringify(formatted) });
-
-        if (!walletClient) throw new Error('No wallet client available');
-
-        console.debug('[usePurchaseTicket] calling walletClient.sendTransaction', { traceId, payload: safeStringify(formatted) });
-        const txHash = await walletClient.sendTransaction(formatted as any);
-
-        console.debug('[usePurchaseTicket] wallet sendTransaction result', { traceId, txHash });
+        console.debug('[usePurchaseTicket] transaction sent', { traceId, txHash });
 
         return { txHash, purchaseData };
       } catch (error) {
@@ -418,6 +313,10 @@ export const usePurchaseTicket = () => {
 
       queryClient.invalidateQueries({ queryKey: ['event', variables.eventId] });
       queryClient.invalidateQueries({ queryKey: ['events'] });
+      // Invalidate user tickets query to refresh the user's ticket list
+      if (address) {
+        queryClient.invalidateQueries({ queryKey: ['user-tickets', address] });
+      }
     },
     onError: (error) => {
       console.error('Ticket purchase failed:', error);
@@ -505,29 +404,18 @@ export const useClaimEarlyBird = () => {
       if (!address) throw new Error('Wallet not connected');
 
       try {
-        const result = await callUnsignedTx(
-          CONTRACT_ADDRESSES.IncentiveManager,
+        const txHash = await writeContract(
           'IncentiveManager',
           'claimEarlyBird',
           [claimData.eventId, claimData.ticketContract],
-          address,
-          undefined,
-          traceId
+          {
+            account: address,
+            value: undefined,
+            waitForConfirmation: false,
+          }
         );
 
-        console.debug('[useClaimEarlyBird] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });
-
-        const txData = result?.tx || result;
-        const formatted = formatForWallet(txData, address);
-
-        console.debug('[useClaimEarlyBird] formatted tx ready for wallet', { traceId, formatted: safeStringify(formatted) });
-
-        if (!walletClient) throw new Error('No wallet client available');
-
-        console.debug('[useClaimEarlyBird] calling walletClient.sendTransaction', { traceId, payload: safeStringify(formatted) });
-        const txHash = await walletClient.sendTransaction(formatted as any);
-
-        console.debug('[useClaimEarlyBird] wallet sendTransaction result', { traceId, txHash });
+        console.debug('[useClaimEarlyBird] transaction sent', { traceId, txHash });
 
         return { txHash };
       } catch (error) {
@@ -559,33 +447,22 @@ export const useGenerateReferralCode = () => {
       console.debug('[useGenerateReferralCode] start', { traceId, codeData: safeStringify(codeData) });
       if (!address) throw new Error('Wallet not connected');
 
-      // Convert string to bytes32
-      const codeBytes32 = '0x' + Buffer.from(codeData.code.padEnd(32, '\0')).toString('hex').slice(0, 64);
-
       try {
-        const result = await callUnsignedTx(
-          CONTRACT_ADDRESSES.IncentiveManager,
+        // Convert string to bytes32
+        const codeBytes32 = '0x' + Buffer.from(codeData.code.padEnd(32, '\0')).toString('hex').slice(0, 64);
+
+        const txHash = await writeContract(
           'IncentiveManager',
           'generateReferralCode',
           [codeBytes32],
-          address,
-          undefined,
-          traceId
+          {
+            account: address,
+            value: undefined,
+            waitForConfirmation: false,
+          }
         );
 
-        console.debug('[useGenerateReferralCode] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });
-
-        const txData = result?.tx || result;
-        const formatted = formatForWallet(txData, address);
-
-        console.debug('[useGenerateReferralCode] formatted tx ready for wallet', { traceId, formatted: safeStringify(formatted) });
-
-        if (!walletClient) throw new Error('No wallet client available');
-
-        console.debug('[useGenerateReferralCode] calling walletClient.sendTransaction', { traceId, payload: safeStringify(formatted) });
-        const txHash = await walletClient.sendTransaction(formatted as any);
-
-        console.debug('[useGenerateReferralCode] wallet sendTransaction result', { traceId, txHash });
+        console.debug('[useGenerateReferralCode] transaction sent', { traceId, txHash });
 
         return { txHash, code: codeData.code };
       } catch (error) {
@@ -617,29 +494,18 @@ export const useClaimLoyaltyReward = () => {
       if (!address) throw new Error('Wallet not connected');
 
       try {
-        const result = await callUnsignedTx(
-          CONTRACT_ADDRESSES.IncentiveManager,
+        const txHash = await writeContract(
           'IncentiveManager',
           'claimLoyaltyReward',
           [claimData.threshold],
-          address,
-          undefined,
-          traceId
+          {
+            account: address,
+            value: undefined,
+            waitForConfirmation: false,
+          }
         );
 
-        console.debug('[useClaimLoyaltyReward] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });
-
-        const txData = result?.tx || result;
-        const formatted = formatForWallet(txData, address);
-
-        console.debug('[useClaimLoyaltyReward] formatted tx ready for wallet', { traceId, formatted: safeStringify(formatted) });
-
-        if (!walletClient) throw new Error('No wallet client available');
-
-        console.debug('[useClaimLoyaltyReward] calling walletClient.sendTransaction', { traceId, payload: safeStringify(formatted) });
-        const txHash = await walletClient.sendTransaction(formatted as any);
-
-        console.debug('[useClaimLoyaltyReward] wallet sendTransaction result', { traceId, txHash });
+        console.debug('[useClaimLoyaltyReward] transaction sent', { traceId, txHash });
 
         return { txHash };
       } catch (error) {
@@ -743,62 +609,51 @@ export const useClaimIncentives = () => {
       console.debug('[useClaimIncentives] start', { traceId, claimData: safeStringify(claimData) });
       if (!address) throw new Error('Wallet not connected');
 
-      let contractAddress: string;
-      let method: string;
-      let args: any[];
-
-      switch (claimData.incentiveType) {
-        case 'early-bird':
-          if (!claimData.eventId || !claimData.ticketContract) {
-            throw new Error('Event ID and ticket contract required for early bird claims');
-          }
-          contractAddress = CONTRACT_ADDRESSES.IncentiveManager;
-          method = 'claimEarlyBird';
-          args = [claimData.eventId, claimData.ticketContract];
-          break;
-
-        case 'loyalty':
-          contractAddress = CONTRACT_ADDRESSES.IncentiveManager;
-          method = 'claimLoyaltyReward';
-          args = [10]; // Default threshold
-          break;
-
-        case 'referral':
-          // Note: Referral claiming might need different implementation
-          // For now, we'll assume it's handled via loyalty system
-          contractAddress = CONTRACT_ADDRESSES.IncentiveManager;
-          method = 'claimLoyaltyReward';
-          args = [10];
-          break;
-
-        default:
-          throw new Error(`Unknown incentive type: ${claimData.incentiveType}`);
-      }
-
       try {
-        const result = await callUnsignedTx(
-          contractAddress,
-          contractAddress === CONTRACT_ADDRESSES.IncentiveManager ? 'IncentiveManager' : 'EventTicket',
+        let contractName: keyof typeof CONTRACT_ADDRESSES;
+        let method: string;
+        let args: any[];
+
+        switch (claimData.incentiveType) {
+          case 'early-bird':
+            if (!claimData.eventId || !claimData.ticketContract) {
+              throw new Error('Event ID and ticket contract required for early bird claims');
+            }
+            contractName = 'IncentiveManager';
+            method = 'claimEarlyBird';
+            args = [claimData.eventId, claimData.ticketContract];
+            break;
+
+          case 'loyalty':
+            contractName = 'IncentiveManager';
+            method = 'claimLoyaltyReward';
+            args = [10]; // Default threshold
+            break;
+
+          case 'referral':
+            // Note: Referral claiming might need different implementation
+            // For now, we'll assume it's handled via loyalty system
+            contractName = 'IncentiveManager';
+            method = 'claimLoyaltyReward';
+            args = [10];
+            break;
+
+          default:
+            throw new Error(`Unknown incentive type: ${claimData.incentiveType}`);
+        }
+
+        const txHash = await writeContract(
+          contractName,
           method,
           args,
-          address,
-          undefined,
-          traceId
+          {
+            account: address,
+            value: undefined,
+            waitForConfirmation: false,
+          }
         );
 
-        console.debug('[useClaimIncentives] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });
-
-        const txData = result?.tx || result;
-        const formatted = formatForWallet(txData, address);
-
-        console.debug('[useClaimIncentives] formatted tx ready for wallet', { traceId, formatted: safeStringify(formatted) });
-
-        if (!walletClient) throw new Error('No wallet client available');
-
-        console.debug('[useClaimIncentives] calling walletClient.sendTransaction', { traceId, payload: safeStringify(formatted) });
-        const txHash = await walletClient.sendTransaction(formatted as any);
-
-        console.debug('[useClaimIncentives] wallet sendTransaction result', { traceId, txHash });
+        console.debug('[useClaimIncentives] transaction sent', { traceId, txHash });
 
         return { txHash, claimData };
       } catch (error) {

@@ -73,6 +73,38 @@ Navigate to **"Create Event"** in the organizer dashboard:
 - **Dynamic Pricing**: Smart pricing based on demand
 - **Referral Program**: Reward system for bringing friends
 
+### 🎫 Advanced Ticket Management
+
+#### Dynamic Pricing Strategies
+```typescript
+// Implement dynamic pricing based on demand
+const calculateDynamicPrice = (basePrice: number, soldTickets: number, maxTickets: number) => {
+  const sellThroughRate = soldTickets / maxTickets;
+
+  if (sellThroughRate < 0.3) {
+    // Early sales: discount to attract buyers
+    return basePrice * 0.8;
+  } else if (sellThroughRate > 0.8) {
+    // High demand: premium pricing
+    return basePrice * 1.5;
+  }
+
+  return basePrice;
+};
+```
+
+#### Automated Check-in Systems
+- **QR Code Generation**: Unique codes for each ticket
+- **Mobile Scanning**: Organizer app for fast check-ins
+- **Automated POAP Minting**: Instant certificate issuance
+- **Real-time Attendance Tracking**: Live dashboard updates
+
+#### Secondary Market Management
+- **Royalty Settings**: Configure organizer earnings from resales
+- **Price Controls**: Set minimum/maximum resale prices
+- **Verification Requirements**: Ensure ticket authenticity
+- **Transfer Tracking**: Monitor ticket movement
+
 ### 🎫 Ticket Management
 
 #### Managing Sales
@@ -475,6 +507,219 @@ npm run test:e2e
 - **Discord Community**: Real-time help from other users
 - **GitHub Issues**: Report bugs and request features
 - **Email Support**: Direct assistance for complex issues
+
+### Advanced Troubleshooting
+
+#### Wallet Connection Issues
+
+**Problem**: "MetaMask not connecting"
+**Solutions**:
+```bash
+# Check network configuration
+1. Open MetaMask → Settings → Networks
+2. Add Base Sepolia:
+   - Network Name: Base Sepolia
+   - RPC URL: https://sepolia.base.org
+   - Chain ID: 84532
+   - Currency Symbol: ETH
+   - Block Explorer: https://sepolia.basescan.org
+
+# Clear cache and reload
+1. MetaMask → Settings → Advanced → Reset Account
+2. Refresh browser page
+3. Try different browser (Chrome recommended)
+```
+
+**Problem**: "Insufficient funds for gas"
+**Solutions**:
+```bash
+# Get test ETH from faucets
+1. https://sepoliafaucet.com/ (recommended)
+2. https://faucet.quicknode.com/base/sepolia
+3. https://faucets.chain.link/base-sepolia
+
+# Check transaction fees
+- Base gas fees are typically 0.001-0.01 ETH
+- Keep at least 0.1 ETH for testing
+```
+
+#### Transaction Failures
+
+**Problem**: "Transaction stuck in pending"
+**Solutions**:
+```bash
+# Speed up transaction
+1. Open MetaMask → Activity
+2. Click "Speed up" on pending transaction
+3. Increase gas price by 20-50%
+
+# Cancel transaction
+1. Click "Cancel" on pending transaction
+2. Same nonce, 0 ETH value, higher gas price
+```
+
+**Problem**: "Transaction reverted"
+**Common Causes**:
+- Insufficient ticket supply
+- Event no longer active
+- Invalid ticket parameters
+- Smart contract errors
+
+**Debug Steps**:
+```bash
+# Check transaction on BaseScan
+1. Go to https://sepolia.basescan.org/
+2. Search for transaction hash
+3. Check "Status" and error messages
+
+# Verify contract state
+1. Use MultiBaas dashboard
+2. Check contract variables
+3. Verify event status and ticket availability
+```
+
+#### API and Network Issues
+
+**Problem**: "API requests failing"
+**Solutions**:
+```bash
+# Check API status
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+  https://your-deployment.multibaas.com/api/v0/status
+
+# Verify API keys
+1. Check MultiBaas dashboard → API Keys
+2. Ensure correct permissions
+3. Verify CORS settings include your domain
+
+# Network connectivity
+1. Test basic connectivity: ping multibaas.com
+2. Check firewall settings
+3. Try different network connection
+```
+
+#### Smart Contract Interactions
+
+**Problem**: "Contract function not found"
+**Solutions**:
+```bash
+# Verify contract deployment
+1. Check MultiBaas dashboard → Contracts
+2. Ensure contract is deployed and labeled
+3. Verify function signatures match
+
+# Update contract addresses
+1. Check latest deployment addresses
+2. Update environment variables
+3. Clear browser cache and reload
+```
+
+#### Performance Issues
+
+**Problem**: "Slow page loading"
+**Optimizations**:
+```bash
+# Frontend optimizations
+1. Clear browser cache
+2. Disable browser extensions temporarily
+3. Try incognito/private browsing mode
+
+# Network optimizations
+1. Use faster internet connection
+2. Connect to closer RPC endpoint
+3. Reduce concurrent requests
+```
+
+### Developer Tools & Debugging
+
+#### Browser Developer Tools
+```javascript
+// Console debugging
+console.log('Wallet address:', address);
+console.log('Network:', network);
+console.log('Contract address:', contractAddress);
+
+// Network tab inspection
+// Check API calls and responses
+// Monitor WebSocket connections
+// Analyze bundle size and loading
+```
+
+#### MetaMask Debugging
+```bash
+# Enable developer mode
+1. MetaMask → Settings → Advanced
+2. Enable "Enhanced transaction security"
+3. Check transaction details carefully
+
+# View transaction history
+1. MetaMask → Activity tab
+2. Click on transactions for details
+3. Check gas usage and status
+```
+
+#### Contract Event Monitoring
+```javascript
+// Listen for contract events
+const contract = new ethers.Contract(address, abi, provider);
+contract.on('TicketsPurchased', (buyer, eventId, quantity) => {
+  console.log('Ticket purchased:', { buyer, eventId, quantity });
+});
+
+// Check event logs on BaseScan
+// Use MultiBaas event streaming
+// Monitor real-time updates
+```
+
+### Preventive Maintenance
+
+#### Regular Health Checks
+- **Wallet Balance**: Keep sufficient test ETH
+- **Network Status**: Monitor Base Sepolia status
+- **API Connectivity**: Test endpoints regularly
+- **Contract State**: Verify contract functionality
+
+#### Backup Strategies
+- **Export Private Keys**: Secure wallet backups
+- **Save Transaction Hashes**: Record important transactions
+- **Document Configurations**: Keep environment variables backed up
+- **Screenshot Evidence**: Capture successful operations
+
+### Escalation Procedures
+
+#### When to Contact Support
+- **Critical Issues**: Complete system failure
+- **Security Concerns**: Suspected breaches or exploits
+- **Payment Issues**: Failed transactions with fund loss
+- **API Outages**: Extended service unavailability
+
+#### Support Request Template
+```markdown
+**Issue Summary**: Brief description of the problem
+
+**Steps to Reproduce**:
+1. Step 1
+2. Step 2
+3. Step 3
+
+**Expected Behavior**: What should happen
+
+**Actual Behavior**: What actually happened
+
+**Environment**:
+- Browser: Chrome 120.0.0
+- Wallet: MetaMask 11.5.0
+- Network: Base Sepolia
+- Device: MacBook Pro M2
+
+**Additional Context**:
+- Screenshots
+- Transaction hashes
+- Error messages
+- Console logs
+```
+
+This comprehensive troubleshooting guide should resolve most common issues. For persistent problems, don't hesitate to reach out to our support team.
 
 ---
 

@@ -34,11 +34,24 @@ export type {
   IncentiveManager
 } from './typechain-types';
 
-// Contract ABIs (can be imported from typechain factories if needed)
+// Contract ABIs (imported from typechain factories)
+import { EventFactory__factory } from './typechain-types/factories/contracts/core/EventFactory__factory';
+import { EventTicket__factory } from './typechain-types/factories/contracts/core/EventTicket__factory';
+import { POAPAttendance__factory } from './typechain-types/factories/contracts/modules/POAPAttendance__factory';
+import { IncentiveManager__factory } from './typechain-types/factories/contracts/modules/IncentiveManager.sol/IncentiveManager__factory';
+import { Marketplace__factory } from './typechain-types/factories/contracts/core/Marketplace__factory';
+
 export const CONTRACT_ABIS = {
-  EventFactory: require('./typechain-types/factories/contracts/core/EventFactory__factory').EventFactory__factory.abi,
-  EventTicket: require('./typechain-types/factories/contracts/core/EventTicket__factory').EventTicket__factory.abi,
-  POAPAttendance: require('./typechain-types/factories/contracts/modules/POAPAttendance__factory').POAPAttendance__factory.abi,
-  IncentiveManager: require('./typechain-types/factories/contracts/modules/IncentiveManager.sol/IncentiveManager__factory').IncentiveManager__factory.abi,
-  Marketplace: [] as any // TODO: Generate typechain for Marketplace
+  EventFactory: EventFactory__factory.abi,
+  EventTicket: EventTicket__factory.abi,
+  POAPAttendance: POAPAttendance__factory.abi,
+  IncentiveManager: IncentiveManager__factory.abi,
+  Marketplace: Marketplace__factory.abi
 } as const;
+
+// Debug logging
+console.log('CONTRACT_ABIS loaded:', {
+  EventFactory: CONTRACT_ABIS.EventFactory?.length || 0,
+  hasEventCount: CONTRACT_ABIS.EventFactory?.some(f => 'name' in f && f.name === 'eventCount'),
+  hasIsVerifiedOrganizer: CONTRACT_ABIS.EventFactory?.some(f => 'name' in f && f.name === 'isVerifiedOrganizer')
+});

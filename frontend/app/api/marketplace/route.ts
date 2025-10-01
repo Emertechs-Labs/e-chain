@@ -142,17 +142,15 @@ async function seedMarketplaceData() {
   }
 }
 
-// Initialize database only if client is available
-if (client) {
-  initTable().then(() => seedMarketplaceData());
-}
-
 export async function GET(request: NextRequest) {
   if (!client) {
     return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
   }
 
   try {
+    // Initialize table if needed
+    await initTable();
+
     const { searchParams } = new URL(request.url);
     const seller = searchParams.get('seller');
     const eventId = searchParams.get('eventId');
@@ -210,6 +208,9 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // Initialize table if needed
+    await initTable();
+
     const body = await request.json();
     const {
       id,
@@ -267,6 +268,9 @@ export async function PUT(request: NextRequest) {
   }
 
   try {
+    // Initialize table if needed
+    await initTable();
+
     const body = await request.json();
     const { id, active } = body;
 

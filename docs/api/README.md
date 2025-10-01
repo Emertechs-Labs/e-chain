@@ -82,13 +82,13 @@ graph TB
     style M fill:#e8f5e8
 ```
 
-### Key Features
-- **🔄 RESTful Design**: Standard HTTP methods and status codes
-- **🔐 Secure Authentication**: API key-based authentication with role separation
-- **📊 Real-time Updates**: WebSocket support for live data
-- **🛡️ Rate Limiting**: Configured limits per API key type
-- **📝 Comprehensive Logging**: Full request/response logging
-- **🔍 Debug Support**: Detailed error messages and troubleshooting
+### Advanced Features
+- **🔄 Batch Operations**: Process multiple transactions efficiently
+- **📊 Analytics Integration**: Built-in usage tracking and reporting
+- **🔐 Advanced Authentication**: Role-based API access control
+- **🌐 Multi-Network Support**: Seamless switching between networks
+- **� Rate Limiting Intelligence**: Dynamic rate limiting based on usage patterns
+- **�️ Enhanced Security**: Advanced encryption and secure key management
 
 ---
 
@@ -540,6 +540,113 @@ POST /contracts/event_ticket_{eventId}/call
 }
 ```
 
+### Advanced API Patterns
+
+#### Batch Operations
+Process multiple operations in a single request for efficiency.
+
+```http
+POST /batch
+```
+
+**Request:**
+```json
+{
+  "operations": [
+    {
+      "id": "create_event",
+      "method": "POST",
+      "endpoint": "/contracts/event_factory/call",
+      "body": {
+        "function": "createEvent",
+        "inputs": ["Conference 2024", "ipfs://...", "1000000000000000000", "500", "1735689600", "1735776000"],
+        "from": "0x742d35Cc6635C0532925a3b8D7ba6C4a1e5aF1e9"
+      }
+    },
+    {
+      "id": "purchase_tickets",
+      "method": "POST",
+      "endpoint": "/contracts/event_ticket_1/call",
+      "body": {
+        "function": "purchaseTickets",
+        "inputs": ["0x742d35Cc6635C0532925a3b8D7ba6C4a1e5aF1e9", "2"],
+        "from": "0x742d35Cc6635C0532925a3b8D7ba6C4a1e5aF1e9",
+        "value": "2000000000000000000"
+      }
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "id": "create_event",
+      "status": "success",
+      "data": {
+        "transactionHash": "0xabc123...",
+        "events": {
+          "EventCreated": {
+            "eventId": "1",
+            "organizer": "0x742d35Cc6635C0532925a3b8D7ba6C4a1e5aF1e9"
+          }
+        }
+      }
+    },
+    {
+      "id": "purchase_tickets",
+      "status": "success",
+      "data": {
+        "transactionHash": "0xdef456...",
+        "events": {
+          "TicketsPurchased": {
+            "buyer": "0x742d35Cc6635C0532925a3b8D7ba6C4a1e5aF1e9",
+            "quantity": "2"
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+#### Pagination & Filtering
+Advanced querying with filtering and pagination.
+
+```http
+GET /events?status=active&organizer=0x742d35Cc6635C0532925a3b8D7ba6C4a1e5aF1e9&limit=10&offset=0&sort=created_at&order=desc
+```
+
+**Query Parameters:**
+- `status`: `active`, `upcoming`, `past`, `cancelled`
+- `organizer`: Filter by organizer address
+- `category`: Event category filter
+- `price_min`: Minimum ticket price (wei)
+- `price_max`: Maximum ticket price (wei)
+- `date_from`: Start date filter (Unix timestamp)
+- `date_to`: End date filter (Unix timestamp)
+- `limit`: Number of results (max 100)
+- `offset`: Pagination offset
+- `sort`: Sort field (`created_at`, `start_time`, `ticket_price`, `popularity`)
+- `order`: Sort order (`asc`, `desc`)
+
+#### Search & Discovery
+Full-text search across events with relevance scoring.
+
+```http
+GET /events/search?q=blockchain+conference&location=san+francisco&date_range=2024-01-01:2024-12-31
+```
+
+**Search Parameters:**
+- `q`: Search query (supports operators: `+` for AND, `-` for NOT, `""` for phrases)
+- `location`: Location-based search
+- `date_range`: Date range in YYYY-MM-DD:YYYY-MM-DD format
+- `price_range`: Price range in wei:wei format
+- `categories`: Comma-separated category list
+- `tags`: Comma-separated tag list
+
 ### POAP (Attendance) API
 
 #### Check-in Attendee
@@ -674,6 +781,124 @@ POST /contracts/incentive_manager/call
   "function": "claimReward",
   "inputs": ["discount_20_percent"],
   "from": "0x742d35Cc6635C0532925a3b8D7ba6C4a1e5aF1e9"
+}
+```
+
+### Marketplace API
+
+#### List Marketplace Items
+Retrieve paginated list of tickets available for resale.
+
+```http
+GET /marketplace/listings?eventId=1&minPrice=50000000000000000&maxPrice=2000000000000000000&limit=20&offset=0
+```
+
+**Query Parameters:**
+- `eventId`: Filter by specific event
+- `seller`: Filter by seller address
+- `minPrice`: Minimum price in wei
+- `maxPrice`: Maximum price in wei
+- `verified`: Only show verified listings (`true`/`false`)
+- `limit`: Number of results (max 50)
+- `offset`: Pagination offset
+
+**Response:**
+```json
+{
+  "listings": [
+    {
+      "id": "listing_123",
+      "tokenId": 1,
+      "eventId": 1,
+      "eventName": "Tech Conference 2024",
+      "ticketType": "VIP Access",
+      "price": "750000000000000000",
+      "originalPrice": "1000000000000000000",
+      "seller": "0x742d35Cc6635C0532925a3b8D7ba6C4a1e5aF1e9",
+      "eventDate": 1735689600,
+      "location": "San Francisco, CA",
+      "verified": true,
+      "listedAt": 1735603200,
+      "active": true
+    }
+  ],
+  "total": 45,
+  "hasMore": true
+}
+```
+
+#### Create Marketplace Listing
+List a ticket for resale on the secondary market.
+
+```http
+POST /marketplace/listings
+```
+
+**Request:**
+```json
+{
+  "tokenId": 1,
+  "eventId": 1,
+  "price": "750000000000000000",
+  "ticketType": "VIP Access",
+  "eventName": "Tech Conference 2024",
+  "eventDate": 1735689600,
+  "location": "San Francisco, CA"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "listingId": "listing_123",
+  "transactionHash": "0xabc123..."
+}
+```
+
+#### Purchase from Marketplace
+Buy a ticket from the secondary market.
+
+```http
+POST /marketplace/purchase
+```
+
+**Request:**
+```json
+{
+  "listingId": "listing_123",
+  "buyer": "0x742d35Cc6635C0532925a3b8D7ba6C4a1e5aF1e9"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "transactionHash": "0xdef456...",
+  "royaltyPaid": "25000000000000000",
+  "events": {
+    "TicketTransferred": {
+      "from": "0xSellerAddress...",
+      "to": "0x742d35Cc6635C0532925a3b8D7ba6C4a1e5aF1e9",
+      "tokenId": "1"
+    }
+  }
+}
+```
+
+#### Remove Marketplace Listing
+Remove a ticket listing from the marketplace.
+
+```http
+DELETE /marketplace/listings/{listingId}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Listing removed successfully"
 }
 ```
 
@@ -1065,6 +1290,171 @@ const handleApiError = (error: ApiError) => {
       // Log and show generic error
       console.error('API Error:', error);
       showGenericError();
+  }
+};
+```
+
+### Advanced Error Recovery
+
+#### Circuit Breaker Pattern
+```typescript
+class CircuitBreaker {
+  private failures = 0;
+  private lastFailureTime = 0;
+  private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
+
+  async execute<T>(operation: () => Promise<T>): Promise<T> {
+    if (this.state === 'OPEN') {
+      if (Date.now() - this.lastFailureTime > 60000) { // 1 minute timeout
+        this.state = 'HALF_OPEN';
+      } else {
+        throw new Error('Circuit breaker is OPEN');
+      }
+    }
+
+    try {
+      const result = await operation();
+      this.onSuccess();
+      return result;
+    } catch (error) {
+      this.onFailure();
+      throw error;
+    }
+  }
+
+  private onSuccess() {
+    this.failures = 0;
+    this.state = 'CLOSED';
+  }
+
+  private onFailure() {
+    this.failures++;
+    this.lastFailureTime = Date.now();
+
+    if (this.failures >= 5) { // Threshold
+      this.state = 'OPEN';
+    }
+  }
+}
+```
+
+#### Retry Strategies
+```typescript
+interface RetryOptions {
+  maxAttempts: number;
+  baseDelay: number;
+  maxDelay: number;
+  backoffFactor: number;
+  retryableErrors: string[];
+}
+
+const retryWithBackoff = async <T>(
+  operation: () => Promise<T>,
+  options: RetryOptions
+): Promise<T> => {
+  let lastError: Error;
+
+  for (let attempt = 1; attempt <= options.maxAttempts; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error as Error;
+
+      // Check if error is retryable
+      const isRetryable = options.retryableErrors.some(code =>
+        error.message.includes(code)
+      );
+
+      if (!isRetryable || attempt === options.maxAttempts) {
+        throw error;
+      }
+
+      // Calculate delay with exponential backoff
+      const delay = Math.min(
+        options.baseDelay * Math.pow(options.backoffFactor, attempt - 1),
+        options.maxDelay
+      );
+
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError!;
+};
+```
+
+### Error Monitoring & Alerting
+
+#### Error Tracking
+```typescript
+// Error tracking integration
+const trackApiError = (error: ApiError, context: any) => {
+  // Send to error tracking service (e.g., Sentry)
+  if (typeof window !== 'undefined' && window.Sentry) {
+    window.Sentry.captureException(error, {
+      tags: {
+        api_endpoint: context.endpoint,
+        error_code: error.error.code,
+        user_id: context.userId
+      },
+      extra: {
+        requestId: error.meta?.requestId,
+        processingTime: error.meta?.processingTime,
+        userAgent: navigator.userAgent
+      }
+    });
+  }
+
+  // Log to analytics
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'api_error', {
+      error_code: error.error.code,
+      endpoint: context.endpoint,
+      user_id: context.userId
+    });
+  }
+};
+```
+
+#### Health Check Endpoints
+```typescript
+// API health monitoring
+const healthEndpoints = {
+  // Overall API health
+  '/health': {
+    method: 'GET',
+    response: {
+      status: 'ok' | 'degraded' | 'down',
+      timestamp: number,
+      version: string,
+      services: {
+        multibaas: 'ok' | 'degraded' | 'down',
+        database: 'ok' | 'degraded' | 'down',
+        websocket: 'ok' | 'degraded' | 'down'
+      }
+    }
+  },
+
+  // Detailed service health
+  '/health/detailed': {
+    method: 'GET',
+    response: {
+      multibaas: {
+        status: 'ok',
+        latency: 145,
+        lastCheck: 1735689600
+      },
+      database: {
+        status: 'ok',
+        connectionPool: 5,
+        activeConnections: 2
+      },
+      websocket: {
+        status: 'ok',
+        activeConnections: 1250,
+        messagesPerSecond: 45
+      }
+    }
   }
 };
 ```

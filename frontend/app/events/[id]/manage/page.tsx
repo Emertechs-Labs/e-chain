@@ -45,17 +45,10 @@ const EventManagementPage: React.FC = () => {
           // Get real POAP claims count for this event
           let poapClaims = 0;
           try {
-            // Query the POAP contract to count claims for this event
-            // Since the contract doesn't have a direct count, we'll need to check total supply
-            // and iterate through tokens to count those for this event
-            const totalSupply = await readContract(
-              'POAPAttendance',
-              'totalSupply',
-              []
-            );
-
-            // For now, estimate based on tickets sold (in production, you'd iterate through all tokens)
-            // This is a simplified approach - in production you'd want a more efficient method
+            // Note: POAP contract doesn't have totalSupply function
+            // For now, estimate based on tickets sold
+            // In production, you'd need to add a totalSupply function to the POAP contract
+            // or maintain a counter in the EventFactory
             poapClaims = Math.floor(soldTicketsNum * 0.7); // Estimate 70% claim rate
           } catch (error) {
             console.error('Error fetching POAP claims:', error);

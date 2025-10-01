@@ -69,14 +69,19 @@ export async function directContractRead<T = any>(
       ? CONTRACT_ABIS[contractNameOrAddress as keyof typeof CONTRACT_ABIS]
       : CONTRACT_ABIS.EventTicket; // Default to EventTicket ABI for custom addresses
 
+    console.log(`[Fallback] Contract name: ${contractNameOrAddress}`);
+    console.log(`[Fallback] Is contract name: ${isContractName}`);
+    console.log(`[Fallback] ABI source:`, isContractName ? 'CONTRACT_ABIS' : 'EventTicket default');
     console.log(`[Fallback] Direct read: ${address}.${functionName}(${JSON.stringify(args)})`);
+    console.log(`[Fallback] Using ABI with ${abi?.length || 0} entries`);
+    console.log(`[Fallback] Function exists in ABI:`, abi?.some(f => 'name' in f && f.name === functionName));
 
     const result = await client.readContract({
       address,
       abi,
       functionName,
       args,
-    });
+    } as any);
 
     console.log(`[Fallback] Direct read result:`, result);
     return result as T;
@@ -121,7 +126,7 @@ export async function directContractWrite(
       args,
       account: fromAccount,
       ...(value && { value }),
-    });
+    } as any);
 
     console.log(`[Fallback] Transaction submitted: ${hash}`);
     return hash;
@@ -163,7 +168,7 @@ export async function simulateContractWrite(
       args,
       ...(account && { account }),
       ...(value && { value }),
-    });
+    } as any);
 
     console.log(`[Fallback] Simulation successful:`, result);
     return result;

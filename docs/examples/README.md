@@ -10,6 +10,400 @@
 
 *Production-ready code examples with live Base Sepolia deployment*
 
+## Advanced Smart Contract Examples
+
+### Multi-Tier Ticketing System
+```solidity
+// CustomEventTicket.sol - Advanced ticketing with multiple tiers
+pragma solidity ^0.8.24;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
+contract CustomEventTicket is ERC721, Ownable, ReentrancyGuard {
+    using Counters for Counters.Counter;
+
+    Counters.Counter private _tokenIdCounter;
+
+    struct TicketTier {
+        string name;
+        uint256 price;
+        uint256 maxSupply;
+        uint256 sold;
+        string benefits;
+        bool active;
+    }
+
+    struct TicketInfo {
+        uint256 tokenId;
+        uint256 tierId;
+        address owner;
+        uint256 purchaseTime;
+        bool checkedIn;
+        bool transferable;
+        string seatAssignment;
+    }
+
+    mapping(uint256 => TicketTier) public ticketTiers;
+    mapping(uint256 => TicketInfo) public tickets;
+    mapping(address => uint256[]) public userTickets;
+
+    uint256 public eventId;
+    uint256 public saleStart;
+    uint256 public saleEnd;
+    bool public saleActive;
+    uint256 public maxPerWallet = 5;
+
+    event TicketPurchased(address buyer, uint256 tokenId, uint256 tierId, uint256 price);
+    event TierCreated(uint256 tierId, string name, uint256 price, uint256 maxSupply);
+    event CheckIn(uint256 tokenId, address attendee, uint256 timestamp);
+
+    constructor(
+        string memory name,
+        string memory symbol,
+        address organizer
+    ) ERC721(name, symbol) Ownable(organizer) {}
+
+    function createTicketTier(
+        uint256 tierId,
+        string memory name,
+        uint256 price,
+        uint256 maxSupply,
+        string memory benefits
+    ) external onlyOwner {
+        require(ticketTiers[tierId].price == 0, "Tier already exists");
+
+        ticketTiers[tierId] = TicketTier({
+            name: name,
+            price: price,
+            maxSupply: maxSupply,
+            sold: 0,
+            benefits: benefits,
+            active: true
+        });
+
+        emit TierCreated(tierId, name, price, maxSupply);
+    }
+
+    function purchaseTicket(uint256 tierId) external payable nonReentrant {
+        require(saleActive, "Sale not active");
+        require(block.timestamp >= saleStart && block.timestamp <= saleEnd, "Outside sale period");
+        require(ticketTiers[tierId].active, "Tier not active");
+        require(ticketTiers[tierId].sold < ticketTiers[tierId].maxSupply, "Tier sold out");
+        require(userTickets[msg.sender].length < maxPerWallet, "Max tickets per wallet reached");
+        require(msg.value >= ticketTiers[tierId].price, "Insufficient payment");
+
+        // Mint ticket
+        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+
+        _safeMint(msg.sender, tokenId);
+
+        // Update mappings
+        ticketTiers[tierId].sold++;
+        userTickets[msg.sender].push(tokenId);
+
+        tickets[tokenId] = TicketInfo({
+            tokenId: tokenId,
+            tierId: tierId,
+            owner: msg.sender,
+            purchaseTime: block.timestamp,
+            checkedIn: false,
+            transferable: true,
+            seatAssignment: _assignSeat(tierId)
+        });
+
+        emit TicketPurchased(msg.sender, tokenId, tierId, ticketTiers[tierId].price);
+
+        // Refund excess payment
+        if (msg.value > ticketTiers[tierId].price) {
+            payable(msg.sender).transfer(msg.value - ticketTiers[tierId].price);
+        }
+    }
+
+    function checkIn(uint256 tokenId) external {
+        require(ownerOf(tokenId) == msg.sender, "Not ticket owner");
+        require(!tickets[tokenId].checkedIn, "Already checked in");
+
+        tickets[tokenId].checkedIn = true;
+        emit CheckIn(tokenId, msg.sender, block.timestamp);
+    }
+
+    function _assignSeat(uint256 tierId) internal returns (string memory) {
+        uint256 seatNumber = ticketTiers[tierId].sold + 1;
+        return string(abi.encodePacked(_getTierPrefix(tierId), "-", _toString(seatNumber)));
+    }
+
+    function _getTierPrefix(uint256 tierId) internal pure returns (string memory) {
+        if (tierId == 1) return "VIP";
+        if (tierId == 2) return "PREMIUM";
+        return "GENERAL";
+    }
+
+    function _toString(uint256 value) internal pure returns (string memory) {
+        if (value == 0) return "0";
+        uint256 temp = value;
+        uint256 digits;
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+        bytes memory buffer = new bytes(digits);
+        while (value != 0) {
+            digits -= 1;
+            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
+            value /= 10;
+        }
+        return string(buffer);
+    }
+
+    function getTicketDetails(uint256 tokenId) external view returns (TicketInfo memory, TicketTier memory) {
+        require(_exists(tokenId), "Ticket does not exist");
+        return (tickets[tokenId], ticketTiers[tickets[tokenId].tierId]);
+    }
+
+    function getUserTickets(address user) external view returns (uint256[] memory) {
+        return userTickets[user];
+    }
+
+    // Admin functions
+    function setSalePeriod(uint256 start, uint256 end) external onlyOwner {
+        saleStart = start;
+        saleEnd = end;
+    }
+
+    function toggleSale() external onlyOwner {
+        saleActive = !saleActive;
+    }
+
+    function setMaxPerWallet(uint256 max) external onlyOwner {
+        maxPerWallet = max;
+    }
+
+    function withdrawFunds() external onlyOwner {
+        payable(owner()).transfer(address(this).balance);
+    }
+}
+```
+
+### Advanced Incentive System
+```solidity
+// AdvancedIncentives.sol - Complex reward system
+pragma solidity ^0.8.24;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
+contract AdvancedIncentives is ERC721, Ownable, ReentrancyGuard {
+    using Counters for Counters.Counter;
+
+    Counters.Counter private _rewardIdCounter;
+
+    struct RewardRule {
+        bytes32 ruleId;
+        string name;
+        string description;
+        uint256 pointValue;
+        uint256 tokenReward;
+        address nftContract;
+        uint256 nftTokenId;
+        uint256 cooldownPeriod;
+        uint256 maxClaims;
+        bool active;
+    }
+
+    struct UserProfile {
+        uint256 totalPoints;
+        uint256 eventsAttended;
+        uint256 ticketsPurchased;
+        uint256 referralsMade;
+        uint256 lastActivity;
+        mapping(bytes32 => uint256) lastClaimTime;
+        mapping(bytes32 => uint256) claimCount;
+        mapping(uint256 => bool) achievements;
+    }
+
+    mapping(bytes32 => RewardRule) public rewardRules;
+    mapping(address => UserProfile) public userProfiles;
+    mapping(bytes32 => address) public referralCodes;
+    mapping(address => address) public referredBy;
+
+    IERC20 public rewardToken;
+
+    uint256 public constant EARLY_BIRD_POINTS = 100;
+    uint256 public constant ATTENDANCE_POINTS = 50;
+    uint256 public constant REFERRAL_POINTS = 200;
+
+    event RewardClaimed(address user, bytes32 ruleId, uint256 points, uint256 tokens);
+    event AchievementUnlocked(address user, uint256 achievementId, string name);
+    event ReferralUsed(address user, address referrer, bytes32 code);
+
+    constructor(address _rewardToken) ERC721("Event Rewards", "REWARD") Ownable(msg.sender) {
+        rewardToken = IERC20(_rewardToken);
+    }
+
+    function createRewardRule(
+        bytes32 ruleId,
+        string memory name,
+        string memory description,
+        uint256 pointValue,
+        uint256 tokenReward,
+        address nftContract,
+        uint256 nftTokenId,
+        uint256 cooldownPeriod,
+        uint256 maxClaims
+    ) external onlyOwner {
+        rewardRules[ruleId] = RewardRule({
+            ruleId: ruleId,
+            name: name,
+            description: description,
+            pointValue: pointValue,
+            tokenReward: tokenReward,
+            nftContract: nftContract,
+            nftTokenId: nftTokenId,
+            cooldownPeriod: cooldownPeriod,
+            maxClaims: maxClaims,
+            active: true
+        });
+    }
+
+    function recordEventAttendance(address user, uint256 eventId) external onlyAuthorized {
+        UserProfile storage profile = userProfiles[user];
+        profile.eventsAttended++;
+        profile.totalPoints += ATTENDANCE_POINTS;
+        profile.lastActivity = block.timestamp;
+
+        _checkAchievements(user, profile);
+    }
+
+    function recordTicketPurchase(address user, uint256 eventId, uint256 position) external onlyAuthorized {
+        UserProfile storage profile = userProfiles[user];
+        profile.ticketsPurchased++;
+        profile.lastActivity = block.timestamp;
+
+        if (position <= 10) {
+            profile.totalPoints += EARLY_BIRD_POINTS;
+        }
+
+        _checkAchievements(user, profile);
+    }
+
+    function generateReferralCode(address user, bytes32 code) external {
+        require(msg.sender == user, "Can only generate code for yourself");
+        require(referralCodes[code] == address(0), "Code already exists");
+
+        referralCodes[code] = user;
+    }
+
+    function useReferralCode(bytes32 code) external {
+        address referrer = referralCodes[code];
+        require(referrer != address(0), "Invalid referral code");
+        require(referredBy[msg.sender] == address(0), "Already referred");
+
+        referredBy[msg.sender] = referrer;
+
+        userProfiles[referrer].referralsMade++;
+        userProfiles[referrer].totalPoints += REFERRAL_POINTS;
+
+        emit ReferralUsed(msg.sender, referrer, code);
+    }
+
+    function claimReward(bytes32 ruleId) external nonReentrant {
+        RewardRule memory rule = rewardRules[ruleId];
+        require(rule.active, "Reward rule not active");
+
+        UserProfile storage profile = userProfiles[msg.sender];
+
+        require(
+            block.timestamp >= profile.lastClaimTime[ruleId] + rule.cooldownPeriod,
+            "Reward on cooldown"
+        );
+
+        require(
+            profile.claimCount[ruleId] < rule.maxClaims,
+            "Max claims reached"
+        );
+
+        profile.totalPoints += rule.pointValue;
+        profile.lastClaimTime[ruleId] = block.timestamp;
+        profile.claimCount[ruleId]++;
+
+        uint256 rewardId = _rewardIdCounter.current();
+        _rewardIdCounter.increment();
+        _mint(msg.sender, rewardId);
+
+        if (rule.tokenReward > 0) {
+            require(rewardToken.transfer(msg.sender, rule.tokenReward), "Token transfer failed");
+        }
+
+        if (rule.nftContract != address(0)) {
+            IERC721(rule.nftContract).safeTransferFrom(address(this), msg.sender, rule.nftTokenId);
+        }
+
+        emit RewardClaimed(msg.sender, ruleId, rule.pointValue, rule.tokenReward);
+    }
+
+    function _checkAchievements(address user, UserProfile storage profile) internal {
+        if (profile.eventsAttended == 1 && !profile.achievements[1]) {
+            profile.achievements[1] = true;
+            emit AchievementUnlocked(user, 1, "First Event");
+        }
+
+        if (profile.eventsAttended >= 5 && !profile.achievements[2]) {
+            profile.achievements[2] = true;
+            emit AchievementUnlocked(user, 2, "Regular Attendee");
+        }
+
+        if (profile.eventsAttended >= 10 && !profile.achievements[3]) {
+            profile.achievements[3] = true;
+            emit AchievementUnlocked(user, 3, "Super Fan");
+        }
+    }
+
+    function getUserProfile(address user) external view returns (
+        uint256 totalPoints,
+        uint256 eventsAttended,
+        uint256 ticketsPurchased,
+        uint256 referralsMade,
+        uint256 lastActivity
+    ) {
+        UserProfile storage profile = userProfiles[user];
+        return (
+            profile.totalPoints,
+            profile.eventsAttended,
+            profile.ticketsPurchased,
+            profile.referralsMade,
+            profile.lastActivity
+        );
+    }
+
+    function canClaimReward(address user, bytes32 ruleId) external view returns (bool) {
+        RewardRule memory rule = rewardRules[ruleId];
+        if (!rule.active) return false;
+
+        UserProfile storage profile = userProfiles[user];
+
+        if (block.timestamp < profile.lastClaimTime[ruleId] + rule.cooldownPeriod) {
+            return false;
+        }
+
+        if (profile.claimCount[ruleId] >= rule.maxClaims) {
+            return false;
+        }
+
+        return true;
+    }
+
+    modifier onlyAuthorized() {
+        require(owner() == msg.sender, "Not authorized");
+        _;
+    }
+}
+```
+
 [🎯 Use Cases](#-use-case-examples) • [💻 Code Examples](#-code-examples) • [🎨 Templates](#-design-templates) • [⚠️ Notes](#-implementation-notes)
 
 </div>

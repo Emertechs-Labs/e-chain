@@ -65,16 +65,18 @@ export const useUserTickets = () => {
             // Get event details
             const eventDetails = await readContract(
               'EventFactory',
-              'events',
+              'getEventDetails',
               [eventId]
             );
 
             // Check if ticket is used
             const isUsed = await readContract(
               'EventTicket',
-              'isUsedTicket',
+              'isValidTicket',
               [tokenId]
             );
+            // isValidTicket returns true if NOT used, so invert it
+            const ticketIsUsed = !isUsed;
 
             // Get event metadata for venue and other details
             let venue = "TBA"; // Default fallback
@@ -111,7 +113,7 @@ export const useUserTickets = () => {
               eventDate: Number(eventDetails.startTime),
               venue: venue,
               location: venue, // Use venue as location for marketplace
-              isUsed: Boolean(isUsed),
+              isUsed: ticketIsUsed,
               ticketContract: CONTRACT_ADDRESSES.EventTicket,
               originalPrice: BigInt(eventDetails.ticketPrice || '0')
             };

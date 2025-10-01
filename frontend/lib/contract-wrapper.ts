@@ -52,7 +52,11 @@ export async function readContract<T = any>(
     : contractNameOrAddress as Address;
 
   // Try MultiBaas first if enabled and it's a known contract
-  if (useMultiBaas && isContractName) {
+  // Skip MultiBaas for EventFactory verification functions due to ABI mismatch
+  const skipMultiBaasForFunction = contractName === 'EventFactory' && 
+    (functionName === 'isVerifiedOrganizer' || functionName === 'selfVerifyOrganizer');
+  
+  if (useMultiBaas && isContractName && !skipMultiBaasForFunction) {
     try {
       console.log(`[Wrapper] Trying MultiBaas read: ${String(contractName)}.${functionName}`);
       
@@ -79,7 +83,7 @@ export async function readContract<T = any>(
 
   // Fallback to direct contract call
   console.log(`[Fallback] Using direct RPC for ${contractAddress}.${functionName}`);
-  return directContractRead<T>(contractAddress, functionName, args, chainId);
+  return directContractRead<T>(contractName, functionName, args, chainId);
 }
 
 /**
@@ -111,7 +115,11 @@ export async function writeContract(
     : contractNameOrAddress as Address;
 
   // Try MultiBaas first if enabled and it's a known contract
-  if (useMultiBaas && isContractName) {
+  // Skip MultiBaas for EventFactory verification functions due to ABI mismatch
+  const skipMultiBaasForFunction = contractName === 'EventFactory' && 
+    (functionName === 'isVerifiedOrganizer' || functionName === 'selfVerifyOrganizer');
+  
+  if (useMultiBaas && isContractName && !skipMultiBaasForFunction) {
     try {
       console.log(`[Wrapper] Trying MultiBaas write: ${String(contractName)}.${functionName}`);
       
@@ -187,7 +195,7 @@ export async function writeContract(
 
   // Fallback to direct contract call
   const hash = await directContractWrite(
-    contractAddress,
+    contractName,
     functionName,
     args,
     value,

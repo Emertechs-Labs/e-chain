@@ -9,6 +9,7 @@ const nextConfig = {
   experimental: {
     scrollRestoration: true,
   },
+  outputFileTracingRoot: path.resolve(__dirname),
   images: {
     domains: ['localhost', 'gateway.pinata.cloud', 'ipfs.io'],
   },

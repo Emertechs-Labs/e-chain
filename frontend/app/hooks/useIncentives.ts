@@ -113,7 +113,7 @@ export const useEarlyBirdStatus = (eventId: number, ticketContract?: string) => 
         // Check if user owns tickets for this event
         // Note: We need to use the direct contract address here since it's dynamic
         const ticketBalance = await readContract(
-          'EventTicket',
+          ticketContract as `0x${string}`,
           'balanceOf',
           [address]
         );
@@ -130,7 +130,7 @@ export const useEarlyBirdStatus = (eventId: number, ticketContract?: string) => 
 
         // Check total tickets sold vs early bird limit
         const totalSold = await readContract(
-          'EventTicket',
+          ticketContract as `0x${string}`,
           'totalSold',
           []
         );

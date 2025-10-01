@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useUserRewards, useEarlyBirdStatus, useUserLoyaltyPoints, useUserReferralRewards } from '@/app/hooks/useIncentives';
 import { useClaimIncentives } from '@/app/hooks/useTransactions';
+import { ReferralCodeGenerator } from './ReferralCodeGenerator';
 import { Trophy, Star, Users, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -97,7 +98,7 @@ export function RewardsDashboard({ eventId, ticketContract }: RewardsDashboardPr
 
         {/* Tabs */}
         <div className="flex space-x-1 mb-6 bg-slate-700/50 p-1 rounded-lg">
-          {['overview', 'rewards', 'early-bird', 'loyalty'].map((tab) => (
+          {['overview', 'rewards', 'early-bird', 'loyalty', 'referral'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -109,7 +110,8 @@ export function RewardsDashboard({ eventId, ticketContract }: RewardsDashboardPr
             >
               {tab === 'overview' ? 'Overview' :
                tab === 'rewards' ? 'My Rewards' :
-               tab === 'early-bird' ? 'Early Bird' : 'Loyalty'}
+               tab === 'early-bird' ? 'Early Bird' :
+               tab === 'loyalty' ? 'Loyalty' : 'Referral'}
             </button>
           ))}
         </div>
@@ -249,6 +251,41 @@ export function RewardsDashboard({ eventId, ticketContract }: RewardsDashboardPr
               ) : (
                 <div className="text-center text-sm text-gray-400">
                   Earn {10 - loyaltyPoints} more points to claim a reward
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'referral' && (
+          <div className="space-y-4">
+            <ReferralCodeGenerator />
+
+            <div className="bg-slate-700/50 backdrop-blur-sm p-6 rounded-xl border border-slate-600">
+              <div className="flex items-center gap-2 mb-4">
+                <Users className="h-5 w-5 text-green-400" />
+                <h3 className="text-xl font-bold text-white">Referral Stats</h3>
+              </div>
+              <p className="text-gray-400 text-sm mb-4">
+                Track your referral performance and earnings.
+              </p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-green-400 mb-1">{referralRewards}</p>
+                  <p className="text-sm text-gray-400">Successful Referrals</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-blue-400 mb-1">{referralRewards * 10}</p>
+                  <p className="text-sm text-gray-400">Points Earned</p>
+                </div>
+              </div>
+
+              {referralRewards > 0 && (
+                <div className="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                  <p className="text-sm text-green-400">
+                    🎉 You&apos;ve earned {referralRewards * 10} loyalty points from referrals!
+                  </p>
                 </div>
               )}
             </div>

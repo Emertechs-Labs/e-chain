@@ -32,16 +32,14 @@ async function initTable() {
   } catch (error) {
     console.error('Error creating table:', error);
   }
-}
-
-// Initialize database only if client is available
-if (client) {
-  initTable();
 }// Webhook secret from environment (set in MultiBaas)
 const WEBHOOK_SECRET = process.env.MULTIBAAS_WEBHOOK_SECRET || 'your-webhook-secret';
 
 export async function POST(request: NextRequest) {
   try {
+    // Initialize table if needed
+    await initTable();
+
     const body = await request.text();
     const signature = request.headers.get('x-multibaas-signature');
     const timestamp = request.headers.get('x-multibaas-timestamp');
@@ -104,6 +102,9 @@ export async function GET() {
     return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
   }
   try {
+    // Initialize table if needed
+    await initTable();
+
     // Fetch all active events from database
     const result = await client.execute('SELECT * FROM events WHERE is_active = 1 ORDER BY created_at DESC');
 

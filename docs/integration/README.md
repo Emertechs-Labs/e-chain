@@ -27,6 +27,689 @@
 - **✅ Error Handling**: Comprehensive fallback mechanisms and error recovery
 - **✅ Production Ready**: Deployed on Base Sepolia with monitoring
 
+## 🎯 Integration Overview
+
+### Current Implementation Status
+- **✅ MultiBaas API**: Fully integrated with REST and WebSocket support
+- **✅ Wallet Integration**: RainbowKit + Reown for seamless wallet connections
+- **✅ Real-time Events**: WebSocket streaming for live updates
+- **✅ Type Safety**: Complete TypeScript integration with contract ABIs
+- **✅ Error Handling**: Comprehensive fallback mechanisms and error recovery
+- **✅ Production Ready**: Deployed on Base Sepolia with monitoring
+
+### Advanced Integration Patterns
+
+#### Circuit Breaker Pattern
+```typescript
+// lib/circuit-breaker.ts - Advanced error handling
+export class CircuitBreaker {
+  private failures = 0;
+  private lastFailureTime = 0;
+  private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
+
+  constructor(
+    private failureThreshold = 5,
+    private recoveryTimeout = 60000,
+    private monitoringPeriod = 300000
+  ) {}
+
+  async execute<T>(operation: () => Promise<T>): Promise<T> {
+    if (this.state === 'OPEN') {
+      if (Date.now() - this.lastFailureTime > this.recoveryTimeout) {
+        this.state = 'HALF_OPEN';
+      } else {
+        throw new Error('Circuit breaker is OPEN');
+      }
+    }
+
+    try {
+      const result = await operation();
+      this.onSuccess();
+      return result;
+    } catch (error) {
+      this.onFailure();
+      throw error;
+    }
+  }
+
+  private onSuccess() {
+    this.failures = 0;
+    this.state = 'CLOSED';
+  }
+
+  private onFailure() {
+    this.failures++;
+    this.lastFailureTime = Date.now();
+
+    if (this.failures >= this.failureThreshold) {
+      this.state = 'OPEN';
+    }
+  }
+
+  getState() {
+    return this.state;
+  }
+}
+```
+
+#### Request Batching Strategy
+```typescript
+// lib/batch-requests.ts - Optimize multiple contract calls
+export class ContractBatchProcessor {
+  private queue: Array<{
+    id: string;
+    contract: string;
+    method: string;
+    args: any[];
+    resolve: (value: any) => void;
+    reject: (error: any) => void;
+  }> = [];
+
+  private processing = false;
+  private batchSize = 10;
+  private batchTimeout = 100; // ms
+
+  async addToBatch(
+    contract: string,
+    method: string,
+    args: any[] = []
+  ): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const id = `${Date.now()}-${Math.random()}`;
+
+      this.queue.push({
+        id,
+        contract,
+        method,
+        args,
+        resolve,
+        reject,
+      });
+
+      this.scheduleProcessing();
+    });
+  }
+
+  private scheduleProcessing() {
+    if (this.processing) return;
+
+    if (this.queue.length >= this.batchSize) {
+      this.processBatch();
+    } else {
+      setTimeout(() => {
+        if (this.queue.length > 0) {
+          this.processBatch();
+        }
+      }, this.batchTimeout);
+    }
+  }
+
+  private async processBatch() {
+    if (this.processing || this.queue.length === 0) return;
+
+    this.processing = true;
+    const batch = this.queue.splice(0, this.batchSize);
+
+    try {
+      // Execute batch of contract calls
+      const results = await Promise.allSettled(
+        batch.map(async (item) => {
+          try {
+            const result = await multibaasClient.callContract(
+              CONTRACT_ADDRESSES[item.contract as keyof typeof CONTRACT_ADDRESSES],
+              item.contract,
+              item.method,
+              item.args
+            );
+            return { id: item.id, result };
+          } catch (error) {
+            return { id: item.id, error };
+          }
+        })
+      );
+
+      // Resolve/reject individual promises
+      results.forEach((result, index) => {
+        const item = batch[index];
+        if (result.status === 'fulfilled') {
+          if ('error' in result.value) {
+            item.reject(result.value.error);
+          } else {
+            item.resolve(result.value.result);
+          }
+        } else {
+          item.reject(result.reason);
+        }
+      });
+    } finally {
+      this.processing = false;
+
+      // Process remaining items if any
+      if (this.queue.length > 0) {
+        setTimeout(() => this.processBatch(), 0);
+      }
+    }
+  }
+}
+```
+
+#### Connection Pooling for WebSockets
+```typescript
+// lib/websocket/pool.ts - WebSocket connection management
+export class WebSocketPool {
+  private connections: Map<string, WebSocket> = new Map();
+  private maxConnections = 5;
+  private connectionQueue: Array<{
+    url: string;
+    resolve: (ws: WebSocket) => void;
+    reject: (error: any) => void;
+  }> = [];
+
+  async getConnection(url: string): Promise<WebSocket> {
+    // Return existing connection if available
+    if (this.connections.has(url)) {
+      const ws = this.connections.get(url)!;
+      if (ws.readyState === WebSocket.OPEN) {
+        return ws;
+      } else {
+        this.connections.delete(url);
+      }
+    }
+
+    // Check connection limit
+    if (this.connections.size >= this.maxConnections) {
+      return new Promise((resolve, reject) => {
+        this.connectionQueue.push({ url, resolve, reject });
+      });
+    }
+
+    // Create new connection
+    return this.createConnection(url);
+  }
+
+  private async createConnection(url: string): Promise<WebSocket> {
+    return new Promise((resolve, reject) => {
+      const ws = new WebSocket(url);
+
+      ws.onopen = () => {
+        this.connections.set(url, ws);
+        resolve(ws);
+
+        // Process queued connections
+        this.processQueue();
+      };
+
+      ws.onerror = (error) => {
+        reject(error);
+      };
+
+      ws.onclose = () => {
+        this.connections.delete(url);
+        this.processQueue();
+      };
+    });
+  }
+
+  private processQueue() {
+    if (this.connectionQueue.length === 0) return;
+
+    const { url, resolve, reject } = this.connectionQueue.shift()!;
+
+    if (this.connections.size < this.maxConnections) {
+      this.createConnection(url).then(resolve).catch(reject);
+    } else {
+      // Re-queue if still at limit
+      this.connectionQueue.unshift({ url, resolve, reject });
+    }
+  }
+
+  closeAll() {
+    for (const ws of this.connections.values()) {
+      ws.close();
+    }
+    this.connections.clear();
+
+    // Reject all queued connections
+    for (const { reject } of this.connectionQueue) {
+      reject(new Error('Connection pool closed'));
+    }
+    this.connectionQueue.length = 0;
+  }
+}
+```
+
+### Advanced React Hooks
+
+#### Optimistic Updates Hook
+```typescript
+// lib/hooks/useOptimisticUpdate.ts - Optimistic UI updates
+export function useOptimisticUpdate<T>(
+  queryKey: string[],
+  updateFn: (currentData: T, newData: Partial<T>) => T
+) {
+  const queryClient = useQueryClient();
+
+  const optimisticUpdate = useCallback(
+    (newData: Partial<T>, rollbackData?: T) => {
+      // Cancel any outgoing refetches
+      queryClient.cancelQueries({ queryKey });
+
+      // Snapshot previous value
+      const previousData = queryClient.getQueryData<T>(queryKey);
+
+      // Optimistically update
+      queryClient.setQueryData<T>(queryKey, (currentData) => {
+        if (!currentData) return currentData;
+        return updateFn(currentData, newData);
+      });
+
+      // Return rollback function
+      return () => {
+        queryClient.setQueryData(queryKey, rollbackData || previousData);
+      };
+    },
+    [queryClient, queryKey, updateFn]
+  );
+
+  return optimisticUpdate;
+}
+```
+
+#### Advanced Event Hook with Caching
+```typescript
+// lib/hooks/useEventWithCache.ts - Cached event management
+export function useEventWithCache(eventId: number) {
+  const queryClient = useQueryClient();
+  const optimisticUpdate = useOptimisticUpdate(
+    ['event', eventId],
+    (current, updates) => ({ ...current, ...updates })
+  );
+
+  const { data: event, ...queryState } = useQuery({
+    queryKey: ['event', eventId],
+    queryFn: () => multibaasClient.callContract(
+      CONTRACT_ADDRESSES.EventFactory,
+      'EventFactory',
+      'getEvent',
+      [eventId]
+    ),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 30 * 60 * 1000, // 30 minutes
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+  });
+
+  const updateEvent = useMutation({
+    mutationFn: async (updates: Partial<Event>) => {
+      // Optimistically update UI
+      const rollback = optimisticUpdate(updates);
+
+      try {
+        // Make actual contract call
+        const result = await multibaasClient.callContract(
+          CONTRACT_ADDRESSES.EventFactory,
+          'EventFactory',
+          'updateEvent',
+          [eventId, updates]
+        );
+
+        // Update cache with server response
+        queryClient.setQueryData(['event', eventId], result);
+
+        return result;
+      } catch (error) {
+        // Rollback on error
+        rollback();
+        throw error;
+      }
+    },
+  });
+
+  return {
+    event,
+    ...queryState,
+    updateEvent: updateEvent.mutate,
+    isUpdating: updateEvent.isPending,
+  };
+}
+```
+
+#### Infinite Scroll Hook for Events
+```typescript
+// lib/hooks/useInfiniteEvents.ts - Infinite scroll events
+export function useInfiniteEvents(options?: {
+  organizer?: string;
+  category?: string;
+  limit?: number;
+}) {
+  return useInfiniteQuery({
+    queryKey: ['events', 'infinite', options],
+    queryFn: async ({ pageParam = 0 }) => {
+      const result = await multibaasClient.callContract(
+        CONTRACT_ADDRESSES.EventFactory,
+        'EventFactory',
+        'getEvents',
+        [
+          pageParam,
+          options?.limit || 20,
+          options?.organizer || ethers.constants.AddressZero,
+          options?.category || ''
+        ]
+      );
+
+      return {
+        events: result.events,
+        nextCursor: result.hasMore ? pageParam + (options?.limit || 20) : undefined,
+      };
+    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+}
+```
+
+### Advanced Error Handling
+
+#### Retry Strategies
+```typescript
+// lib/retry.ts - Advanced retry logic
+export class RetryManager {
+  static async withRetry<T>(
+    operation: () => Promise<T>,
+    options: {
+      maxAttempts?: number;
+      baseDelay?: number;
+      maxDelay?: number;
+      backoffFactor?: number;
+      retryCondition?: (error: any) => boolean;
+    } = {}
+  ): Promise<T> {
+    const {
+      maxAttempts = 3,
+      baseDelay = 1000,
+      maxDelay = 30000,
+      backoffFactor = 2,
+      retryCondition = () => true,
+    } = options;
+
+    let lastError: any;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error;
+
+        // Don't retry if condition fails
+        if (!retryCondition(error)) {
+          throw error;
+        }
+
+        // Don't delay on last attempt
+        if (attempt === maxAttempts) {
+          throw error;
+        }
+
+        // Calculate delay with exponential backoff
+        const delay = Math.min(
+          baseDelay * Math.pow(backoffFactor, attempt - 1),
+          maxDelay
+        );
+
+        // Add jitter to prevent thundering herd
+        const jitteredDelay = delay * (0.5 + Math.random() * 0.5);
+
+        await new Promise(resolve => setTimeout(resolve, jitteredDelay));
+      }
+    }
+
+    throw lastError;
+  }
+
+  static isRetryableError(error: any): boolean {
+    // Retry on network errors
+    if (error.code === 'NETWORK_ERROR') return true;
+
+    // Retry on 5xx server errors
+    if (error.response?.status >= 500) return true;
+
+    // Retry on rate limiting
+    if (error.response?.status === 429) return true;
+
+    // Don't retry on client errors
+    if (error.response?.status >= 400 && error.response?.status < 500) {
+      return false;
+    }
+
+    // Retry on timeout
+    if (error.code === 'TIMEOUT') return true;
+
+    return false;
+  }
+}
+```
+
+#### Fallback Mechanisms
+```typescript
+// lib/fallback.ts - Multi-level fallback system
+export class FallbackManager {
+  private fallbacks: Array<{
+    name: string;
+    condition: (error: any) => boolean;
+    handler: () => Promise<any>;
+  }> = [];
+
+  addFallback(
+    name: string,
+    condition: (error: any) => boolean,
+    handler: () => Promise<any>
+  ) {
+    this.fallbacks.push({ name, condition, handler });
+  }
+
+  async executeWithFallback<T>(
+    primaryOperation: () => Promise<T>,
+    context?: string
+  ): Promise<T> {
+    try {
+      return await primaryOperation();
+    } catch (error) {
+      console.warn(`Primary operation failed${context ? ` for ${context}` : ''}:`, error);
+
+      for (const fallback of this.fallbacks) {
+        if (fallback.condition(error)) {
+          try {
+            console.log(`Attempting fallback: ${fallback.name}`);
+            return await fallback.handler();
+          } catch (fallbackError) {
+            console.warn(`Fallback ${fallback.name} also failed:`, fallbackError);
+            continue;
+          }
+        }
+      }
+
+      throw error;
+    }
+  }
+}
+
+// Usage example
+const eventFallbacks = new FallbackManager();
+
+// Fallback to cached data
+eventFallbacks.addFallback(
+  'cached-data',
+  (error) => error.code === 'NETWORK_ERROR',
+  async () => {
+    const cached = localStorage.getItem('events-cache');
+    return cached ? JSON.parse(cached) : [];
+  }
+);
+
+// Fallback to mock data
+eventFallbacks.addFallback(
+  'mock-data',
+  () => true, // Always try as last resort
+  async () => {
+    return [
+      {
+        id: 1,
+        name: 'Service Temporarily Unavailable',
+        ticketPrice: '0',
+        maxTickets: 0,
+        isActive: false,
+      },
+    ];
+  }
+);
+```
+
+### Performance Optimization
+
+#### Query Batching and Deduplication
+```typescript
+// lib/query-batcher.ts - Batch multiple queries
+export class QueryBatcher {
+  private queryQueue: Map<string, {
+    query: () => Promise<any>;
+    resolve: (value: any) => void;
+    reject: (error: any) => void;
+  }> = new Map();
+
+  private batchTimeout: NodeJS.Timeout | null = null;
+  private readonly batchDelay = 50; // ms
+
+  async batchQuery<T>(
+    key: string,
+    queryFn: () => Promise<T>
+  ): Promise<T> {
+    return new Promise((resolve, reject) => {
+      // If query already in progress, wait for it
+      if (this.queryQueue.has(key)) {
+        this.queryQueue.get(key)!.resolve = resolve;
+        this.queryQueue.get(key)!.reject = reject;
+        return;
+      }
+
+      // Add to queue
+      this.queryQueue.set(key, {
+        query: queryFn,
+        resolve,
+        reject,
+      });
+
+      // Schedule batch execution
+      this.scheduleBatch();
+    });
+  }
+
+  private scheduleBatch() {
+    if (this.batchTimeout) return;
+
+    this.batchTimeout = setTimeout(() => {
+      this.executeBatch();
+    }, this.batchDelay);
+  }
+
+  private async executeBatch() {
+    const queries = Array.from(this.queryQueue.entries());
+    this.queryQueue.clear();
+    this.batchTimeout = null;
+
+    // Execute all queries in parallel
+    const results = await Promise.allSettled(
+      queries.map(([key, { query }]) => query())
+    );
+
+    // Resolve/reject promises
+    results.forEach((result, index) => {
+      const [key, { resolve, reject }] = queries[index];
+
+      if (result.status === 'fulfilled') {
+        resolve(result.value);
+      } else {
+        reject(result.reason);
+      }
+    });
+  }
+}
+```
+
+#### Memory Management and Cleanup
+```typescript
+// lib/memory-manager.ts - Memory optimization
+export class MemoryManager {
+  private static instance: MemoryManager;
+  private cache = new Map<string, {
+    data: any;
+    timestamp: number;
+    ttl: number;
+  }>();
+
+  private cleanupInterval: NodeJS.Timeout | null = null;
+
+  static getInstance(): MemoryManager {
+    if (!MemoryManager.instance) {
+      MemoryManager.instance = new MemoryManager();
+    }
+    return MemoryManager.instance;
+  }
+
+  set(key: string, data: any, ttl = 5 * 60 * 1000) { // 5 minutes default
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl,
+    });
+
+    this.scheduleCleanup();
+  }
+
+  get<T>(key: string): T | null {
+    const item = this.cache.get(key);
+
+    if (!item) return null;
+
+    if (Date.now() - item.timestamp > item.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return item.data;
+  }
+
+  private scheduleCleanup() {
+    if (this.cleanupInterval) return;
+
+    this.cleanupInterval = setInterval(() => {
+      const now = Date.now();
+
+      for (const [key, item] of this.cache.entries()) {
+        if (now - item.timestamp > item.ttl) {
+          this.cache.delete(key);
+        }
+      }
+
+      // Clear interval if cache is empty
+      if (this.cache.size === 0) {
+        if (this.cleanupInterval) {
+          clearInterval(this.cleanupInterval);
+          this.cleanupInterval = null;
+        }
+      }
+    }, 60 * 1000); // Clean up every minute
+  }
+
+  clear() {
+    this.cache.clear();
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+  }
+}
+```
+
 ### Integration Components
 ```mermaid
 graph TB

@@ -1,36 +1,71 @@
 import { NextResponse } from 'next/server';
-import { callContractWrite } from '../../../../lib/multibaas';
-import { CONTRACT_ADDRESSES } from '../../../../lib/contracts';
+import { readContract } from '../../../../lib/contract-wrapper';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { eventId, attendeeAddress, nonce } = body;
+    const { eventId, attendeeAddress, ticketContract } = body;
 
-    if (!eventId || !attendeeAddress || nonce === undefined) {
+    if (!eventId || !attendeeAddress || !ticketContract) {
       return NextResponse.json(
-        { error: 'Missing required parameters: eventId, attendeeAddress, nonce' },
+        { error: 'Missing required parameters: eventId, attendeeAddress, ticketContract' },
         { status: 400 }
       );
     }
 
-    // For demo purposes, we'll simulate POAP claiming success
-    // In production, this would require proper signature verification
-    // The contract currently requires a signature from the owner or event factory
+    // Verify that the attendee actually owns tickets for this event
+    try {
+      // Check if the attendee owns any tickets from the event's ticket contract
+      const balance = await readContract(
+        ticketContract,
+        'balanceOf',
+        [attendeeAddress]
+      );
 
-    // For now, return a mock transaction response
-    const mockResult = {
-      tx: {
-        to: CONTRACT_ADDRESSES.POAPAttendance,
-        data: '0x', // Mock data
-        value: '0x0',
-        gasLimit: '0x186a0', // 100000
-        gasPrice: '0x3b9aca00', // 1 gwei
-        nonce: '0x0'
+      if (Number(balance) === 0) {
+        return NextResponse.json(
+          { error: 'No tickets found for this address and event' },
+          { status: 400 }
+        );
       }
-    };
 
-    return NextResponse.json(mockResult, { status: 200 });
+      // Check if already claimed POAP for this event
+      const hasClaimed = await readContract(
+        'POAPAttendance',
+        'hasClaimed',
+        [eventId, attendeeAddress]
+      );
+
+      if (hasClaimed) {
+        return NextResponse.json(
+          { error: 'POAP already claimed for this event' },
+          { status: 400 }
+        );
+      }
+
+      // For now, implement a simplified claiming approach
+      // In a production system, you'd want proper authorization
+      // This could be done by having the event organizer sign claims
+      // or by checking ticket ownership on-chain
+
+      // For demo purposes, we'll return validation success
+      // The actual POAP minting would require contract modifications
+      // to allow simpler claiming mechanisms
+      return NextResponse.json({
+        success: true,
+        message: 'Ticket ownership verified. POAP claiming requires contract authorization.',
+        ticketBalance: Number(balance),
+        canClaim: true,
+        note: 'POAP claiming is under development and requires backend authorization'
+      }, { status: 200 });
+
+    } catch (validationError: any) {
+      console.error('Validation error:', validationError);
+      return NextResponse.json(
+        { error: 'Failed to validate ticket ownership: ' + validationError.message },
+        { status: 400 }
+      );
+    }
 
   } catch (err: any) {
     console.error('[app/api/poap/claim] Error:', err);

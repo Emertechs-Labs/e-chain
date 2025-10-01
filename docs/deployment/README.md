@@ -738,6 +738,179 @@ Security Tests: Automated vulnerability scanning
 Performance Tests: Load testing and gas optimization
 ```
 
+### Automated Validation Scripts
+```typescript
+// scripts/validate-deployment.ts - Post-deployment validation
+export class DeploymentValidator {
+  private validations: Array<{
+    name: string;
+    validate: () => Promise<{ success: boolean; message: string }>;
+    required: boolean;
+  }> = [];
+
+  addValidation(
+    name: string,
+    validate: () => Promise<{ success: boolean; message: string }>,
+    required = true
+  ) {
+    this.validations.push({ name, validate, required });
+  }
+
+  async validateDeployment(): Promise<{
+    success: boolean;
+    results: Array<{ name: string; success: boolean; message: string; required: boolean }>;
+  }> {
+    const results = await Promise.all(
+      this.validations.map(async ({ name, validate, required }) => {
+        try {
+          const result = await validate();
+          return { name, ...result, required };
+        } catch (error) {
+          return {
+            name,
+            success: false,
+            message: `Validation failed: ${error.message}`,
+            required
+          };
+        }
+      })
+    );
+
+    const failedRequired = results.filter(r => r.required && !r.success);
+    const success = failedRequired.length === 0;
+
+    return { success, results };
+  }
+}
+
+// Register validations
+const validator = new DeploymentValidator();
+
+validator.addValidation(
+  'contract-deployment',
+  async () => {
+    const code = await multibaasClient.getContractCode(CONTRACT_ADDRESSES.EventFactory);
+    if (code && code.length > 2) {
+      return { success: true, message: 'Contract deployed successfully' };
+    }
+    return { success: false, message: 'Contract not deployed or empty' };
+  }
+);
+
+validator.addValidation(
+  'api-connectivity',
+  async () => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL}/api/v0/status`);
+    if (response.ok) {
+      return { success: true, message: 'API is accessible' };
+    }
+    return { success: false, message: `API returned ${response.status}` };
+  }
+);
+
+validator.addValidation(
+  'frontend-deployment',
+  async () => {
+    const response = await fetch(process.env.FRONTEND_URL || 'http://localhost:3000');
+    if (response.ok) {
+      return { success: true, message: 'Frontend is accessible' };
+    }
+    return { success: false, message: `Frontend returned ${response.status}` };
+  }
+);
+```
+
+### Infrastructure as Code
+
+#### Terraform Configuration for Infrastructure
+```hcl
+# infrastructure/main.tf
+terraform {
+  required_providers {
+    vercel = {
+      source  = "vercel/vercel"
+      version = "~> 1.0"
+    }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+# Vercel project
+resource "vercel_project" "echain" {
+  name      = "echain"
+  framework = "nextjs"
+
+  git_repository = {
+    type = "github"
+    repo = "your-org/echain"
+  }
+
+  environment = [
+    {
+      key   = "NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL"
+      value = var.multibaas_deployment_url
+    },
+    {
+      key   = "NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY"
+      value = var.multibaas_dapp_key
+    }
+  ]
+}
+
+# Custom domain
+resource "vercel_project_domain" "echain" {
+  project_id = vercel_project.echain.id
+  domain     = "echain.app"
+}
+
+# AWS resources for additional infrastructure
+resource "aws_s3_bucket" "echain_backups" {
+  bucket = "echain-deployment-backups"
+
+  versioning {
+    enabled = true
+  }
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
+
+# CloudWatch monitoring
+resource "aws_cloudwatch_dashboard" "echain" {
+  dashboard_name = "Echain-Platform"
+
+  dashboard_body = jsonencode({
+    widgets = [
+      {
+        type   = "metric"
+        x      = 0
+        y      = 0
+        width  = 12
+        height = 6
+
+        properties = {
+          metrics = [
+            ["AWS/EC2", "CPUUtilization", "InstanceId", var.ec2_instance_id]
+          ]
+          period = 300
+          stat   = "Average"
+          region = var.aws_region
+          title  = "EC2 CPU Utilization"
+        }
+      }
+    ]
+  })
+}
+```
+
 ---
 
 ## 📞 Support & Resources

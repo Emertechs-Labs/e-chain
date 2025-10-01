@@ -52,17 +52,24 @@ export function getWalletClient(chainId: number = 84532) {
  * Direct read from smart contract
  */
 export async function directContractRead<T = any>(
-  contractName: keyof typeof CONTRACT_ADDRESSES,
+  contractNameOrAddress: keyof typeof CONTRACT_ADDRESSES | Address,
   functionName: string,
   args: any[] = [],
   chainId: number = 84532
 ): Promise<T> {
   try {
     const client = getPublicClient(chainId);
-    const address = CONTRACT_ADDRESSES[contractName] as Address;
-    const abi = CONTRACT_ABIS[contractName as keyof typeof CONTRACT_ABIS];
+    
+    // Determine if it's a contract name or address
+    const isContractName = typeof contractNameOrAddress === 'string' && contractNameOrAddress in CONTRACT_ADDRESSES;
+    const address = isContractName 
+      ? CONTRACT_ADDRESSES[contractNameOrAddress as keyof typeof CONTRACT_ADDRESSES] as Address
+      : contractNameOrAddress as Address;
+    const abi = isContractName 
+      ? CONTRACT_ABIS[contractNameOrAddress as keyof typeof CONTRACT_ABIS]
+      : CONTRACT_ABIS.EventTicket; // Default to EventTicket ABI for custom addresses
 
-    console.log(`[Fallback] Direct read: ${contractName}.${functionName}(${JSON.stringify(args)})`);
+    console.log(`[Fallback] Direct read: ${address}.${functionName}(${JSON.stringify(args)})`);
 
     const result = await client.readContract({
       address,
@@ -83,7 +90,7 @@ export async function directContractRead<T = any>(
  * Direct write to smart contract (returns transaction hash)
  */
 export async function directContractWrite(
-  contractName: keyof typeof CONTRACT_ADDRESSES,
+  contractNameOrAddress: keyof typeof CONTRACT_ADDRESSES | Address,
   functionName: string,
   args: any[] = [],
   value?: bigint,
@@ -92,10 +99,17 @@ export async function directContractWrite(
 ): Promise<`0x${string}`> {
   try {
     const walletClient = getWalletClient(chainId);
-    const address = CONTRACT_ADDRESSES[contractName] as Address;
-    const abi = CONTRACT_ABIS[contractName as keyof typeof CONTRACT_ABIS];
+    
+    // Determine if it's a contract name or address
+    const isContractName = typeof contractNameOrAddress === 'string' && contractNameOrAddress in CONTRACT_ADDRESSES;
+    const address = isContractName 
+      ? CONTRACT_ADDRESSES[contractNameOrAddress as keyof typeof CONTRACT_ADDRESSES] as Address
+      : contractNameOrAddress as Address;
+    const abi = isContractName 
+      ? CONTRACT_ABIS[contractNameOrAddress as keyof typeof CONTRACT_ABIS]
+      : CONTRACT_ABIS.EventTicket; // Default to EventTicket ABI for custom addresses
 
-    console.log(`[Fallback] Direct write: ${contractName}.${functionName}(${JSON.stringify(args)})`);
+    console.log(`[Fallback] Direct write: ${address}.${functionName}(${JSON.stringify(args)})`);
 
     // Get account if not provided
     const fromAccount = account || (await walletClient.getAddresses())[0];
@@ -121,7 +135,7 @@ export async function directContractWrite(
  * Simulate contract write (before actually sending)
  */
 export async function simulateContractWrite(
-  contractName: keyof typeof CONTRACT_ADDRESSES,
+  contractNameOrAddress: keyof typeof CONTRACT_ADDRESSES | Address,
   functionName: string,
   args: any[] = [],
   value?: bigint,
@@ -130,10 +144,17 @@ export async function simulateContractWrite(
 ): Promise<any> {
   try {
     const client = getPublicClient(chainId);
-    const address = CONTRACT_ADDRESSES[contractName] as Address;
-    const abi = CONTRACT_ABIS[contractName as keyof typeof CONTRACT_ABIS];
+    
+    // Determine if it's a contract name or address
+    const isContractName = typeof contractNameOrAddress === 'string' && contractNameOrAddress in CONTRACT_ADDRESSES;
+    const address = isContractName 
+      ? CONTRACT_ADDRESSES[contractNameOrAddress as keyof typeof CONTRACT_ABIS] as Address
+      : contractNameOrAddress as Address;
+    const abi = isContractName 
+      ? CONTRACT_ABIS[contractNameOrAddress as keyof typeof CONTRACT_ABIS]
+      : CONTRACT_ABIS.EventTicket; // Default to EventTicket ABI for custom addresses
 
-    console.log(`[Fallback] Simulating: ${contractName}.${functionName}(${JSON.stringify(args)})`);
+    console.log(`[Fallback] Simulating: ${address}.${functionName}(${JSON.stringify(args)})`);
 
     const { result } = await client.simulateContract({
       address,

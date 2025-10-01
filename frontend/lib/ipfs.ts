@@ -213,7 +213,7 @@ export async function uploadVerificationData(verificationData: VerificationData)
     const verificationBlob = new Blob([JSON.stringify({
       ...verificationData,
       verified: true,
-      verificationUrl: `https://etherscan.io/tx/${verificationData.transactionHash}`,
+      verificationUrl: `https://basescan.org/tx/${verificationData.transactionHash}`,
       ipfsTimestamp: Date.now(),
     })], {
       type: 'application/json',
@@ -250,8 +250,8 @@ export async function generateVerificationQR(verificationData: VerificationData)
       throw new Error('Failed to upload verification data to IPFS');
     }
 
-    // Create verification URL that points to the IPFS data
-    const verificationUrl = `https://verify.echain.events/${ipfsResult.cid}`;
+    // Create verification URL that points to BaseScan transaction page
+    const verificationUrl = `https://basescan.org/tx/${verificationData.transactionHash}`;
 
     // Generate QR code as data URL
     const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl, {
@@ -358,5 +358,5 @@ export function getVerificationUrl(transactionHash: string, ipfsCid?: string): s
   if (ipfsCid) {
     return `https://verify.echain.events/${ipfsCid}`;
   }
-  return `https://etherscan.io/tx/${transactionHash}`;
+  return `https://basescan.org/tx/${transactionHash}`;
 }

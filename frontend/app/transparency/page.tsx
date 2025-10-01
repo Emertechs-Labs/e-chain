@@ -15,52 +15,9 @@ interface Transaction {
   description: string;
 }
 
-const mockTransactions: Transaction[] = [
-  {
-    id: "1",
-    type: "mint",
-    event: "Web3 Developer Conference 2024",
-    blockNumber: "#18,955,000",
-    hash: "0xd742a...3c7c",
-    timestamp: "9/15/2024 1:30 PM",
-    gas: "43,231 gas",
-    amount: "0.1 ETH",
-    description: "Ticket Minted"
-  },
-  {
-    id: "2",
-    type: "royalty",
-    event: "Web3 Developer Conference 2024",
-    blockNumber: "#18,950,001",
-    hash: "0xe9a3b...4b2f",
-    timestamp: "9/15/2024 1:31 PM",
-    gas: "21,000 gas",
-    amount: "0.005 ETH",
-    description: "Royalty Paid"
-  },
-  {
-    id: "3",
-    type: "transfer",
-    event: "DeFi Summit: Future of Finance",
-    blockNumber: "#18,945,355",
-    hash: "0xb353a...4b2f",
-    timestamp: "9/15/2024 12:45:00 PM",
-    gas: "32,100 gas",
-    amount: "0.12 ETH",
-    description: "Ticket Transfer"
-  },
-  {
-    id: "4",
-    type: "create",
-    event: "NFT Art & Culture Festival",
-    blockNumber: "#18,943,750",
-    hash: "0xa742c...5d8e",
-    timestamp: "9/14/2024 3:15 PM",
-    gas: "85,200 gas",
-    amount: "0.02 ETH",
-    description: "Event Created"
-  }
-];
+// TODO: Replace with real blockchain transaction data from an API endpoint
+// For now, transactions will be fetched from blockchain indexer or events
+const mockTransactions: Transaction[] = [];
 
 const TransparencyPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -107,20 +64,24 @@ const TransparencyPage: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-6 max-w-6xl mx-auto">
             <div className="bg-slate-800/50 backdrop-blur-sm p-6 rounded-2xl border border-slate-700">
-              <div className="text-3xl font-bold text-cyan-400 mb-1">1,247</div>
+              <div className="text-3xl font-bold text-cyan-400 mb-1">0</div>
               <div className="text-gray-400 text-sm">Total Transactions</div>
+              <p className="text-gray-500 text-xs mt-2">Real-time blockchain data</p>
             </div>
             <div className="bg-slate-800/50 backdrop-blur-sm p-6 rounded-2xl border border-slate-700">
-              <div className="text-3xl font-bold text-cyan-400 mb-1">24.5 ETH</div>
+              <div className="text-3xl font-bold text-cyan-400 mb-1">0 ETH</div>
               <div className="text-gray-400 text-sm">Volume Today</div>
+              <p className="text-gray-500 text-xs mt-2">Updates as events occur</p>
             </div>
             <div className="bg-slate-800/50 backdrop-blur-sm p-6 rounded-2xl border border-slate-700">
-              <div className="text-3xl font-bold text-green-400 mb-1">856</div>
+              <div className="text-3xl font-bold text-green-400 mb-1">0</div>
               <div className="text-gray-400 text-sm">Tickets Minted</div>
+              <p className="text-gray-500 text-xs mt-2">Blockchain-verified mints</p>
             </div>
             <div className="bg-slate-800/50 backdrop-blur-sm p-6 rounded-2xl border border-slate-700">
-              <div className="text-3xl font-bold text-purple-400 mb-1">2.1 ETH</div>
+              <div className="text-3xl font-bold text-purple-400 mb-1">0 ETH</div>
               <div className="text-gray-400 text-sm">Royalties Paid</div>
+              <p className="text-gray-500 text-xs mt-2">On-chain royalty tracking</p>
             </div>
           </div>
         </div>
@@ -163,7 +124,13 @@ const TransparencyPage: React.FC = () => {
               </div>
               
               <div className="divide-y divide-slate-700">
-                {mockTransactions.map((transaction) => (
+                {mockTransactions.length === 0 ? (
+                  <div className="p-12 text-center">
+                    <div className="text-6xl mb-4">📊</div>
+                    <h3 className="text-xl font-bold text-white mb-2">No Transactions Yet</h3>
+                    <p className="text-gray-400">Transaction history will appear here as events are created and tickets are sold.</p>
+                  </div>
+                ) : mockTransactions.map((transaction) => (
                   <div key={transaction.id} className="p-6 hover:bg-slate-700/50 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">

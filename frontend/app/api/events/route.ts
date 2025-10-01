@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@libsql/client';
+import { readContract, writeContract } from '../../../lib/contract-wrapper';
 
 // Initialize Turso client
 const client = process.env.TURSO_DATABASE_URL ? createClient({
@@ -33,17 +34,9 @@ async function initTable() {
   }
 }
 
-// Insert initial test event if not exists
-async function seedData() {
-  if (!client) return;
-  // Commenting out automatic seeding to prevent placeholder events
-  // in production. Events should be created through the UI or real transactions.
-  console.log('Seeding disabled in production to prevent placeholder events');
-}
-
 // Initialize database only if client is available
 if (client) {
-  initTable().then(() => seedData());
+  initTable();
 }// Webhook secret from environment (set in MultiBaas)
 const WEBHOOK_SECRET = process.env.MULTIBAAS_WEBHOOK_SECRET || 'your-webhook-secret';
 
@@ -76,6 +69,7 @@ export async function POST(request: NextRequest) {
           const name = inputs.find((i: any) => i.name === 'name')?.value;
           const ticketPrice = inputs.find((i: any) => i.name === 'ticketPrice')?.value;
           const maxTickets = parseInt(inputs.find((i: any) => i.name === 'maxTickets')?.value);
+          const metadataUri = inputs.find((i: any) => i.name === 'metadataURI')?.value || '';
 
           // Insert event into database
           if (!client) {
@@ -90,7 +84,7 @@ export async function POST(request: NextRequest) {
                     ticket_contract = EXCLUDED.ticket_contract,
                     ticket_price = EXCLUDED.ticket_price,
                     max_tickets = EXCLUDED.max_tickets`,
-            args: [eventId, name, organizer, ticketContract, 'ipfs://placeholder', ticketPrice, maxTickets, 1759810380, 1759939980, 1, Math.floor(Date.now() / 1000)]
+            args: [eventId, name, organizer, ticketContract, metadataUri, ticketPrice, maxTickets, 1759810380, 1759939980, 1, Math.floor(Date.now() / 1000)]
           });
 
           console.log('Stored new event:', { eventId, name, organizer });

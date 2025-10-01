@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { useEvent } from "../../hooks/useEvents";
 import { usePurchaseTicketDirect } from "../../hooks/useTransactionsDirect"; // Direct wallet (no MultiBaas)
@@ -13,9 +13,13 @@ import { useQuery } from "@tanstack/react-query";
 import { CONTRACT_ADDRESSES } from "../../../lib/contracts";
 import { EnhancedConnectButton } from "../../components/EnhancedConnectButton";
 import Image from "next/image";
+import { readContract } from "../../../lib/contract-wrapper";
+import { baseSepolia } from 'viem/chains';
+import { CONTRACT_ABIS } from "../../../lib/contracts";
 
 const EventDetailPage: React.FC = () => {
   const params = useParams();
+  const router = useRouter();
   const eventId = parseInt(params.id as string);
   const { isConnected, address } = useAccount();
   const { data: event, isLoading } = useEvent(eventId);
@@ -45,25 +49,29 @@ const EventDetailPage: React.FC = () => {
     enabled: !!address && !!event?.ticketContract,
   });
 
-  // Get sold tickets count
+  // Get sold tickets count using wrapper with fallback
   const { data: soldTickets = 0 } = useQuery({
-    queryKey: ['sold-tickets', eventId],
+    queryKey: ['sold-tickets-blockchain', eventId, event?.ticketContract],
     queryFn: async (): Promise<number> => {
       if (!event?.ticketContract) return 0;
 
       try {
-        const response = await fetch(`/api/contracts/ticket-sales?contract=${event.ticketContract}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch ticket sales');
-        }
-        const data = await response.json();
-        return data.totalSold || 0;
+        // Use wrapper with MultiBaas fallback to direct RPC
+        const totalSold = await readContract(
+          'EventTicket',
+          'totalSold',
+          []
+        );
+        return Number(totalSold);
       } catch (error) {
-        console.error('Error fetching sold tickets:', error);
+        console.error('Error fetching sold tickets from blockchain:', error);
         return 0;
       }
     },
     enabled: !!event?.ticketContract,
+    // Update every 30 seconds for real-time data
+    refetchInterval: 30000,
+    staleTime: 10000, // Consider data fresh for 10 seconds
   });
 
   // Check if user has claimed POAP for this event
@@ -131,6 +139,10 @@ const EventDetailPage: React.FC = () => {
 
       toast.dismiss();
       toast.success(`Successfully purchased ${quantity} ticket${quantity > 1 ? 's' : ''}! 🎫`);
+      
+      // Redirect to my-tickets page to show the purchased NFT
+      router.push('/my-tickets');
+      
       // hasTicket will be updated automatically by the query
     } catch (error: any) {
       toast.dismiss();
@@ -270,23 +282,26 @@ const EventDetailPage: React.FC = () => {
                   <div className="mb-4 p-3 rounded-lg border border-border">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-muted-foreground text-sm sm:text-base">Availability:</span>
-                      <span className={`font-semibold text-sm sm:text-base ${
-                        soldTickets >= event.maxTickets 
-                          ? 'text-destructive' 
-                          : event.maxTickets - soldTickets < 10 
-                          ? 'text-warning-orange' 
-                          : 'text-success-green'
-                      }`}>
-                        {soldTickets >= event.maxTickets 
-                          ? 'SOLD OUT' 
-                          : `${event.maxTickets - soldTickets} Available`
-                        }
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`font-semibold text-sm sm:text-base ${
+                          soldTickets >= event.maxTickets 
+                            ? 'text-destructive' 
+                            : event.maxTickets - soldTickets < 10 
+                            ? 'text-warning-orange' 
+                            : 'text-success-green'
+                        }`}>
+                          {soldTickets >= event.maxTickets 
+                            ? 'SOLD OUT' 
+                            : `${event.maxTickets - soldTickets} Available`
+                          }
+                        </span>
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" title="Live data from blockchain"></div>
+                      </div>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
                       <div 
                         ref={progressBarRef}
-                        className={`h-2 rounded-full transition-all duration-300 ${
+                        className={`h-2 rounded-full transition-all duration-500 ${
                           soldTickets >= event.maxTickets 
                             ? 'bg-destructive' 
                             : soldTickets / event.maxTickets > 0.8 
@@ -294,6 +309,10 @@ const EventDetailPage: React.FC = () => {
                             : 'bg-success-green'
                         }`}
                       ></div>
+                    </div>
+                    <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
+                      <span>{soldTickets} sold</span>
+                      <span>{event.maxTickets} total</span>
                     </div>
                   </div>
 

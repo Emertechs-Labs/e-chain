@@ -1,17 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ethers } from 'ethers';
 
-// Contract addresses and ABI
-const CONTRACT_ADDRESSES = {
-  EventFactory: '0xA97cB40548905B05A67fCD4765438aFBEA4030fc',
-};
-
-const EVENT_FACTORY_ABI = [
-  'function selfVerifyOrganizer(address organizer) external payable',
-  'function isVerifiedOrganizer(address organizer) external view returns (bool)',
-  'function owner() external view returns (address)',
-];
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

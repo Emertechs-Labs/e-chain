@@ -4,6 +4,7 @@ import { defaultChain } from '../../lib/wagmi';
 import { CONTRACT_ADDRESSES } from '../../lib/contracts';
 import { uploadTicketMetadata } from '../../lib/ipfs';
 import { ethers } from 'ethers';
+import { readContract, writeContract } from '../../lib/contract-wrapper';
 
 // Safe stringify that handles BigInt and circular refs for logging
 const safeStringify = (v: any) => {
@@ -208,6 +209,31 @@ export const useCreateEvent = () => {
       }
 
       console.log('[useCreateEvent] On correct network, proceeding');
+
+      // Check if organizer is verified, and verify automatically if not
+      console.log('[useCreateEvent] Checking organizer verification');
+      try {
+        const isVerified = await readContract<boolean>('EventFactory', 'isVerifiedOrganizer', [address]);
+        console.log('[useCreateEvent] Organizer verification status:', isVerified);
+
+        if (!isVerified) {
+          console.log('[useCreateEvent] Organizer not verified, verifying automatically...');
+          const verifyTxHash = await writeContract(
+            'EventFactory',
+            'selfVerifyOrganizer',
+            [address],
+            {
+              account: address,
+              value: BigInt('2000000000000000'), // 0.002 ETH
+              waitForConfirmation: true,
+            }
+          );
+          console.log('[useCreateEvent] Automatic verification successful:', verifyTxHash);
+        }
+      } catch (error) {
+        console.error('[useCreateEvent] Verification check/attempt failed:', error);
+        // Continue with event creation - the contract will enforce verification
+      }
 
       try {
         console.log('[useCreateEvent] Calling callUnsignedTx');
@@ -642,28 +668,7 @@ export const useOrganizerVerification = () => {
       if (!address) return { isVerified: false };
 
       try {
-        // For view functions, we need to call the contract directly
-        // Import the contract address and ABI
-        const CONTRACT_ADDRESSES = {
-          EventFactory: '0xA97cB40548905B05A67fCD4765438aFBEA4030fc',
-        };
-
-        const EVENT_FACTORY_ABI = [
-          'function isVerifiedOrganizer(address organizer) external view returns (bool)',
-        ];
-
-        // Create a provider (read-only)
-        const provider = new ethers.JsonRpcProvider(
-          process.env.NEXT_PUBLIC_BASE_TESTNET_RPC_URL || 'https://sepolia.base.org'
-        );
-
-        const contract = new ethers.Contract(
-          CONTRACT_ADDRESSES.EventFactory,
-          EVENT_FACTORY_ABI,
-          provider
-        );
-
-        const isVerified = await contract.isVerifiedOrganizer(address);
+        const isVerified = await readContract<boolean>('EventFactory', 'isVerifiedOrganizer', [address]);
         return { isVerified };
       } catch (error) {
         console.error('Error checking organizer verification:', error);
@@ -689,31 +694,18 @@ export const useVerifyOrganizer = () => {
       console.debug('[useVerifyOrganizer] start', { traceId, address });
 
       try {
-        // Call selfVerifyOrganizer with 0.001 ETH payment, explicitly specifying the blockchain
-        const result = await callUnsignedTx(
-          CONTRACT_ADDRESSES.EventFactory,
+        const txHash = await writeContract(
           'EventFactory',
           'selfVerifyOrganizer',
-          [address], // organizer address
-          address,
-          '1000000000000000', // 0.001 ETH in wei
-          traceId,
-          'base-sepolia' // Explicitly specify the chain
+          [address],
+          {
+            account: address,
+            value: BigInt('2000000000000000'), // 0.002 ETH
+            waitForConfirmation: true,
+          }
         );
 
-        console.debug('[useVerifyOrganizer] unsignedTx raw', { traceId, unsignedTx: safeStringify(result) });
-
-        const txData = result?.tx || result;
-        const formatted = formatForWallet(txData, address);
-
-        console.debug('[useVerifyOrganizer] formatted tx ready for wallet', { traceId, formatted: safeStringify(formatted) });
-
-        if (!walletClient) throw new Error('No wallet client available');
-
-        console.debug('[useVerifyOrganizer] calling walletClient.sendTransaction', { traceId, payload: safeStringify(formatted) });
-        const txHash = await walletClient.sendTransaction(formatted as any);
-
-        console.debug('[useVerifyOrganizer] wallet sendTransaction result', { traceId, txHash });
+        console.debug('[useVerifyOrganizer] transaction sent', { traceId, txHash });
 
         return { txHash };
       } catch (error) {

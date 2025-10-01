@@ -1,103 +1,22 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useAccount } from "wagmi";
-import { useQuery } from "@tanstack/react-query";
-import { readContract } from "../../lib/contract-wrapper";
-import { CONTRACT_ADDRESSES } from "../../lib/contracts";
-import { formatEther } from "viem";
+import { useUserTickets } from "../hooks/useTickets";
 import Link from "next/link";
 import { RewardsDashboard } from "@/components/rewards/RewardsDashboard";
-
-interface UserTicket {
-  eventId: number;
-  ticketId: string;
-  eventName: string;
-  ticketType: string;
-  purchaseDate: number;
-  price: bigint;
-  transferable: boolean;
-  used: boolean;
-}
-
-// Hook to fetch user's tickets
-const useUserTickets = () => {
-  const { address } = useAccount();
-
-  return useQuery({
-    queryKey: ['user-tickets', address],
-    queryFn: async (): Promise<UserTicket[]> => {
-      if (!address) return [];
-
-      try {
-        // Get all events first (with automatic fallback)
-        const [eventIds] = await readContract(
-          'EventFactory',
-          'getActiveEvents',
-          [0, 100] // Get up to 100 events
-        );
-
-        const userTickets: UserTicket[] = [];
-
-        // For each event, check if user owns tickets
-        for (const eventId of eventIds) {
-          try {
-            const eventData = await readContract(
-              'EventFactory',
-              'getEvent',
-              [eventId]
-            );
-
-            if (eventData.ticketContract) {
-              // Get user's tickets for this event (with automatic fallback)
-              const userTicketIds = await readContract(
-                'EventTicket',
-                'getOwnerTickets',
-                [address]
-              );
-
-              // Get details for each ticket
-              for (const ticketId of userTicketIds) {
-                try {
-                  const ticketInfo = await readContract(
-                    'EventTicket',
-                    'getTicketInfo',
-                    [ticketId]
-                  );
-
-                  userTickets.push({
-                    eventId: Number(eventId),
-                    ticketId: ticketId.toString(),
-                    eventName: eventData.name || `Event ${eventId}`,
-                    ticketType: `Tier ${ticketInfo.tier}`,
-                    purchaseDate: Number(ticketInfo.mintedAt),
-                    price: BigInt(eventData.ticketPrice),
-                    transferable: true, // Assume transferable unless restricted
-                    used: ticketInfo.isUsed
-                  });
-                } catch (error) {
-                  console.error(`Error fetching ticket ${ticketId} info:`, error);
-                }
-              }
-            }
-          } catch (error) {
-            console.error(`Error fetching event ${eventId}:`, error);
-          }
-        }
-
-        return userTickets;
-      } catch (error) {
-        console.error('Error fetching user tickets:', error);
-        return [];
-      }
-    },
-    enabled: !!address,
-  });
-};
+import { getVerificationUrl } from "../../lib/ipfs";
 
 const MyTicketsPage: React.FC = () => {
   const { isConnected } = useAccount();
   const { data: tickets = [], isLoading } = useUserTickets();
+  const [selectedTicket, setSelectedTicket] = useState<any>(null);
+  const [showQRModal, setShowQRModal] = useState(false);
+
+  const handleVerifyTicket = (ticket: any) => {
+    setSelectedTicket(ticket);
+    setShowQRModal(true);
+  };
 
   if (!isConnected) {
     return (
@@ -152,7 +71,7 @@ const MyTicketsPage: React.FC = () => {
             <div className="max-w-6xl mx-auto">
               <div className="grid gap-6">
                 {tickets.map((ticket) => (
-                  <div key={ticket.ticketId} className="bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-700 p-6 hover:border-cyan-500/50 transition-all duration-300">
+                  <div key={ticket.tokenId} className="bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-700 p-6 hover:border-cyan-500/50 transition-all duration-300">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-6">
                         {/* Ticket Visual */}
@@ -165,17 +84,12 @@ const MyTicketsPage: React.FC = () => {
                           <div className="flex items-center gap-2 mb-2">
                             <h3 className="text-xl font-bold text-white">{ticket.eventName}</h3>
                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              ticket.used
+                              ticket.isUsed
                                 ? 'bg-red-500/20 text-red-400'
                                 : 'bg-green-500/20 text-green-400'
                             }`}>
-                              {ticket.used ? 'Used' : 'Valid'}
+                              {ticket.isUsed ? 'Used' : 'Valid'}
                             </span>
-                            {ticket.transferable && (
-                              <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
-                                Transferable
-                              </span>
-                            )}
                           </div>
 
                           <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-400">
@@ -183,10 +97,10 @@ const MyTicketsPage: React.FC = () => {
                               <span className="text-cyan-400">🏷️</span> {ticket.ticketType}
                             </div>
                             <div>
-                              <span className="text-cyan-400">💰</span> {formatEther(ticket.price)} ETH
+                              <span className="text-cyan-400">�</span> {ticket.venue}
                             </div>
                             <div>
-                              <span className="text-cyan-400">📅</span> {new Date(ticket.purchaseDate * 1000).toLocaleDateString()}
+                              <span className="text-cyan-400">📅</span> {new Date(ticket.eventDate * 1000).toLocaleDateString()}
                             </div>
                           </div>
                         </div>
@@ -200,8 +114,14 @@ const MyTicketsPage: React.FC = () => {
                         >
                           View Event
                         </Link>
-                        {!ticket.used && ticket.transferable && (
-                          <button className="bg-cyan-500 text-black px-4 py-2 rounded-lg hover:bg-cyan-400 transition-colors">
+                        <button
+                          onClick={() => handleVerifyTicket(ticket)}
+                          className="bg-cyan-500 text-black px-4 py-2 rounded-lg hover:bg-cyan-400 transition-colors"
+                        >
+                          Verify
+                        </button>
+                        {!ticket.isUsed && (
+                          <button className="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 transition-colors">
                             Transfer
                           </button>
                         )}
@@ -253,26 +173,76 @@ const MyTicketsPage: React.FC = () => {
                 </div>
                 <div className="bg-slate-800/50 backdrop-blur-sm p-6 rounded-2xl border border-slate-700 text-center">
                   <div className="text-3xl font-bold text-green-400 mb-1">
-                    {tickets.filter(t => !t.used).length}
+                    {tickets.filter(t => !t.isUsed).length}
                   </div>
                   <div className="text-gray-400 text-sm">Valid Tickets</div>
                 </div>
                 <div className="bg-slate-800/50 backdrop-blur-sm p-6 rounded-2xl border border-slate-700 text-center">
                   <div className="text-3xl font-bold text-purple-400 mb-1">
-                    {tickets.filter(t => t.transferable).length}
+                    {tickets.length}
                   </div>
-                  <div className="text-gray-400 text-sm">Transferable</div>
+                  <div className="text-gray-400 text-sm">Total Tickets</div>
                 </div>
                 <div className="bg-slate-800/50 backdrop-blur-sm p-6 rounded-2xl border border-slate-700 text-center">
                   <div className="text-3xl font-bold text-yellow-400 mb-1">
-                    {tickets.reduce((sum, t) => sum + Number(formatEther(t.price)), 0).toFixed(2)}
+                    {tickets.filter(t => t.isUsed).length}
                   </div>
-                  <div className="text-gray-400 text-sm">Total Value (ETH)</div>
+                  <div className="text-gray-400 text-sm">Used Tickets</div>
                 </div>
               </div>
             </div>
           </div>
         </section>
+      )}
+
+      {/* QR Code Verification Modal */}
+      {showQRModal && selectedTicket && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 max-w-md w-full">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-white">Verify Ticket</h3>
+              <button
+                onClick={() => setShowQRModal(false)}
+                className="text-gray-400 hover:text-white text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="text-center mb-6">
+              <div className="w-48 h-48 bg-white rounded-lg flex items-center justify-center mx-auto mb-4 p-4">
+                {/* Placeholder for QR code - in production this would be generated */}
+                <div className="text-center text-black">
+                  <div className="text-6xl mb-2">📱</div>
+                  <p className="text-sm">Scan to Verify</p>
+                </div>
+              </div>
+
+              <h4 className="text-lg font-semibold text-white mb-2">{selectedTicket.eventName}</h4>
+              <p className="text-gray-400 text-sm mb-4">
+                Ticket #{selectedTicket.tokenId} • {selectedTicket.ticketType}
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <Link
+                href={getVerificationUrl('placeholder-tx-hash')} // In production, use actual transaction hash
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-cyan-500 text-black px-4 py-3 rounded-lg hover:bg-cyan-400 transition-colors font-semibold text-center block"
+              >
+                🔍 View on BaseScan
+              </Link>
+
+              <button
+                onClick={() => setShowQRModal(false)}
+                className="w-full bg-slate-700 text-white px-4 py-3 rounded-lg hover:bg-slate-600 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -12,7 +12,10 @@ export interface UserTicket {
   purchaseDate: number;
   eventDate: number;
   venue: string;
+  location?: string; // For marketplace compatibility
   isUsed: boolean;
+  ticketContract?: string; // Contract address
+  originalPrice?: bigint; // Original ticket price
 }
 
 // Hook to fetch user's tickets from the contract
@@ -107,7 +110,10 @@ export const useUserTickets = () => {
               purchaseDate: Math.floor(Date.now() / 1000) - 86400, // Placeholder - would come from transfer event
               eventDate: Number(eventDetails.startTime),
               venue: venue,
-              isUsed: Boolean(isUsed)
+              location: venue, // Use venue as location for marketplace
+              isUsed: Boolean(isUsed),
+              ticketContract: CONTRACT_ADDRESSES.EventTicket,
+              originalPrice: BigInt(eventDetails.ticketPrice || '0')
             };
           } catch (error) {
             console.error(`Error fetching ticket ${tokenId} details:`, error);

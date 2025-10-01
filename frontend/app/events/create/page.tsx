@@ -76,7 +76,6 @@ const CreateEventPage: React.FC = () => {
   const validateForm = (): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
-    // Check required fields
     if (!formData.name.trim()) errors.push("Event name is required");
     if (!formData.description.trim()) errors.push("Description is required");
     if (!formData.venue.trim()) errors.push("Venue is required");
@@ -86,7 +85,7 @@ const CreateEventPage: React.FC = () => {
     if (!formData.saleEndDate) errors.push("Sale end date is required");
     if (!formData.maxTickets) errors.push("Maximum tickets is required");
     if (!formData.ticketPrice) errors.push("Ticket price is required");
-    if (!imageUpload.uploaded && !formData.imageUrl) errors.push("Event poster is required (upload an image for verification QR code generation)");
+    if (!imageUpload.uploaded && !formData.imageUrl) errors.push("Event poster is required (upload an image for verification QR code generation) - this is mandatory for event creation");
 
     // Check numeric validations
     const maxTickets = parseInt(formData.maxTickets);
@@ -258,7 +257,7 @@ const CreateEventPage: React.FC = () => {
 
       const eventData = {
         name: formData.name,
-        metadataURI: imageUpload.ipfsUrl || formData.imageUrl || "ipfs://placeholder", // Use uploaded IPFS URL
+        metadataURI: imageUpload.ipfsUrl || formData.imageUrl || "", // Use uploaded IPFS URL or empty
         ticketPrice: (parseFloat(formData.ticketPrice) * 1e18).toString(), // Convert ETH to wei
         maxTickets: parseInt(formData.maxTickets),
         startTime,
@@ -453,7 +452,7 @@ const CreateEventPage: React.FC = () => {
 
                 <div className="mt-6">
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Event Poster * <span className="text-cyan-400">(Required for QR Code Verification)</span>
+                    Event Poster * <span className="text-red-400">(Required)</span>
                   </label>
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
@@ -704,7 +703,7 @@ const CreateEventPage: React.FC = () => {
                   ) : !verificationStatus?.isVerified ? (
                     "⚠️ Get Verified to Create Events"
                   ) : !validation.isValid ? (
-                    "⚠️ Complete Form to Create Event"
+                    "⚠️ Complete Form (Poster Required)"
                   ) : (
                     "🚀 Create Event"
                   )}

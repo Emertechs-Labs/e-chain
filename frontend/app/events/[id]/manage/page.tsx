@@ -7,9 +7,6 @@ import { useEvent } from "../../../hooks/useEvents";
 import { formatEther } from "viem";
 import Link from "next/link";
 import { ArrowLeft, Users, DollarSign, Calendar, Settings, BarChart3 } from "lucide-react";
-import { readContract as readContractWagmi } from "wagmi/actions";
-import { config } from "../../../../lib/wagmi";
-import { CONTRACT_ABIS } from "../../../../lib/contracts";
 import { readContract } from "../../../../lib/contract-wrapper";
 import { CONTRACT_ADDRESSES } from "../../../../lib/contracts";
 import styles from "./page.module.css";
@@ -36,13 +33,11 @@ const EventManagementPage: React.FC = () => {
       if (event && event.ticketContract) {
         try {
           // Get real sold tickets from blockchain
-          const soldTickets = await readContractWagmi(config, {
-            address: event.ticketContract as `0x${string}`,
-            abi: CONTRACT_ABIS.EventTicket,
-            functionName: 'totalSold',
-            args: [],
-            chainId: 84532
-          }) as bigint;
+          const soldTickets = await readContract(
+            event.ticketContract as `0x${string}`,
+            'totalSold',
+            []
+          );
 
           const soldTicketsNum = Number(soldTickets);
           const revenue = soldTicketsNum * Number(formatEther(event.ticketPrice));
@@ -77,13 +72,13 @@ const EventManagementPage: React.FC = () => {
           });
         } catch (error) {
           console.error('Error fetching metrics:', error);
-          // Fallback to mock data
+          // Keep metrics at 0 if unable to fetch real data
           setMetrics({
             totalTickets: event.maxTickets,
-            soldTickets: Math.floor(Math.random() * event.maxTickets * 0.8),
-            revenue: (Math.floor(Math.random() * event.maxTickets * 0.8) * Number(formatEther(event.ticketPrice))).toFixed(3),
-            uniqueAttendees: Math.floor(Math.random() * event.maxTickets * 0.6),
-            poapClaims: Math.floor(Math.random() * event.maxTickets * 0.4),
+            soldTickets: 0,
+            revenue: '0',
+            uniqueAttendees: 0,
+            poapClaims: 0,
             eventStatus: event.isActive ? 'active' : 'inactive'
           });
         }
@@ -294,23 +289,24 @@ const EventManagementPage: React.FC = () => {
             <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-6">
               <h3 className="text-xl font-bold text-white mb-4">Recent Attendees</h3>
               <div className="space-y-3">
-                {Array.from({ length: 5 }, (_, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                        {String.fromCharCode(65 + i)}
-                      </div>
-                      <div>
-                        <p className="text-white text-sm font-medium">Attendee {i + 1}</p>
-                        <p className="text-gray-400 text-xs">0x...{Math.random().toString(36).substr(2, 4)}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-green-400 text-sm">Checked In</p>
-                      <p className="text-gray-400 text-xs">2 hours ago</p>
-                    </div>
+                {metrics.soldTickets > 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400 text-sm">
+                      {metrics.soldTickets} ticket{metrics.soldTickets !== 1 ? 's' : ''} sold
+                    </p>
+                    <p className="text-gray-500 text-xs mt-2">
+                      Detailed attendee list coming soon
+                    </p>
                   </div>
-                ))}
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-3">🎫</div>
+                    <p className="text-gray-400 text-sm">No tickets sold yet</p>
+                    <p className="text-gray-500 text-xs mt-2">
+                      Attendees will appear here once tickets are purchased
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

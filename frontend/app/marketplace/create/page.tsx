@@ -58,9 +58,15 @@ const CreateListingPage: React.FC = () => {
       
       // List ticket
       await listTicket({
-        ticketContract: CONTRACT_ADDRESSES.EventTicket,
+        ticketContract: selectedTicket.ticketContract || CONTRACT_ADDRESSES.EventTicket,
         tokenId: selectedTicket.tokenId,
-        price: priceInWei
+        price: priceInWei,
+        eventId: selectedTicket.eventId,
+        eventName: selectedTicket.eventName,
+        ticketType: selectedTicket.ticketType,
+        originalPrice: selectedTicket.originalPrice?.toString() || "0",
+        eventDate: selectedTicket.eventDate,
+        location: selectedTicket.location || "Virtual Event"
       });
       
       toast.success("Ticket listed successfully!");

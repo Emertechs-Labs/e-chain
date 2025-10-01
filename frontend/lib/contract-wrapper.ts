@@ -15,7 +15,7 @@ import {
   simulateContractWrite,
   waitForTransaction
 } from './contract-fallback';
-import type { CONTRACT_ADDRESSES } from './contracts';
+import { CONTRACT_ADDRESSES } from './contracts';
 
 export interface ContractCallOptions {
   useMultiBaas?: boolean; // Default: true (try MultiBaas first)
@@ -33,7 +33,7 @@ export interface WriteCallOptions extends ContractCallOptions {
  * Read from contract with automatic fallback
  */
 export async function readContract<T = any>(
-  contractName: keyof typeof CONTRACT_ADDRESSES,
+  contractNameOrAddress: keyof typeof CONTRACT_ADDRESSES | Address,
   functionName: string,
   args: any[] = [],
   options: ContractCallOptions = {}
@@ -44,14 +44,19 @@ export async function readContract<T = any>(
     chainId = 84532,
   } = options;
 
-  // Try MultiBaas first if enabled
-  if (useMultiBaas) {
+  // Determine if it's a contract name or address
+  const isContractName = typeof contractNameOrAddress === 'string' && contractNameOrAddress in CONTRACT_ADDRESSES;
+  const contractName = isContractName ? contractNameOrAddress as keyof typeof CONTRACT_ADDRESSES : 'EventTicket'; // Default fallback
+  const contractAddress = isContractName 
+    ? CONTRACT_ADDRESSES[contractNameOrAddress as keyof typeof CONTRACT_ADDRESSES]
+    : contractNameOrAddress as Address;
+
+  // Try MultiBaas first if enabled and it's a known contract
+  if (useMultiBaas && isContractName) {
     try {
       console.log(`[Wrapper] Trying MultiBaas read: ${String(contractName)}.${functionName}`);
       
-      const { CONTRACT_ADDRESSES: addresses } = await import('./contracts');
-      const address = addresses[contractName];
-      const result = await callContractRead(address, String(contractName), functionName, args);
+      const result = await callContractRead(contractAddress, String(contractName), functionName, args);
       
       console.log(`[Wrapper] MultiBaas read succeeded`);
       return result as T;
@@ -73,8 +78,8 @@ export async function readContract<T = any>(
   }
 
   // Fallback to direct contract call
-  console.log(`[Fallback] Using direct RPC for ${String(contractName)}.${functionName}`);
-  return directContractRead<T>(contractName, functionName, args, chainId);
+  console.log(`[Fallback] Using direct RPC for ${contractAddress}.${functionName}`);
+  return directContractRead<T>(contractAddress, functionName, args, chainId);
 }
 
 /**
@@ -84,7 +89,7 @@ export async function readContract<T = any>(
  * Direct fallback uses wallet directly.
  */
 export async function writeContract(
-  contractName: keyof typeof CONTRACT_ADDRESSES,
+  contractNameOrAddress: keyof typeof CONTRACT_ADDRESSES | Address,
   functionName: string,
   args: any[] = [],
   options: WriteCallOptions
@@ -98,19 +103,24 @@ export async function writeContract(
     waitForConfirmation = false,
   } = options;
 
-  // Try MultiBaas first if enabled
-  if (useMultiBaas) {
+  // Determine if it's a contract name or address
+  const isContractName = typeof contractNameOrAddress === 'string' && contractNameOrAddress in CONTRACT_ADDRESSES;
+  const contractName = isContractName ? contractNameOrAddress as keyof typeof CONTRACT_ADDRESSES : 'EventTicket'; // Default fallback
+  const contractAddress = isContractName 
+    ? CONTRACT_ADDRESSES[contractNameOrAddress as keyof typeof CONTRACT_ADDRESSES]
+    : contractNameOrAddress as Address;
+
+  // Try MultiBaas first if enabled and it's a known contract
+  if (useMultiBaas && isContractName) {
     try {
       console.log(`[Wrapper] Trying MultiBaas write: ${String(contractName)}.${functionName}`);
       
-      const { CONTRACT_ADDRESSES: addresses } = await import('./contracts');
-      const address = addresses[contractName];
       const chain = chainId === 84532 ? 'base-sepolia' : `eip155:${chainId}`;
       
       // Get unsigned transaction from MultiBaas
       const unsignedTx = await getUnsignedTransactionForChain(
         chain,
-        address,
+        contractAddress,
         String(contractName),
         functionName,
         args,
@@ -120,10 +130,49 @@ export async function writeContract(
 
       console.log(`[Wrapper] MultiBaas generated unsigned transaction`);
       
-      // You'll need to sign and send this via your wallet hook
-      // This returns the tx data, not the hash - you'll handle signing in your app
-      // For now, throw to force fallback
-      throw new Error('MultiBaas write requires additional signing flow - using fallback');
+      // Format the transaction for wallet signing
+      const txData = unsignedTx?.tx || unsignedTx;
+      const formattedTx: any = { ...txData };
+
+      // Convert value to BigInt if present
+      if (formattedTx.value) {
+        formattedTx.value = BigInt(formattedTx.value);
+      }
+
+      // Map gas fields
+      if (formattedTx.gas) {
+        formattedTx.gasLimit = BigInt(formattedTx.gas);
+        delete formattedTx.gas;
+      }
+
+      // Map EIP-1559 fields
+      if (formattedTx.gasFeeCap) {
+        formattedTx.maxFeePerGas = BigInt(formattedTx.gasFeeCap);
+        delete formattedTx.gasFeeCap;
+      }
+      if (formattedTx.gasTipCap) {
+        formattedTx.maxPriorityFeePerGas = BigInt(formattedTx.gasTipCap);
+        delete formattedTx.gasTipCap;
+      }
+
+      // Remove fields wallet should determine
+      delete formattedTx.nonce;
+      delete formattedTx.gasPrice;
+      delete formattedTx.from;
+      delete formattedTx.hash;
+
+      // Attach account
+      if (account) formattedTx.account = account;
+
+      // Get wallet client and send transaction
+      const { getWalletClient } = await import('./contract-fallback');
+      const walletClient = getWalletClient(chainId);
+
+      console.log(`[Wrapper] Sending MultiBaas transaction via wallet`);
+      const hash = await walletClient.sendTransaction(formattedTx);
+
+      console.log(`[Wrapper] MultiBaas transaction sent: ${hash}`);
+      return hash;
       
     } catch (error) {
       console.warn(`[Wrapper] MultiBaas write failed:`, error);
@@ -138,7 +187,7 @@ export async function writeContract(
 
   // Fallback to direct contract call
   const hash = await directContractWrite(
-    contractName,
+    contractAddress,
     functionName,
     args,
     value,

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { callContractRead, CHAIN_NAME } from '../../../../lib/multibaas';
+import { readContract } from '../../../../lib/contract-wrapper';
 
 export async function POST(req: Request) {
   try {
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       const contract = aliasToContract[contractLabel] || contractLabel; // fallback if not mapped
 
       // Call the contract read method isVerifiedOrganizer(address)
-      const result = await callContractRead(contractLabel, contract, 'isVerifiedOrganizer', [address]);
+      const result = await readContract<boolean>('EventFactory', 'isVerifiedOrganizer', [address]);
       console.debug('[app/api/multibaas/check-organizer] result', { traceId, result });
       return NextResponse.json({ verified: !!result }, { status: 200 });
     } catch (err: any) {

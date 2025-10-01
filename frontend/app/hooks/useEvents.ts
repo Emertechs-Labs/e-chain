@@ -1,9 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
-import { readContract } from 'wagmi/actions';
-import { config } from '../../lib/wagmi';
+import { readContract } from '../../lib/contract-wrapper';
 import { Event } from '../../types/event';
-import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from '../../lib/contracts';
 import { enrichEventsWithMetadata, enrichEventWithMetadata } from '../../lib/metadata';
 
 export const useEvents = () => {
@@ -66,24 +64,20 @@ export const useEventsByOrganizer = (organizer?: string) => {
 
         // Fallback to blockchain if no events in database
         console.log('[useEventsByOrganizer] No events in database, checking blockchain...');
-        const eventCount = await readContract(config, {
-          address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
-          abi: CONTRACT_ABIS.EventFactory,
-          functionName: 'eventCount',
-          args: [],
-          chainId: 84532
-        }) as bigint;
+        const eventCount = await readContract(
+          'EventFactory',
+          'eventCount',
+          []
+        ) as bigint;
 
         const events: Event[] = [];
         for (let eventId = 1; eventId <= Number(eventCount); eventId++) {
           try {
-            const eventData = await readContract(config, {
-              address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
-              abi: CONTRACT_ABIS.EventFactory,
-              functionName: 'events',
-              args: [BigInt(eventId)],
-              chainId: 84532
-            }) as any;
+            const eventData = await readContract(
+              'EventFactory',
+              'events',
+              [BigInt(eventId)]
+            ) as any;
 
             if (eventData.isActive && eventData.organizer.toLowerCase() === targetOrganizer.toLowerCase()) {
               const event: Event = {
@@ -148,13 +142,11 @@ export const useEvent = (eventId: number) => {
 
         // Fallback to blockchain if not in database
         console.log('[useEvent] Event not in database, checking blockchain for event:', eventId);
-        const eventCount = await readContract(config, {
-          address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
-          abi: CONTRACT_ABIS.EventFactory,
-          functionName: 'eventCount',
-          args: [],
-          chainId: 84532
-        }) as bigint;
+        const eventCount = await readContract(
+          'EventFactory',
+          'eventCount',
+          []
+        ) as bigint;
 
         // Validate eventId
         if (Number(eventId) <= 0 || Number(eventId) > Number(eventCount)) {
@@ -162,13 +154,11 @@ export const useEvent = (eventId: number) => {
           return null;
         }
 
-        const eventData = await readContract(config, {
-          address: CONTRACT_ADDRESSES.EventFactory as `0x${string}`,
-          abi: CONTRACT_ABIS.EventFactory,
-          functionName: 'events',
-          args: [BigInt(eventId)],
-          chainId: 84532
-        }) as any;
+        const eventData = await readContract(
+          'EventFactory',
+          'events',
+          [BigInt(eventId)]
+        ) as any;
 
         // Convert contract data to Event interface
         const event: Event = {

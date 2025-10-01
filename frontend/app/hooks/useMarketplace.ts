@@ -1,11 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAccount, useWalletClient, useChainId, useSwitchChain } from 'wagmi';
-import { readContract as readContractWagmi } from 'wagmi/actions';
-import { ethers } from 'ethers';
-import { CONTRACT_ADDRESSES } from '../../lib/contracts';
-import { config } from '../../lib/wagmi';
-import { readContract } from '../../lib/contract-wrapper';
-import { formatForWallet, callUnsignedTx, handleTransactionError } from '../../lib/transaction-utils';
+import { useAccount } from 'wagmi';
+import { handleTransactionError } from '../../lib/transaction-utils';
 
 export interface MarketplaceListing {
   id: string;
@@ -38,7 +33,7 @@ const mockListings: MarketplaceListing[] = [
     eventDate: Math.floor(new Date('2024-03-15T09:00:00').getTime() / 1000),
     location: "San Francisco, CA",
     verified: true,
-    ticketContract: CONTRACT_ADDRESSES.EventTicket,
+    ticketContract: '0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C',
     listedAt: Math.floor(Date.now() / 1000) - 86400, // 1 day ago
     active: true
   },
@@ -54,7 +49,7 @@ const mockListings: MarketplaceListing[] = [
     eventDate: Math.floor(new Date('2024-03-22T10:00:00').getTime() / 1000),
     location: "New York, NY",
     verified: true,
-    ticketContract: CONTRACT_ADDRESSES.EventTicket,
+    ticketContract: '0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C',
     listedAt: Math.floor(Date.now() / 1000) - 172800, // 2 days ago
     active: true
   },
@@ -70,67 +65,11 @@ const mockListings: MarketplaceListing[] = [
     eventDate: Math.floor(new Date('2024-04-05T14:00:00').getTime() / 1000),
     location: "Los Angeles, CA",
     verified: false,
-    ticketContract: CONTRACT_ADDRESSES.EventTicket,
+    ticketContract: '0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C',
     listedAt: Math.floor(Date.now() / 1000) - 259200, // 3 days ago
     active: true
   }
 ];
-
-// Fetch listing details from blockchain with enriched metadata
-async function fetchListingDetails(listingId: string): Promise<MarketplaceListing> {
-  try {
-    // First get raw listing data from contract
-    const rawListing = await readContract(
-      'Marketplace',
-      'getListing',
-      [listingId]
-    );
-    
-    // Get event ID and metadata from ticket contract
-    const eventId = await readContract(
-      'EventTicket',
-      'ticketToEvent',
-      [rawListing.tokenId]
-    );
-    
-    // Get event details from factory
-    const eventDetails = await readContract(
-      'EventFactory',
-      'getEventDetails',
-      [eventId]
-    );
-    
-    // Calculate original price (ticket face value)
-    const originalPrice = await readContract(
-      'EventFactory',
-      'events',
-      [eventId]
-    );
-    
-    // Format listing for UI
-    const listing: MarketplaceListing = {
-      id: listingId,
-      tokenId: Number(rawListing.tokenId),
-      eventId: Number(eventId),
-      eventName: eventDetails.name,
-      ticketType: "General Admission", // Default, would be from ticket metadata ideally
-      price: BigInt(rawListing.price),
-      originalPrice: BigInt(originalPrice.ticketPrice),
-      seller: rawListing.seller,
-      eventDate: Number(eventDetails.startTime),
-      location: "On-chain Event", // Would come from metadata ideally
-      verified: true, // All tickets from our contracts are verified
-      ticketContract: rawListing.ticketContract,
-      listedAt: Number(rawListing.listedAt),
-      active: rawListing.active
-    };
-    
-    return listing;
-  } catch (error) {
-    console.error("Error fetching listing details:", error);
-    throw error;
-  }
-}
 
 // Hook to fetch all marketplace listings
 export const useMarketplaceListings = () => {
@@ -138,25 +77,20 @@ export const useMarketplaceListings = () => {
     queryKey: ['marketplace-listings'],
     queryFn: async (): Promise<MarketplaceListing[]> => {
       try {
-        // First try to query listing IDs from contract
-        const result = await readContract(
-          'Marketplace',
-          'getActiveListings',
-          [CONTRACT_ADDRESSES.EventTicket, 0, 100] // Query for our primary ticket contract
-        );
-        
-        const listingIds = result?.listingIds || [];
-        
-        if (listingIds.length === 0) {
-          console.log('No active listings found, using mock data');
-          return mockListings;
+        // Fetch listings from database API
+        const response = await fetch('/api/marketplace');
+        if (!response.ok) {
+          throw new Error('Failed to fetch marketplace listings');
         }
-        
-        // Fetch details for each listing
-        const listingsPromises = listingIds.map((id: string) => fetchListingDetails(id));
-        const listings = await Promise.all(listingsPromises);
-        
-        return listings.filter(listing => listing.active);
+
+        const listings = await response.json();
+
+        // Convert string prices back to BigInt
+        return listings.map((listing: any) => ({
+          ...listing,
+          price: BigInt(listing.price),
+          originalPrice: BigInt(listing.originalPrice)
+        }));
       } catch (error) {
         console.error('Error fetching marketplace listings:', error);
         // Fallback to mock data on error
@@ -179,32 +113,23 @@ export const useUserListings = (userAddress?: string) => {
       if (!targetAddress) return [];
 
       try {
-        // Query all listings and filter by seller
-        const allListings = await readContract(
-          'Marketplace',
-          'getActiveListings',
-          [CONTRACT_ADDRESSES.EventTicket, 0, 100]
-        );
-        
-        const listingIds = allListings?.listingIds || [];
-        
-        if (listingIds.length === 0) {
-          return mockListings.filter(listing => 
-            listing.seller.toLowerCase() === targetAddress.toLowerCase()
-          );
+        // Fetch user's listings from database API
+        const response = await fetch(`/api/marketplace?seller=${targetAddress}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch user listings');
         }
-        
-        // Fetch details and filter by seller
-        const listingsPromises = listingIds.map((id: string) => fetchListingDetails(id));
-        const allListingDetails = await Promise.all(listingsPromises);
-        
-        return allListingDetails.filter((listing: MarketplaceListing) => 
-          listing.active && 
-          listing.seller.toLowerCase() === targetAddress.toLowerCase()
-        );
+
+        const listings = await response.json();
+
+        // Convert string prices back to BigInt
+        return listings.map((listing: any) => ({
+          ...listing,
+          price: BigInt(listing.price),
+          originalPrice: BigInt(listing.originalPrice)
+        }));
       } catch (error) {
         console.error('Error fetching user listings:', error);
-        return mockListings.filter(listing => 
+        return mockListings.filter(listing =>
           listing.seller.toLowerCase() === targetAddress.toLowerCase()
         );
       }
@@ -217,70 +142,56 @@ export const useUserListings = (userAddress?: string) => {
 export const useListTicketForSale = () => {
   const { address } = useAccount();
   const queryClient = useQueryClient();
-  const { data: walletClient } = useWalletClient();
-  const chainId = useChainId();
-  const { switchChain } = useSwitchChain();
 
   return useMutation({
     mutationFn: async (listingData: {
       ticketContract: string;
       tokenId: number;
       price: string; // Price in wei as string
+      eventId: number;
+      eventName: string;
+      ticketType: string;
+      originalPrice: string;
+      eventDate: number;
+      location: string;
     }) => {
       if (!address) throw new Error('Wallet not connected');
 
-      // Check if on Base Sepolia testnet, switch if not
-      if (chainId !== 84532) {
-        try {
-          await switchChain({ chainId: 84532 });
-          // Wait for the switch
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        } catch (error) {
-          throw new Error('Failed to switch to Base Sepolia testnet. Please switch manually.');
-        }
-      }
-
       try {
-        // First approve marketplace to transfer the NFT
-        const approveResult = await callUnsignedTx(
-          listingData.ticketContract,
-          'eventticket',
-          'approve',
-          [CONTRACT_ADDRESSES.Marketplace, listingData.tokenId],
-          address
-        );
+        // Generate unique listing ID
+        const listingId = `listing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-        const approveTxData = approveResult?.tx || approveResult;
-        const formattedApprove = formatForWallet(approveTxData, address);
+        // Create listing in database
+        const response = await fetch('/api/marketplace', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: listingId,
+            tokenId: listingData.tokenId,
+            eventId: listingData.eventId,
+            eventName: listingData.eventName,
+            ticketType: listingData.ticketType,
+            price: listingData.price,
+            originalPrice: listingData.originalPrice,
+            seller: address,
+            eventDate: listingData.eventDate,
+            location: listingData.location,
+            ticketContract: listingData.ticketContract,
+            listedAt: Math.floor(Date.now() / 1000),
+            active: true
+          })
+        });
 
-        if (!walletClient) {
-          throw new Error('No wallet client available');
+        if (!response.ok) {
+          throw new Error('Failed to create marketplace listing');
         }
 
-        // Send approval transaction
-        const approveTxHash = await walletClient.sendTransaction(formattedApprove as any);
-        
-        // Wait for approval to be confirmed
-        await new Promise(resolve => setTimeout(resolve, 5000)); // Simple wait, would use proper confirmation in production
-        
-        // Now list the ticket
-        const listingResult = await callUnsignedTx(
-          CONTRACT_ADDRESSES.Marketplace,
-          'marketplace',
-          'listTicket',
-          [listingData.ticketContract, listingData.tokenId, listingData.price],
-          address
-        );
-        
-        const listingTxData = listingResult?.tx || listingResult;
-        const formattedListing = formatForWallet(listingTxData, address);
-        
-        // Send listing transaction
-        const listingTxHash = await walletClient.sendTransaction(formattedListing as any);
-        
-        return { 
-          approveTxHash,
-          listingTxHash,
+        const result = await response.json();
+
+        return {
+          listingId,
           tokenId: listingData.tokenId
         };
       } catch (error) {
@@ -298,9 +209,6 @@ export const useListTicketForSale = () => {
 export const useBuyMarketplaceTicket = () => {
   const { address } = useAccount();
   const queryClient = useQueryClient();
-  const { data: walletClient } = useWalletClient();
-  const chainId = useChainId();
-  const { switchChain } = useSwitchChain();
 
   return useMutation({
     mutationFn: async (purchaseData: {
@@ -309,40 +217,24 @@ export const useBuyMarketplaceTicket = () => {
     }) => {
       if (!address) throw new Error('Wallet not connected');
 
-      // Check if on Base Sepolia testnet, switch if not
-      if (chainId !== 84532) {
-        try {
-          await switchChain({ chainId: 84532 });
-          // Wait for the switch
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        } catch (error) {
-          throw new Error('Failed to switch to Base Sepolia testnet. Please switch manually.');
-        }
-      }
-
       try {
-        // Call buyTicket function with value
-        const result = await callUnsignedTx(
-          CONTRACT_ADDRESSES.Marketplace,
-          'marketplace',
-          'buyTicket',
-          [purchaseData.listingId],
-          address,
-          purchaseData.price // Send exact price
-        );
-        
-        const txData = result?.tx || result;
-        const formatted = formatForWallet(txData, address);
-        
-        if (!walletClient) {
-          throw new Error('No wallet client available');
+        // Mark listing as inactive (sold) in database
+        const response = await fetch('/api/marketplace', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: purchaseData.listingId,
+            active: false
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update marketplace listing');
         }
-        
-        // Send transaction
-        const txHash = await walletClient.sendTransaction(formatted as any);
-        
-        return { 
-          txHash,
+
+        return {
           listingId: purchaseData.listingId
         };
       } catch (error) {
@@ -360,32 +252,29 @@ export const useBuyMarketplaceTicket = () => {
 export const useCancelMarketplaceListing = () => {
   const { address } = useAccount();
   const queryClient = useQueryClient();
-  const { data: walletClient } = useWalletClient();
 
   return useMutation({
     mutationFn: async (listingId: string) => {
       if (!address) throw new Error('Wallet not connected');
 
       try {
-        const result = await callUnsignedTx(
-          CONTRACT_ADDRESSES.Marketplace,
-          'marketplace',
-          'cancelListing',
-          [listingId],
-          address
-        );
-        
-        const txData = result?.tx || result;
-        const formatted = formatForWallet(txData, address);
-        
-        if (!walletClient) {
-          throw new Error('No wallet client available');
+        // Mark listing as inactive in database
+        const response = await fetch('/api/marketplace', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: listingId,
+            active: false
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to cancel marketplace listing');
         }
-        
-        const txHash = await walletClient.sendTransaction(formatted as any);
-        
-        return { 
-          txHash,
+
+        return {
           listingId
         };
       } catch (error) {

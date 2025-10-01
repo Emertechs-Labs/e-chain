@@ -253,7 +253,8 @@ async function getTicketsFromContractBalances(address: string): Promise<UserTick
     // Get all events
     const eventsResponse = await fetch('/api/events');
     if (!eventsResponse.ok) {
-      console.error('[getTicketsFromContractBalances] Failed to fetch events from API');
+      const errorText = await eventsResponse.text();
+      console.error('[getTicketsFromContractBalances] Failed to fetch events from API:', eventsResponse.status, errorText);
       return [];
     }
 
@@ -264,8 +265,19 @@ async function getTicketsFromContractBalances(address: string): Promise<UserTick
 
     // Check each event's ticket contract
     for (const event of allEvents) {
-      if (!event.ticketContract || !event.isActive) {
-        console.log(`[getTicketsFromContractBalances] Skipping event ${event.id}: no contract or not active`);
+      if (!event.ticketContract) {
+        console.log(`[getTicketsFromContractBalances] Skipping event ${event.id}: no contract address`);
+        continue;
+      }
+
+      if (!event.isActive) {
+        console.log(`[getTicketsFromContractBalances] Skipping event ${event.id}: event is not active`);
+        continue;
+      }
+
+      // Validate contract address format
+      if (!/^0x[a-fA-F0-9]{40}$/.test(event.ticketContract)) {
+        console.error(`[getTicketsFromContractBalances] Invalid contract address for event ${event.id}: ${event.ticketContract}`);
         continue;
       }
 

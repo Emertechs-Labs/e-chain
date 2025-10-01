@@ -83,7 +83,7 @@ export async function readContract<T = any>(
 
   // Fallback to direct contract call
   console.log(`[Fallback] Using direct RPC for ${contractAddress}.${functionName}`);
-  return directContractRead<T>(contractName, functionName, args, chainId);
+  return directContractRead<T>(contractNameOrAddress, functionName, args, chainId);
 }
 
 /**
@@ -195,7 +195,7 @@ export async function writeContract(
 
   // Fallback to direct contract call
   const hash = await directContractWrite(
-    contractName,
+    contractNameOrAddress,
     functionName,
     args,
     value,

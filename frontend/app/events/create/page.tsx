@@ -4,10 +4,8 @@ import React, { useState } from "react";
 import { useAccount } from "wagmi";
 import { useOrganizerVerification, useVerifyOrganizer } from "../../hooks/useTransactions";
 import { useCreateEventDirect } from "../../hooks/useTransactionsDirect"; // Direct wallet (no MultiBaas)
-import SignAndSendUnsignedTx from '../../../components/SignAndSendUnsignedTx';
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { TransactionStatus, usePendingTransactions } from "../../components/TransactionStatus";
 import { uploadToIPFS, uploadEventMetadata, generateEventPosterWithQR } from "../../../lib/ipfs";
 import Image from "next/image";
 
@@ -39,8 +37,6 @@ const CreateEventPage: React.FC = () => {
   const { data: verificationStatus, isLoading: verificationLoading } = useOrganizerVerification();
   const verifyOrganizerMutation = useVerifyOrganizer();
   const [isLoading, setIsLoading] = useState(false);
-  const [preparedPayload, setPreparedPayload] = useState<Record<string, any> | null>(null);
-  const { pendingTxs, addTransaction, removeTransaction } = usePendingTransactions();
   const [imageUpload, setImageUpload] = useState<ImageUploadState>({
     file: null,
     preview: '',
@@ -215,13 +211,13 @@ const CreateEventPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Prevent multiple submissions
-    if (isLoading || preparedPayload) {
+    if (isLoading || createEventMutation.isPending) {
       console.log('[CreateEventPage] Ignoring duplicate submit - already processing');
       return;
     }
-    
+
     // Use the validation function
     const validation = validateForm();
     if (!validation.isValid) {
@@ -253,44 +249,26 @@ const CreateEventPage: React.FC = () => {
       // Convert form data to contract parameters
       const startTime = Math.floor(new Date(formData.startDate).getTime() / 1000);
       const endTime = Math.floor(new Date(formData.endDate).getTime() / 1000);
-      const saleEndTime = Math.floor(new Date(formData.saleEndDate).getTime() / 1000);
 
       const eventData = {
         name: formData.name,
         metadataURI: imageUpload.ipfsUrl || formData.imageUrl || "", // Use uploaded IPFS URL or empty
-        ticketPrice: (parseFloat(formData.ticketPrice) * 1e18).toString(), // Convert ETH to wei
+        ticketPrice: formData.ticketPrice, // Keep as string, hook will convert to wei
         maxTickets: parseInt(formData.maxTickets),
         startTime,
         endTime
       };
 
-      // Prepare payload for server-side unsigned tx creation
-      const payload = {
-        address: 'eventfactory',
-        contractLabel: 'eventfactory',
-        method: 'createEvent',
-        blockchain: 'base-sepolia', // Using the format that works with MultiBaas
-        args: [
-          eventData.name,
-          eventData.metadataURI,
-          String(eventData.ticketPrice),
-          String(eventData.maxTickets),
-          String(eventData.startTime),
-          String(eventData.endTime)
-        ],
-        from: address ?? undefined, // prefer connected wallet address
-        autoStart: true,
-        traceId: `create-event-${Date.now()}`
-      } as Record<string, any>;
+      // Use the direct hook to create the event
+      await createEventMutation.mutateAsync(eventData);
 
-      // Store prepared payload and flip UI to show wallet signing component
-      setPreparedPayload(payload);
-      toast.dismiss();
-      setIsLoading(false);
+      toast.success("Event created successfully!");
+      router.push('/my-events');
     } catch (error: any) {
-      toast.dismiss();
-      setIsLoading(false);
+      console.error('[CreateEventPage] Error creating event:', error);
       toast.error(error.message || "Failed to create event. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };  if (!isConnected) {
     return (
@@ -640,27 +618,6 @@ const CreateEventPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Transaction Status */}
-              {pendingTxs.length > 0 && (
-                <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-8">
-                  <h2 className="text-2xl font-bold text-white mb-6">Transaction Status</h2>
-                  <div className="space-y-4">
-                    {pendingTxs.map((tx) => (
-                      <TransactionStatus
-                        key={tx.hash}
-                        hash={tx.hash}
-                        description={tx.description}
-                        onComplete={() => {
-                          removeTransaction(tx.hash);
-                          toast.success("Event created successfully!");
-                          router.push('/my-events');
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* Submit Button / Wallet signing flow */}
               <div className="text-center">
                 {/* Validation Errors */}
@@ -712,62 +669,6 @@ const CreateEventPage: React.FC = () => {
                   Creating an event will deploy a smart contract and mint NFT tickets
                 </p>
               </div>
-
-              {/* Wallet signing area: rendered only when we have a prepared payload */}
-              {preparedPayload && (
-                <div id="wallet-sign-area" className="mt-6">
-                  <SignAndSendUnsignedTx
-                    payload={preparedPayload}
-                    label={`Sign & Send: Create ${formData.name}`}
-                    onSubmitted={async (txHash) => {
-                      // txHash is a string; cast to the template literal type expected by addTransaction
-                      addTransaction(txHash as `0x${string}`, `Create Event: ${formData.name}`);
-                      toast.success('Transaction submitted! Waiting for confirmation...');
-
-                      // Generate QR code verification poster after transaction is submitted (non-blocking)
-                      setTimeout(async () => {
-                        try {
-                          if (imageUpload.file) {
-                            const verificationData = {
-                              eventId: 0, // Will be set after event creation
-                              eventName: formData.name,
-                              organizer: address || '',
-                              transactionHash: txHash,
-                              blockNumber: 0, // Will be fetched from transaction
-                              timestamp: Date.now(),
-                            };
-
-                            const eventData = {
-                              name: formData.name,
-                              description: formData.description,
-                              date: formData.startDate,
-                              venue: formData.venue,
-                              organizer: address || '',
-                            };
-
-                            const posterResult = await generateEventPosterWithQR(
-                              eventData,
-                              verificationData,
-                              imageUpload.file
-                            );
-
-                            if (posterResult.success) {
-                              console.log('Verification poster IPFS URL:', posterResult.url);
-                              toast.success('QR code verification poster generated and uploaded to IPFS!');
-                            } else {
-                              console.warn('Failed to generate QR poster:', posterResult.error);
-                            }
-                          }
-                        } catch (error) {
-                          console.error('Error generating QR verification poster:', error);
-                        }
-                      }, 100); // Small delay to ensure transaction is processed
-
-                      // Let TransactionStatus handle completion and navigation
-                    }}
-                  />
-                </div>
-              )}
             </form>
           </div>
         </div>

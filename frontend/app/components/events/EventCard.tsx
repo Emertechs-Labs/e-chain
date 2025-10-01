@@ -94,7 +94,7 @@ export default function EventCard({ event }: EventCardProps) {
         <div className="space-y-1 mb-3">
           <div className="flex items-center text-sm text-gray-400">
             <span className="text-cyan-400 mr-2">📅</span>
-            {formatEventDate(event.startTime)}
+            {event.formattedStartDate || formatEventDate(event.startTime)}
           </div>
           <div className="flex items-center text-sm text-gray-400">
             <span className="text-cyan-400 mr-2">📍</span>

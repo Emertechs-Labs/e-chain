@@ -28,105 +28,112 @@ export const useUserTickets = () => {
       if (!address) return [];
 
       try {
-        // Get balance of user's tickets
-        const balance = await readContract(
-          'EventTicket',
-          'balanceOf',
-          [address]
-        );
-
-        if (!balance || Number(balance) === 0) {
-          return [];
+        // First, get all events to know which ticket contracts to check
+        console.log('[useUserTickets] Fetching all events to check ticket contracts...');
+        const eventsResponse = await fetch('/api/events');
+        if (!eventsResponse.ok) {
+          throw new Error('Failed to fetch events');
         }
+        const allEvents = await eventsResponse.json();
+        console.log(`[useUserTickets] Found ${allEvents.length} events to check`);
 
-        // Get tokenIds for each ticket
-        const tokenIdsPromises = [];
-        for (let i = 0; i < Number(balance); i++) {
-          tokenIdsPromises.push(
-            readContract(
-              'EventTicket',
-              'tokenOfOwnerByIndex',
-              [address, i]
-            )
-          );
-        }
-        const tokenIds = await Promise.all(tokenIdsPromises);
+        const allTickets: UserTicket[] = [];
 
-        // Get event data for each ticket
-        const ticketsPromises = tokenIds.map(async (tokenId) => {
+        // Check each event's ticket contract for user's tickets
+        for (const event of allEvents) {
+          if (!event.ticketContract || !event.isActive) {
+            continue; // Skip events without ticket contracts or inactive events
+          }
+
           try {
-            // Get eventId for this ticket
-            const eventId = await readContract(
-              'EventTicket',
-              'ticketToEvent',
-              [tokenId]
+            console.log(`[useUserTickets] Checking tickets for event ${event.id} (${event.name}) at contract ${event.ticketContract}`);
+
+            // Get user's balance in this specific ticket contract
+            const balance = await readContract(
+              event.ticketContract, // Use the specific event's ticket contract address
+              'balanceOf',
+              [address]
             );
 
-            // Get event details
-            const eventDetails = await readContract(
-              'EventFactory',
-              'getEventDetails',
-              [eventId]
-            );
-
-            // Check if ticket is used
-            const isUsed = await readContract(
-              'EventTicket',
-              'isValidTicket',
-              [tokenId]
-            );
-            // isValidTicket returns true if NOT used, so invert it
-            const ticketIsUsed = !isUsed;
-
-            // Get event metadata for venue and other details
-            let venue = "TBA"; // Default fallback
-            let ticketType = "General Admission"; // Default
-            
-            try {
-              if (eventDetails.metadataURI) {
-                const metadata = await fetchMetadataFromIPFS(eventDetails.metadataURI);
-                const defaultMetadata = generateDefaultMetadata({ 
-                  id: Number(eventId), 
-                  name: eventDetails.name,
-                  organizer: eventDetails.organizer,
-                  metadataURI: eventDetails.metadataURI,
-                  ticketContract: '',
-                  ticketPrice: 0n,
-                  maxTickets: 0,
-                  startTime: 0,
-                  endTime: 0,
-                  isActive: true,
-                  createdAt: 0
-                });
-                venue = metadata?.venue || defaultMetadata.venue || "TBA";
-              }
-            } catch (metadataError) {
-              console.warn('Failed to fetch venue from metadata:', metadataError);
+            if (!balance || Number(balance) === 0) {
+              console.log(`[useUserTickets] No tickets found for event ${event.id}`);
+              continue;
             }
 
-            return {
-              tokenId: Number(tokenId),
-              eventId: Number(eventId),
-              eventName: eventDetails.name,
-              ticketType: ticketType,
-              purchaseDate: Math.floor(Date.now() / 1000) - 86400, // Placeholder - would come from transfer event
-              eventDate: Number(eventDetails.startTime),
-              venue: venue,
-              location: venue, // Use venue as location for marketplace
-              isUsed: ticketIsUsed,
-              ticketContract: CONTRACT_ADDRESSES.EventTicket,
-              originalPrice: BigInt(eventDetails.ticketPrice || '0')
-            };
-          } catch (error) {
-            console.error(`Error fetching ticket ${tokenId} details:`, error);
-            return null;
-          }
-        });
+            console.log(`[useUserTickets] Found ${Number(balance)} tickets for event ${event.id}`);
 
-        const tickets = (await Promise.all(ticketsPromises)).filter(Boolean) as UserTicket[];
-        return tickets;
+            // Get tokenIds for each ticket in this contract
+            const tokenIdsPromises = [];
+            for (let i = 0; i < Number(balance); i++) {
+              tokenIdsPromises.push(
+                readContract(
+                  event.ticketContract,
+                  'tokenOfOwnerByIndex',
+                  [address, i]
+                )
+              );
+            }
+            const tokenIds = await Promise.all(tokenIdsPromises);
+
+            // Get ticket details for each token
+            const ticketPromises = tokenIds.map(async (tokenId) => {
+              try {
+                // Check if ticket is used
+                const isValid = await readContract(
+                  event.ticketContract,
+                  'isValidTicket',
+                  [tokenId]
+                );
+                // isValidTicket returns true if NOT used, so invert it
+                const ticketIsUsed = !isValid;
+
+                // Get event metadata for venue and other details
+                let venue = "TBA"; // Default fallback
+                let ticketType = "General Admission"; // Default
+
+                try {
+                  if (event.metadataURI) {
+                    const metadata = await fetchMetadataFromIPFS(event.metadataURI);
+                    const defaultMetadata = generateDefaultMetadata(event);
+                    venue = metadata?.venue || defaultMetadata.venue || "TBA";
+                  }
+                } catch (metadataError) {
+                  console.warn(`[useUserTickets] Failed to fetch venue from metadata for event ${event.id}:`, metadataError);
+                }
+
+                return {
+                  tokenId: Number(tokenId),
+                  eventId: Number(event.id),
+                  eventName: event.name,
+                  ticketType: ticketType,
+                  purchaseDate: Math.floor(Date.now() / 1000) - 86400, // Placeholder - would come from transfer event
+                  eventDate: Number(event.startTime),
+                  venue: venue,
+                  location: venue, // Use venue as location for marketplace
+                  isUsed: ticketIsUsed,
+                  ticketContract: event.ticketContract,
+                  originalPrice: BigInt(event.ticketPrice || '0')
+                };
+              } catch (error) {
+                console.error(`[useUserTickets] Error fetching ticket ${tokenId} details for event ${event.id}:`, error);
+                return null;
+              }
+            });
+
+            const eventTickets = (await Promise.all(ticketPromises)).filter(Boolean) as UserTicket[];
+            allTickets.push(...eventTickets);
+            console.log(`[useUserTickets] Added ${eventTickets.length} tickets from event ${event.id}`);
+
+          } catch (error) {
+            console.error(`[useUserTickets] Error checking event ${event.id}:`, error);
+            // Continue with other events
+          }
+        }
+
+        console.log(`[useUserTickets] Total tickets found: ${allTickets.length}`);
+        return allTickets;
       } catch (error) {
-        console.error('Error fetching user tickets:', error);
+        console.error('[useUserTickets] Error fetching user tickets:', error);
         return [];
       }
     },

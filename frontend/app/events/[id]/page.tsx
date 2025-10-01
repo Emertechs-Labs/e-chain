@@ -254,7 +254,10 @@ const EventDetailPage: React.FC = () => {
                 <div className="flex items-center text-muted-foreground">
                   <span className="text-primary mr-3">📅</span>
                   <span className="text-sm sm:text-base">
-                    {new Date(event.startTime * 1000).toLocaleDateString()} - {new Date(event.endTime * 1000).toLocaleDateString()}
+                    {event.formattedStartDate && event.formattedEndDate 
+                      ? `${event.formattedStartDate} - ${event.formattedEndDate}`
+                      : `${new Date(event.startTime * 1000).toLocaleDateString()} - ${new Date(event.endTime * 1000).toLocaleDateString()}`
+                    }
                   </span>
                 </div>
                 <div className="flex items-center text-muted-foreground">
@@ -423,7 +426,7 @@ const EventDetailPage: React.FC = () => {
                       </div>
                       <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2">{event.name}</h3>
                       <p className="text-muted-foreground text-xs sm:text-sm mb-4">
-                        Proof of Attendance - {new Date(event.startTime * 1000).toLocaleDateString()}
+                        Proof of Attendance - {event.formattedStartDate || new Date(event.startTime * 1000).toLocaleDateString()}
                       </p>
                       <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
                         <span>⭐</span>

@@ -55,9 +55,12 @@ export async function fetchMetadataFromIPFS(
   timeout = 5000
 ): Promise<EventMetadata | null> {
   if (!metadataURI || metadataURI === 'ipfs://placeholder' || metadataURI.includes('placeholder')) {
+    console.log(`[fetchMetadataFromIPFS] Skipping placeholder URI: ${metadataURI}`);
     return null;
   }
 
+  console.log(`[fetchMetadataFromIPFS] Fetching metadata from URI: ${metadataURI}`);
+  
   // Check if it's a blob storage URL (Vercel Blob)
   if (metadataURI.includes('blob.vercel-storage.com') || metadataURI.includes('public.blob.vercel-storage.com')) {
     try {
@@ -126,19 +129,73 @@ export async function fetchMetadataFromIPFS(
  */
 export async function enrichEventWithMetadata(event: Event): Promise<Event> {
   try {
+    console.log(`[enrichEventWithMetadata] Starting enrichment for event ${event.id} with metadataURI: ${event.metadataURI}`);
     const metadata = await fetchMetadataFromIPFS(event.metadataURI);
     
     if (metadata) {
-      return {
+      console.log(`[enrichEventWithMetadata] Successfully fetched metadata for event ${event.id}:`, metadata);
+      
+      // Extract formatted dates from attributes if available
+      let formattedStartDate = '';
+      let formattedEndDate = '';
+      
+      if (metadata.attributes) {
+        const startDateAttr = metadata.attributes.find(attr => attr.trait_type === 'Start Date');
+        const endDateAttr = metadata.attributes.find(attr => attr.trait_type === 'End Date');
+        
+        if (startDateAttr?.value) {
+          try {
+            const startDate = new Date(startDateAttr.value as string);
+            formattedStartDate = startDate.toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            console.log(`[enrichEventWithMetadata] Extracted formatted start date: ${formattedStartDate}`);
+          } catch (error) {
+            console.warn('Failed to parse start date from metadata:', error);
+          }
+        }
+        
+        if (endDateAttr?.value) {
+          try {
+            const endDate = new Date(endDateAttr.value as string);
+            formattedEndDate = endDate.toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            console.log(`[enrichEventWithMetadata] Extracted formatted end date: ${formattedEndDate}`);
+          } catch (error) {
+            console.warn('Failed to parse end date from metadata:', error);
+          }
+        }
+      }
+      
+      const enrichedEvent = {
         ...event,
         // Override with metadata if available, otherwise keep existing values
         description: metadata.description || event.description || '',
         venue: metadata.venue || event.venue || '',
         category: metadata.category || event.category || 'General',
+        // Add formatted dates if extracted from metadata
+        formattedStartDate,
+        formattedEndDate,
         // Add any additional metadata as needed
         image: metadata.image,
         organizer: event.organizer, // Keep the blockchain organizer address
       };
+      
+      console.log(`[enrichEventWithMetadata] Enriched event ${event.id} with venue: "${enrichedEvent.venue}", image: "${enrichedEvent.image}"`);
+      return enrichedEvent;
+    } else {
+      console.log(`[enrichEventWithMetadata] No metadata found for event ${event.id}`);
     }
     
     return event;

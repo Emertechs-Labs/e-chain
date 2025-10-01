@@ -19,6 +19,9 @@ export interface Event {
   venue?: string;
   category?: string;
   symbol?: string; // For backward compatibility
+  // Formatted dates from metadata
+  formattedStartDate?: string;
+  formattedEndDate?: string;
 }
 
 export interface Ticket {

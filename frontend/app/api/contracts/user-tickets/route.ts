@@ -7,13 +7,16 @@ export async function GET(request: NextRequest) {
     const address = searchParams.get('address');
     const contract = searchParams.get('contract');
 
-    if (!address || !contract) {
-      return NextResponse.json({ error: 'Address and contract required' }, { status: 400 });
+    if (!address) {
+      return NextResponse.json({ error: 'Address required' }, { status: 400 });
     }
 
-    // Call the balanceOf function on the EventTicket contract with automatic fallback
+    // Use the specific contract address if provided, otherwise use default EventTicket
+    const contractAddress = contract || 'EventTicket';
+
+    // Call the balanceOf function on the specified contract with automatic fallback
     const balance = await readContract(
-      'EventTicket',
+      contractAddress as any,
       'balanceOf',
       [address]
     );
@@ -22,7 +25,7 @@ export async function GET(request: NextRequest) {
       hasTicket: Number(balance) > 0,
       balance: Number(balance),
       address,
-      contract
+      contract: contractAddress
     });
   } catch (error) {
     console.error('Error checking user tickets:', error);

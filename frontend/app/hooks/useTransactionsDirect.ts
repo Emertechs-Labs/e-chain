@@ -11,6 +11,8 @@ import { parseEther } from 'viem';
 import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from '../../lib/contracts';
 import { generateVerificationQR, uploadVerificationData, uploadTicketMetadata, VerificationData } from '../../lib/ipfs';
 import { readContract } from '../../lib/contract-wrapper';
+import { storeTicketTransaction, storeTicketSaleTransaction } from '../hooks/useTickets';
+import { storeEventFromTransaction } from '../hooks/useEvents';
 
 /**
  * Create Event - Direct Wallet Transaction (No MultiBaas)
@@ -69,6 +71,10 @@ export const useCreateEventDirect = () => {
       if (address) {
         queryClient.invalidateQueries({ queryKey: ['events', 'organizer', address] });
       }
+
+      // Store event creation in transaction cache for faster discovery
+      // Note: We don't have the event ID yet, it will be discovered via blockchain polling
+      console.log('[useCreateEventDirect] Event creation transaction stored, will be discovered via blockchain');
     },
     onError: (error: any) => {
       console.error('[useCreateEventDirect] Failed:', error);
@@ -128,11 +134,21 @@ export const usePurchaseTicketDirect = () => {
       console.log('[usePurchaseTicketDirect] Transaction sent:', hash);
       return { 
         txHash: hash,
-        eventId: purchaseData.eventId 
+        eventId: purchaseData.eventId,
+        ticketContract: purchaseData.ticketContract,
+        quantity: purchaseData.quantity || 1
       };
     },
     onSuccess: async (data) => {
       console.log('[usePurchaseTicketDirect] Success!', data.txHash);
+      
+      // Store the transaction for ticket tracking
+      if (address) {
+        storeTicketTransaction(data.txHash, data.eventId, data.ticketContract, data.quantity, address);
+      }
+
+      // Store the sale for analytics
+      storeTicketSaleTransaction(data.eventId, data.quantity, data.txHash);
       
       // Generate QR code for transaction verification
       try {

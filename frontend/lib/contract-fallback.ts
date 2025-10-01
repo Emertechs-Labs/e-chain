@@ -15,6 +15,28 @@ const SUPPORTED_CHAINS: Record<number, Chain> = {
 };
 
 /**
+ * Safely stringify arguments that may contain BigInt values
+ */
+function safeStringifyArgs(args: any[]): string {
+  return args.map(arg => {
+    if (typeof arg === 'bigint') {
+      return arg.toString();
+    }
+    if (typeof arg === 'object' && arg !== null) {
+      // For objects, try to stringify but handle BigInt properties
+      try {
+        return JSON.stringify(arg, (key, value) => 
+          typeof value === 'bigint' ? value.toString() : value
+        );
+      } catch {
+        return String(arg);
+      }
+    }
+    return String(arg);
+  }).join(', ');
+}
+
+/**
  * Get public client for reading from blockchain
  */
 export function getPublicClient(chainId: number = 84532) {
@@ -72,7 +94,7 @@ export async function directContractRead<T = any>(
     console.log(`[Fallback] Contract name: ${contractNameOrAddress}`);
     console.log(`[Fallback] Is contract name: ${isContractName}`);
     console.log(`[Fallback] ABI source:`, isContractName ? 'CONTRACT_ABIS' : 'EventTicket default');
-    console.log(`[Fallback] Direct read: ${address}.${functionName}(${JSON.stringify(args)})`);
+    console.log(`[Fallback] Direct read: ${address}.${functionName}(${safeStringifyArgs(args)})`);
     console.log(`[Fallback] Using ABI with ${abi?.length || 0} entries`);
     console.log(`[Fallback] Function exists in ABI:`, abi?.some(f => 'name' in f && f.name === functionName));
 
@@ -83,7 +105,7 @@ export async function directContractRead<T = any>(
       args,
     } as any);
 
-    console.log(`[Fallback] Direct read result:`, result);
+    console.log(`[Fallback] Direct read result:`, typeof result === 'bigint' ? result.toString() : result);
     return result as T;
   } catch (error) {
     console.error(`[Fallback] Direct read failed:`, error);
@@ -114,7 +136,7 @@ export async function directContractWrite(
       ? CONTRACT_ABIS[contractNameOrAddress as keyof typeof CONTRACT_ABIS]
       : CONTRACT_ABIS.EventTicket; // Default to EventTicket ABI for custom addresses
 
-    console.log(`[Fallback] Direct write: ${address}.${functionName}(${JSON.stringify(args)})`);
+    console.log(`[Fallback] Direct write: ${address}.${functionName}(${safeStringifyArgs(args)})`);
 
     // Get account if not provided
     const fromAccount = account || (await walletClient.getAddresses())[0];
@@ -159,9 +181,9 @@ export async function simulateContractWrite(
       ? CONTRACT_ABIS[contractNameOrAddress as keyof typeof CONTRACT_ABIS]
       : CONTRACT_ABIS.EventTicket; // Default to EventTicket ABI for custom addresses
 
-    console.log(`[Fallback] Simulating: ${address}.${functionName}(${JSON.stringify(args)})`);
+    console.log(`[Fallback] Simulating: ${address}.${functionName}(${safeStringifyArgs(args)})`);
 
-    const { result } = await client.simulateContract({
+    const simulationResult = await client.simulateContract({
       address,
       abi,
       functionName,
@@ -170,7 +192,8 @@ export async function simulateContractWrite(
       ...(value && { value }),
     } as any);
 
-    console.log(`[Fallback] Simulation successful:`, result);
+    const { result } = simulationResult;
+    console.log(`[Fallback] Simulation successful:`, String(result));
     return result;
   } catch (error) {
     console.error(`[Fallback] Simulation failed:`, error);

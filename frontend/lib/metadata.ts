@@ -16,13 +16,81 @@ export interface EventMetadata {
   }>;
 }
 
-// IPFS Gateway URLs (fallback order)
+// IPFS Gateway URLs (fallback order) - prioritize faster/reliable ones first
 const IPFS_GATEWAYS = [
-  'https://gateway.pinata.cloud/ipfs/',
-  'https://ipfs.io/ipfs/',
-  'https://cloudflare-ipfs.com/ipfs/',
-  'https://dweb.link/ipfs/'
+  'https://gateway.pinata.cloud/ipfs/', // Fast and reliable
+  'https://cloudflare-ipfs.com/ipfs/',   // CDN-backed
+  'https://ipfs.io/ipfs/',               // Official gateway
+  'https://dweb.link/ipfs/',             // Backup
+  'https://gateway.ipfs.io/ipfs/'        // Additional backup
 ];
+
+// Local storage key for cached metadata
+const METADATA_CACHE_KEY = 'ipfs_metadata_cache';
+const METADATA_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+interface CachedMetadata {
+  metadata: EventMetadata;
+  timestamp: number;
+  uri: string;
+}
+
+/**
+ * Get cached metadata from localStorage
+ */
+function getCachedMetadata(uri: string): EventMetadata | null {
+  try {
+    const stored = localStorage.getItem(METADATA_CACHE_KEY);
+    if (!stored) return null;
+
+    const cache: CachedMetadata[] = JSON.parse(stored);
+    const cached = cache.find(item => item.uri === uri);
+
+    if (cached && (Date.now() - cached.timestamp) < METADATA_CACHE_DURATION) {
+      console.log(`[getCachedMetadata] Using cached metadata for ${uri}`);
+      return cached.metadata;
+    }
+
+    // Remove expired cache entry
+    if (cached) {
+      const updatedCache = cache.filter(item => item.uri !== uri);
+      localStorage.setItem(METADATA_CACHE_KEY, JSON.stringify(updatedCache));
+    }
+
+    return null;
+  } catch (error) {
+    console.warn('[getCachedMetadata] Failed to retrieve cached metadata:', error);
+    return null;
+  }
+}
+
+/**
+ * Cache metadata in localStorage
+ */
+function setCachedMetadata(uri: string, metadata: EventMetadata): void {
+  try {
+    const stored = localStorage.getItem(METADATA_CACHE_KEY);
+    const cache: CachedMetadata[] = stored ? JSON.parse(stored) : [];
+
+    // Remove existing entry for this URI
+    const filteredCache = cache.filter(item => item.uri !== uri);
+
+    // Add new entry
+    filteredCache.push({
+      uri,
+      metadata,
+      timestamp: Date.now()
+    });
+
+    // Keep only the most recent 100 entries to avoid storage bloat
+    const trimmedCache = filteredCache.slice(-100);
+
+    localStorage.setItem(METADATA_CACHE_KEY, JSON.stringify(trimmedCache));
+    console.log(`[setCachedMetadata] Cached metadata for ${uri}`);
+  } catch (error) {
+    console.warn('[setCachedMetadata] Failed to cache metadata:', error);
+  }
+}
 
 /**
  * Convert IPFS URI to HTTP URL using available gateways
@@ -48,15 +116,24 @@ export function ipfsToHttp(ipfsUri: string, gatewayIndex = 0): string {
 }
 
 /**
- * Fetch metadata from IPFS with fallback gateways and blob storage support
+ * Fetch metadata from IPFS with fallback gateways, caching, and blob storage support
  */
 export async function fetchMetadataFromIPFS(
   metadataURI: string,
-  timeout = 5000
+  timeout = 8000, // Increased timeout for better reliability
+  useCache = true
 ): Promise<EventMetadata | null> {
   if (!metadataURI || metadataURI === 'ipfs://placeholder' || metadataURI.includes('placeholder')) {
     console.log(`[fetchMetadataFromIPFS] Skipping placeholder URI: ${metadataURI}`);
     return null;
+  }
+
+  // Check cache first
+  if (useCache) {
+    const cached = getCachedMetadata(metadataURI);
+    if (cached) {
+      return cached;
+    }
   }
 
   console.log(`[fetchMetadataFromIPFS] Fetching metadata from URI: ${metadataURI}`);
@@ -68,6 +145,7 @@ export async function fetchMetadataFromIPFS(
       const response = await fetch(metadataURI, {
         headers: {
           'Accept': 'application/json',
+          'Cache-Control': 'no-cache' // Ensure fresh data
         }
       });
       
@@ -77,6 +155,12 @@ export async function fetchMetadataFromIPFS(
       
       const metadata = await response.json();
       console.log(`[fetchMetadataFromIPFS] Successfully fetched metadata from blob storage:`, metadata);
+      
+      // Cache the result
+      if (useCache) {
+        setCachedMetadata(metadataURI, metadata);
+      }
+      
       return metadata as EventMetadata;
     } catch (error) {
       console.error(`[fetchMetadataFromIPFS] Blob storage fetch failed:`, error);
@@ -97,6 +181,7 @@ export async function fetchMetadataFromIPFS(
         signal: controller.signal,
         headers: {
           'Accept': 'application/json',
+          'Cache-Control': 'no-cache' // Ensure fresh data
         }
       });
       
@@ -109,6 +194,17 @@ export async function fetchMetadataFromIPFS(
       const metadata = await response.json();
       console.log(`[fetchMetadataFromIPFS] Successfully fetched metadata from gateway ${i + 1}:`, metadata);
       
+      // Validate the metadata has required fields
+      if (!metadata || typeof metadata !== 'object') {
+        console.warn(`[fetchMetadataFromIPFS] Invalid metadata format from gateway ${i + 1}`);
+        continue;
+      }
+      
+      // Cache the result
+      if (useCache) {
+        setCachedMetadata(metadataURI, metadata);
+      }
+      
       return metadata as EventMetadata;
     } catch (error) {
       console.warn(`[fetchMetadataFromIPFS] Gateway ${i + 1} failed:`, error instanceof Error ? error.message : error);
@@ -118,6 +214,9 @@ export async function fetchMetadataFromIPFS(
         console.error(`[fetchMetadataFromIPFS] All gateways failed for URI: ${metadataURI}`);
         return null;
       }
+      
+      // Add a small delay before trying the next gateway
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
   }
   
@@ -130,7 +229,9 @@ export async function fetchMetadataFromIPFS(
 export async function enrichEventWithMetadata(event: Event): Promise<Event> {
   try {
     console.log(`[enrichEventWithMetadata] Starting enrichment for event ${event.id} with metadataURI: ${event.metadataURI}`);
-    const metadata = await fetchMetadataFromIPFS(event.metadataURI);
+    
+    // Use retry logic for better reliability
+    const metadata = await fetchMetadataWithRetry(event.metadataURI, 2, 8000);
     
     if (metadata) {
       console.log(`[enrichEventWithMetadata] Successfully fetched metadata for event ${event.id}:`, metadata);
@@ -140,21 +241,27 @@ export async function enrichEventWithMetadata(event: Event): Promise<Event> {
       let formattedEndDate = '';
       
       if (metadata.attributes) {
-        const startDateAttr = metadata.attributes.find(attr => attr.trait_type === 'Start Date');
-        const endDateAttr = metadata.attributes.find(attr => attr.trait_type === 'End Date');
+        const startDateAttr = metadata.attributes.find(attr => 
+          attr.trait_type === 'Start Date' || attr.trait_type === 'Event Date' || attr.trait_type?.toLowerCase().includes('start')
+        );
+        const endDateAttr = metadata.attributes.find(attr => 
+          attr.trait_type === 'End Date' || attr.trait_type?.toLowerCase().includes('end')
+        );
         
         if (startDateAttr?.value) {
           try {
             const startDate = new Date(startDateAttr.value as string);
-            formattedStartDate = startDate.toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            });
-            console.log(`[enrichEventWithMetadata] Extracted formatted start date: ${formattedStartDate}`);
+            if (!isNaN(startDate.getTime())) {
+              formattedStartDate = startDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              });
+              console.log(`[enrichEventWithMetadata] Extracted formatted start date: ${formattedStartDate}`);
+            }
           } catch (error) {
             console.warn('Failed to parse start date from metadata:', error);
           }
@@ -163,15 +270,17 @@ export async function enrichEventWithMetadata(event: Event): Promise<Event> {
         if (endDateAttr?.value) {
           try {
             const endDate = new Date(endDateAttr.value as string);
-            formattedEndDate = endDate.toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            });
-            console.log(`[enrichEventWithMetadata] Extracted formatted end date: ${formattedEndDate}`);
+            if (!isNaN(endDate.getTime())) {
+              formattedEndDate = endDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              });
+              console.log(`[enrichEventWithMetadata] Extracted formatted end date: ${formattedEndDate}`);
+            }
           } catch (error) {
             console.warn('Failed to parse end date from metadata:', error);
           }
@@ -195,41 +304,116 @@ export async function enrichEventWithMetadata(event: Event): Promise<Event> {
       console.log(`[enrichEventWithMetadata] Enriched event ${event.id} with venue: "${enrichedEvent.venue}", image: "${enrichedEvent.image}"`);
       return enrichedEvent;
     } else {
-      console.log(`[enrichEventWithMetadata] No metadata found for event ${event.id}`);
+      console.log(`[enrichEventWithMetadata] No metadata found for event ${event.id}, using defaults`);
+      // Generate default metadata if IPFS fails
+      const defaultMetadata = generateDefaultMetadata(event);
+      return {
+        ...event,
+        description: defaultMetadata.description,
+        venue: defaultMetadata.venue,
+        category: defaultMetadata.category,
+      };
     }
-    
-    return event;
   } catch (error) {
     console.error(`[enrichEventWithMetadata] Failed to enrich event ${event.id}:`, error);
-    return event;
+    // Return event with defaults if enrichment fails completely
+    const defaultMetadata = generateDefaultMetadata(event);
+    return {
+      ...event,
+      description: defaultMetadata.description,
+      venue: defaultMetadata.venue,
+      category: defaultMetadata.category,
+    };
   }
 }
 
 /**
- * Batch enrich multiple events with metadata
+ * Clear expired metadata cache entries
  */
-export async function enrichEventsWithMetadata(events: Event[]): Promise<Event[]> {
-  console.log(`[enrichEventsWithMetadata] Enriching ${events.length} events with metadata...`);
+export function clearExpiredMetadataCache(): void {
+  try {
+    const stored = localStorage.getItem(METADATA_CACHE_KEY);
+    if (!stored) return;
+
+    const cache: CachedMetadata[] = JSON.parse(stored);
+    const now = Date.now();
+    const validCache = cache.filter(item => (now - item.timestamp) < METADATA_CACHE_DURATION);
+
+    if (validCache.length !== cache.length) {
+      localStorage.setItem(METADATA_CACHE_KEY, JSON.stringify(validCache));
+      console.log(`[clearExpiredMetadataCache] Cleared ${cache.length - validCache.length} expired cache entries`);
+    }
+  } catch (error) {
+    console.warn('[clearExpiredMetadataCache] Failed to clear expired cache:', error);
+  }
+}
+
+/**
+ * Preload metadata for multiple URIs to improve performance
+ */
+export async function preloadMetadata(uris: string[]): Promise<void> {
+  console.log(`[preloadMetadata] Preloading metadata for ${uris.length} URIs...`);
   
-  // Process events in parallel but limit concurrency to avoid overwhelming IPFS gateways
-  const batchSize = 3;
-  const enrichedEvents: Event[] = [];
+  // Clear expired cache first
+  clearExpiredMetadataCache();
   
-  for (let i = 0; i < events.length; i += batchSize) {
-    const batch = events.slice(i, i + batchSize);
-    const enrichedBatch = await Promise.all(
-      batch.map(event => enrichEventWithMetadata(event))
-    );
-    enrichedEvents.push(...enrichedBatch);
+  // Process in small batches to avoid overwhelming IPFS gateways
+  const batchSize = 2;
+  for (let i = 0; i < uris.length; i += batchSize) {
+    const batch = uris.slice(i, i + batchSize);
     
-    // Small delay between batches to be nice to IPFS gateways
-    if (i + batchSize < events.length) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+    await Promise.all(
+      batch.map(async (uri) => {
+        // Only fetch if not already cached
+        if (!getCachedMetadata(uri)) {
+          try {
+            await fetchMetadataFromIPFS(uri, 5000, true);
+          } catch (error) {
+            console.warn(`[preloadMetadata] Failed to preload ${uri}:`, error);
+          }
+        }
+      })
+    );
+    
+    // Small delay between batches
+    if (i + batchSize < uris.length) {
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
   }
   
-  console.log(`[enrichEventsWithMetadata] Successfully enriched ${enrichedEvents.length} events`);
-  return enrichedEvents;
+  console.log(`[preloadMetadata] Finished preloading metadata`);
+}
+
+/**
+ * Get metadata with enhanced error handling and retry logic
+ */
+export async function fetchMetadataWithRetry(
+  metadataURI: string,
+  maxRetries = 2,
+  timeout = 8000
+): Promise<EventMetadata | null> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      if (attempt > 0) {
+        console.log(`[fetchMetadataWithRetry] Retry attempt ${attempt} for ${metadataURI}`);
+        // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+      }
+      
+      const result = await fetchMetadataFromIPFS(metadataURI, timeout, true);
+      if (result) {
+        return result;
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.warn(`[fetchMetadataWithRetry] Attempt ${attempt + 1} failed:`, lastError.message);
+    }
+  }
+  
+  console.error(`[fetchMetadataWithRetry] All ${maxRetries + 1} attempts failed for ${metadataURI}:`, lastError?.message);
+  return null;
 }
 
 /**
@@ -326,4 +510,50 @@ export function generateDefaultMetadata(event: Event): EventMetadata {
       { trait_type: "Ticket Price", value: `${Number(event.ticketPrice) / 1e18} ETH` }
     ]
   };
+}
+
+/**
+ * Batch enrich multiple events with metadata
+ */
+export async function enrichEventsWithMetadata(events: Event[]): Promise<Event[]> {
+  console.log(`[enrichEventsWithMetadata] Enriching ${events.length} events with metadata...`);
+  
+  if (events.length === 0) return [];
+  
+  // Clear expired cache entries first
+  clearExpiredMetadataCache();
+  
+  // Extract URIs for preloading (skip placeholders)
+  const validUris = events
+    .map(event => event.metadataURI)
+    .filter(uri => uri && !uri.includes('placeholder') && uri !== 'ipfs://placeholder');
+  
+  // Preload metadata in background for better performance
+  if (validUris.length > 0) {
+    preloadMetadata(validUris).catch(error => {
+      console.warn('[enrichEventsWithMetadata] Metadata preloading failed:', error);
+    });
+  }
+  
+  // Process events in smaller batches to avoid overwhelming IPFS gateways
+  const batchSize = 2; // Reduced batch size for better reliability
+  const enrichedEvents: Event[] = [];
+  
+  for (let i = 0; i < events.length; i += batchSize) {
+    const batch = events.slice(i, i + batchSize);
+    console.log(`[enrichEventsWithMetadata] Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(events.length/batchSize)} (${batch.length} events)`);
+    
+    const enrichedBatch = await Promise.all(
+      batch.map(event => enrichEventWithMetadata(event))
+    );
+    enrichedEvents.push(...enrichedBatch);
+    
+    // Slightly longer delay between batches to be more respectful to IPFS gateways
+    if (i + batchSize < events.length) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+  }
+  
+  console.log(`[enrichEventsWithMetadata] Successfully enriched ${enrichedEvents.length} events`);
+  return enrichedEvents;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { useUserTickets } from "../hooks/useTickets";
 import Link from "next/link";
@@ -8,17 +8,54 @@ import { RewardsDashboard } from "@/components/rewards/RewardsDashboard";
 import { getVerificationUrl } from "../../lib/ipfs";
 
 const MyTicketsPage: React.FC = () => {
-  const { isConnected } = useAccount();
-  const { data: tickets = [], isLoading } = useUserTickets();
+  const { isConnected, address } = useAccount();
+  const { data: tickets = [], isLoading, error } = useUserTickets();
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<any>({});
+
+  // Debug logging
+  console.log('[MyTicketsPage] Component state:', {
+    isConnected,
+    address,
+    ticketsCount: tickets.length,
+    isLoading,
+    error
+  });
+
+  // Enhanced debug: Check localStorage and API
+  useEffect(() => {
+    const loadDebugInfo = async () => {
+      if (typeof window !== 'undefined' && address) {
+        const stored = localStorage.getItem('user_ticket_transactions');
+        console.log('[MyTicketsPage] Stored transactions in localStorage:', stored);
+
+        // Check events API
+        try {
+          const eventsResponse = await fetch('/api/events');
+          const events = eventsResponse.ok ? await eventsResponse.json() : [];
+          console.log('[MyTicketsPage] Events from API:', events);
+
+          setDebugInfo({
+            storedTransactions: stored,
+            eventsFromAPI: events,
+            eventsCount: events.length
+          });
+        } catch (err) {
+          console.error('[MyTicketsPage] Error loading debug info:', err);
+        }
+      }
+    };
+
+    loadDebugInfo();
+  }, [address]);
 
   const handleVerifyTicket = (ticket: any) => {
     setSelectedTicket(ticket);
     setShowQRModal(true);
   };
 
-  if (!isConnected) {
+  if (!isConnected || !address) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center">
@@ -27,6 +64,10 @@ const MyTicketsPage: React.FC = () => {
           <p className="text-gray-400 mb-8">Connect your wallet to view your NFT tickets</p>
           <div className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-2 rounded-lg cursor-pointer">
             Connect Wallet
+          </div>
+          <div className="text-sm text-gray-400 mt-4">
+            <p>Connection Status: {isConnected ? 'Connected' : 'Not Connected'}</p>
+            <p>Address: {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'None'}</p>
           </div>
         </div>
       </div>
@@ -142,6 +183,49 @@ const MyTicketsPage: React.FC = () => {
                 {/* eslint-disable-next-line react/no-unescaped-entities */}
                 You haven't purchased any event tickets yet. Browse upcoming events and get your first NFT ticket!
               </p>
+              <div className="text-sm text-gray-500 mb-6">
+                <p>Debug Info:</p>
+                <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
+                <p>Address: {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'None'}</p>
+                <p>Loading: {isLoading ? 'Yes' : 'No'}</p>
+                <p>Error: {error ? error.message : 'None'}</p>
+                <p>Tickets Found: {tickets.length}</p>
+                <p>Events in DB: {debugInfo.eventsCount || 0}</p>
+                <p>Stored Transactions: {debugInfo.storedTransactions ? 'Yes' : 'No'}</p>
+                <button
+                  onClick={() => {
+                    // Add a test transaction for debugging
+                    const testTx = {
+                      transactionHash: '0x1234567890abcdef',
+                      eventId: 1,
+                      ticketContract: '0x22bAc668f1750aD000E1ffA41f85a572F892E31D',
+                      quantity: 1,
+                      userAddress: address || '0x0000000000000000000000000000000000000000',
+                      timestamp: Date.now(),
+                      processed: false
+                    };
+                    const stored = localStorage.getItem('user_ticket_transactions');
+                    const transactions = stored ? JSON.parse(stored) : [];
+                    transactions.push(testTx);
+                    localStorage.setItem('user_ticket_transactions', JSON.stringify(transactions));
+                    console.log('Added test transaction:', testTx);
+                    // Refresh the page to reload tickets
+                    window.location.reload();
+                  }}
+                  className="mt-2 px-3 py-1 bg-red-500 text-white text-xs rounded mr-2"
+                >
+                  Add Test Transaction
+                </button>
+                <button
+                  onClick={() => {
+                    // Force refresh tickets
+                    window.location.reload();
+                  }}
+                  className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded"
+                >
+                  Refresh
+                </button>
+              </div>
               <Link
                 href="/events"
                 className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 font-semibold"

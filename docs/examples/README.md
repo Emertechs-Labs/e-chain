@@ -6,11 +6,49 @@
 ![Base Sepolia](https://img.shields.io/badge/Base-Sepolia_Testnet-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)
 ![Live Demo](https://img.shields.io/badge/Live_Demo-Active-10B981?style=for-the-badge&logo=web&logoColor=white)
 
-**Practical examples and real-world use cases for the Echain blockchain events platform**
+**Production-ready code examples and real-world use cases for the Echain blockchain events platform**
 
-*Production-ready code examples with live Base Sepolia deployment*
+*Live Base Sepolia deployment with real-time WebSocket integration*
 
-## Advanced Smart Contract Examples
+## 📊 Platform Overview
+
+**Current Status**: ✅ **Fully Deployed & Operational**
+- **Network**: Base Sepolia Testnet
+- **Frontend**: Next.js 15 with TypeScript, deployed on Vercel
+- **Smart Contracts**: Solidity ^0.8.24, deployed via Hardhat
+- **API**: MultiBaas integration with fallback systems
+- **Real-time**: WebSocket subscriptions for live updates
+- **Wallet**: RainbowKit + Reown for Web3 connectivity
+
+### Contract Addresses (Latest Deployment)
+```javascript
+const CONTRACT_ADDRESSES = {
+  eventFactory: "0xbE36039Bfe7f48604F73daD61411459B17fd2e85",
+  poapContract: "0x405061e2ef1F748fA95A1e7725fc1a008e8c2196",
+  incentiveManager: "0x8290c12f874DF9D03FDadAbE10C7c6321B69Ded9"
+};
+```
+
+### API Configuration
+```javascript
+const API_CONFIG = {
+  multibaasUrl: "https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com",
+  dappApiKey: process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY,
+  websocketUrl: "wss://kwp44rxeifggriyd4hmbjq7dey.multibaas.com/ws"
+};
+```
+
+[🎯 Use Cases](#-use-case-examples) • [💻 Code Examples](#-code-examples) • [🎨 Templates](#-design-templates) • [⚠️ Notes](#-implementation-notes)
+
+</div>
+
+---
+
+## Overview
+
+This directory contains practical examples, code snippets, and real-world use cases for implementing the Echain blockchain events platform. These examples demonstrate how to integrate with the platform and implement common features.
+
+**Current Status**: ✅ All examples are based on the fully implemented Echain platform running on Base Sepolia testnet with real blockchain data integration.
 
 ### Multi-Tier Ticketing System
 ```solidity

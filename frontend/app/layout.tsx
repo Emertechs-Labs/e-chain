@@ -4,6 +4,9 @@ import { Providers } from './providers';
 import Header from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
+import ChainWatcherClient from './components/ChainWatcherClient';
+import RealtimeSubscriptionsClient from './components/RealtimeSubscriptionsClient';
+import RealtimeStatus from './components/RealtimeStatus';
 
 // Use system font stack to avoid remote Google Fonts fetch during dev/build
 // Keep a CSS variable for compatibility with existing styles
@@ -41,6 +44,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.variable}>
         <Providers>
+          <ChainWatcherClient />
+          <RealtimeSubscriptionsClient />
+          <RealtimeStatus />
           <div className="min-h-screen flex flex-col">
             <Header />
             <main className="flex-1 pt-16">

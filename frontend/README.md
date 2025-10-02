@@ -10,7 +10,7 @@ A blockchain-powered event ticketing platform built with Next.js, featuring NFT 
 - 📱 **Responsive Design** - Mobile-first approach with Tailwind CSS
 - 🔐 **Wallet Integration** - RainbowKit + Wagmi for seamless wallet connection
 - 📊 **Real-time Analytics** - Event tracking and user engagement
-- 🗄️ **Scalable Storage** - Turso SQLite, Vercel Blob, and Edge Config
+- 🗄️ **Blockchain Storage** - On-chain data with IPFS metadata and Vercel Blob
 
 ## Quick Start
 
@@ -67,37 +67,28 @@ NEXT_PUBLIC_EVENT_FACTORY_ADDRESS=0xbE36039Bfe7f48604F73daD61411459B17fd2e85
 NEXT_PUBLIC_EVENT_TICKET_ADDRESS=0x127b53D8f29DcDe4DDfcCb24ad8b88B515D08180
 NEXT_PUBLIC_POAP_ADDRESS=0x405061e2ef1F748fA95A1e7725fc1a008e2196
 NEXT_PUBLIC_INCENTIVE_ADDRESS=0x8290c12f874DF9D03FDadAbE10C7c6321B69Ded9
+NEXT_PUBLIC_MARKETPLACE_ADDRESS=0xD061393A54784da5Fea48CC845163aBc2B11537A
 
 # Vercel Storage Services
-TURSO_DATABASE_URL=libsql://...
-TURSO_AUTH_TOKEN=eyJ...
 BLOB_READ_WRITE_TOKEN=vercel_blob_...
 EDGE_CONFIG=https://edge-config.vercel.com/...
 ```
 
-## Vercel Storage Services Setup
+## Storage Architecture
 
-This project uses Vercel's optimized storage services for enterprise-grade performance and scalability. We've implemented a streamlined architecture using only the essential services needed for a blockchain event platform.
+This project uses a blockchain-first storage architecture with decentralized metadata storage and optimized cloud services for assets.
 
-### 🗄️ **1. Turso (Primary Database)**
-**Purpose**: Store relational data like events, users, transactions, and metadata
-
-**Setup Steps:**
-1. Go to [Turso Dashboard](https://turso.tech) and create an account
-2. Create a new database (e.g., `echain-db`)
-3. Generate an auth token for your database
-4. Copy the **database URL** and **auth token**
-5. Add to environment variables as `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`
+### 🏗️ **1. Blockchain Storage (Primary)**
+**Purpose**: Store core event data, tickets, and marketplace listings on-chain
 
 **Features:**
-- ✅ Serverless SQLite database
-- ✅ Global distribution with low latency
-- ✅ Generous free tier (500 databases, 1GB storage)
-- ✅ Real-time event storage and retrieval
-- ✅ ACID compliance for transaction integrity
+- ✅ Immutable event data and ticket ownership
+- ✅ Decentralized marketplace listings
+- ✅ Trustless transaction verification
+- ✅ No database dependencies or sync issues
 
-### 📦 **2. Vercel Blob (Object Storage)**
-**Purpose**: Store images, documents, event assets, and user uploads
+### 📦 **2. IPFS + Vercel Blob (Metadata & Assets)**
+**Purpose**: Store event metadata, images, and user-generated content
 
 **Setup Steps:**
 1. In Vercel Storage tab, click **"Create Database"** → Select **"Blob"**
@@ -106,14 +97,14 @@ This project uses Vercel's optimized storage services for enterprise-grade perfo
 4. Add to environment variables as `BLOB_READ_WRITE_TOKEN`
 
 **Features:**
+- ✅ Decentralized metadata via IPFS
 - ✅ Global CDN for fast content delivery
 - ✅ Unlimited storage with generous free tier
 - ✅ Automatic image optimization
-- ✅ Secure, signed URLs for private content
-- ✅ Event image storage and user avatar uploads
+- ✅ Event image storage and user uploads
 
-### ⚙️ **3. Vercel Edge Config (Global Configuration)**
-**Purpose**: Store app configuration, feature flags, contract addresses, and runtime settings
+### ⚙️ **3. Vercel Edge Config (Configuration)**
+**Purpose**: Store app configuration, feature flags, and runtime settings
 
 **Setup Steps:**
 1. In Vercel Storage tab, click **"Create Database"** → Select **"Edge Config"**
@@ -126,17 +117,12 @@ This project uses Vercel's optimized storage services for enterprise-grade perfo
 - ✅ Real-time configuration updates
 - ✅ Feature flags for gradual rollouts
 - ✅ Contract address management
-- ✅ Rate limiting and security settings
 
 ### 🔧 **Environment Variables Configuration**
 
 Add these to your **Vercel project environment variables** (Project Settings → Environment Variables):
 
 ```bash
-# Database (Required)
-TURSO_DATABASE_URL=libsql://your-database-url.turso.io
-TURSO_AUTH_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
 # Object Storage (Required)
 BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
@@ -144,28 +130,20 @@ BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 EDGE_CONFIG=https://edge-config.vercel.com/ecfg_xxxxxxxxxxxxxxxxxx
 ```
 
-### 🧪 **Testing Your Storage Setup**
-
-After configuration, test all services:
-
-1. **Storage Dashboard**: Visit `/storage` to see service status
-2. **API Test Endpoint**: Visit `/api/storage-test` for detailed testing
-3. **File Upload Test**: Use the test endpoint to upload sample files
-
 ### 📊 **Storage Architecture Benefits**
 
 | Service | Use Case | Performance | Cost |
 |---------|----------|-------------|------|
-| **Turso** | Event data, users, transactions | Global SQLite | Generous free tier |
-| **Blob** | Images, documents, assets | Global CDN | Generous free tier |
+| **Blockchain** | Event data, tickets, marketplace | Decentralized | Gas fees only |
+| **IPFS + Blob** | Images, metadata, assets | Global CDN | Generous free tier |
 | **Edge Config** | Config, flags, addresses | <50ms latency | Always free |
 
 ### 🚀 **Production Deployment Checklist**
 
-- [ ] Create Turso database, Blob, and Edge Config in respective services
-- [ ] Configure environment variables in Vercel dashboard
+- [ ] Configure Vercel Blob and Edge Config services
+- [ ] Set up environment variables in Vercel dashboard
 - [ ] Test storage services using `/storage` and `/api/storage-test`
-- [ ] Verify database connections and data persistence
+- [ ] Verify IPFS metadata fetching works correctly
 - [ ] Confirm file uploads work correctly
 - [ ] Test Edge Config reads for configuration
 - [ ] Run full application test suite
@@ -173,26 +151,26 @@ After configuration, test all services:
 
 ### 🔒 **Security Considerations**
 
-- **Turso**: Auth tokens provide secure access
+- **Blockchain**: Cryptographic security and immutability
+- **IPFS**: Content addressing ensures data integrity
 - **Blob**: Tokens provide scoped access (read/write)
 - **Edge Config**: Public reads, secure writes through Vercel
 - **Environment Variables**: Never commit secrets to code
-- **Access Control**: Configure proper permissions in Vercel
 
 ### 📈 **Scaling Strategy**
 
-- **Turso**: Global replication with low latency
+- **Blockchain**: Scales with network adoption
+- **IPFS**: Distributed network handles traffic spikes
 - **Blob**: Unlimited storage with global CDN
 - **Edge Config**: Instant global replication
 - **Monitoring**: Use Vercel Analytics for performance metrics
-- **Backup**: Automatic replication for Turso data
 
 ### 🆘 **Troubleshooting**
 
-**Database Connection Issues:**
-- Verify `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` are correct
-- Check if your Turso database is accessible from your region
-- Ensure the auth token has the correct permissions
+**IPFS Metadata Issues:**
+- Check IPFS gateway URLs are accessible
+- Verify metadata URIs are properly formatted
+- Ensure fallback gateways are working
 
 **Blob Upload Failures:**
 - Confirm `BLOB_READ_WRITE_TOKEN` is valid
@@ -204,10 +182,10 @@ After configuration, test all services:
 - Ensure config exists in Vercel dashboard
 - Check for typos in configuration keys
 
-**Performance Issues:**
-- Use connection pooling for database queries
-- Implement caching for frequently accessed data
-- Optimize image sizes before upload
+**Blockchain Connection Issues:**
+- Verify contract addresses are correct
+- Check network connectivity to Base Sepolia
+- Ensure wallet is connected to correct network
 
 ### 🎯 **Next Steps**
 
@@ -231,7 +209,7 @@ Once storage is configured:
    - Add all variables from `.env.example`
 
 3. **Set up Storage Services**
-   - Create Turso database, Blob, and Edge Config in respective services
+   - Configure Vercel Blob and Edge Config services
    - Add their connection strings to environment variables
 
 4. **Deploy**
@@ -313,9 +291,8 @@ frontend/
 - **Wagmi** - Ethereum interactions
 - **Viem** - Ethereum library
 - **Framer Motion** - Animations and transitions
-- **Turso** - Serverless SQLite database
-- **Vercel Blob** - Object storage
-- **Vercel Edge Config** - Global configuration
+- **Base Sepolia** - Ethereum testnet for blockchain data
+- **IPFS** - Decentralized metadata storage
 - **React Query** - Data fetching and caching
 
 ## Wallet Connection Troubleshooting

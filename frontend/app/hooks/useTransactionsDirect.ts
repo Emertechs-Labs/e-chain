@@ -11,8 +11,6 @@ import { parseEther } from 'viem';
 import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from '../../lib/contracts';
 import { generateVerificationQR, uploadVerificationData, uploadTicketMetadata, VerificationData } from '../../lib/ipfs';
 import { readContract } from '../../lib/contract-wrapper';
-import { storeTicketTransaction, storeTicketSaleTransaction } from '../hooks/useTickets';
-import { storeEventFromTransaction } from '../hooks/useEvents';
 
 /**
  * Create Event - Direct Wallet Transaction (No MultiBaas)
@@ -141,14 +139,6 @@ export const usePurchaseTicketDirect = () => {
     },
     onSuccess: async (data) => {
       console.log('[usePurchaseTicketDirect] Success!', data.txHash);
-      
-      // Store the transaction for ticket tracking
-      if (address) {
-        storeTicketTransaction(data.txHash, data.eventId, data.ticketContract, data.quantity, address);
-      }
-
-      // Store the sale for analytics
-      storeTicketSaleTransaction(data.eventId, data.quantity, data.txHash);
       
       // Generate QR code for transaction verification
       try {

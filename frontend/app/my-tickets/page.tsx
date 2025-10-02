@@ -23,13 +23,10 @@ const MyTicketsPage: React.FC = () => {
     error
   });
 
-  // Enhanced debug: Check localStorage and API
+  // Enhanced debug: Check events API
   useEffect(() => {
     const loadDebugInfo = async () => {
       if (typeof window !== 'undefined' && address) {
-        const stored = localStorage.getItem('user_ticket_transactions');
-        console.log('[MyTicketsPage] Stored transactions in localStorage:', stored);
-
         // Check events API
         try {
           const eventsResponse = await fetch('/api/events');
@@ -37,7 +34,6 @@ const MyTicketsPage: React.FC = () => {
           console.log('[MyTicketsPage] Events from API:', events);
 
           setDebugInfo({
-            storedTransactions: stored,
             eventsFromAPI: events,
             eventsCount: events.length
           });
@@ -191,31 +187,7 @@ const MyTicketsPage: React.FC = () => {
                 <p>Error: {error ? error.message : 'None'}</p>
                 <p>Tickets Found: {tickets.length}</p>
                 <p>Events in DB: {debugInfo.eventsCount || 0}</p>
-                <p>Stored Transactions: {debugInfo.storedTransactions ? 'Yes' : 'No'}</p>
-                <button
-                  onClick={() => {
-                    // Add a test transaction for debugging
-                    const testTx = {
-                      transactionHash: '0x1234567890abcdef',
-                      eventId: 1,
-                      ticketContract: '0x22bAc668f1750aD000E1ffA41f85a572F892E31D',
-                      quantity: 1,
-                      userAddress: address || '0x0000000000000000000000000000000000000000',
-                      timestamp: Date.now(),
-                      processed: false
-                    };
-                    const stored = localStorage.getItem('user_ticket_transactions');
-                    const transactions = stored ? JSON.parse(stored) : [];
-                    transactions.push(testTx);
-                    localStorage.setItem('user_ticket_transactions', JSON.stringify(transactions));
-                    console.log('Added test transaction:', testTx);
-                    // Refresh the page to reload tickets
-                    window.location.reload();
-                  }}
-                  className="mt-2 px-3 py-1 bg-red-500 text-white text-xs rounded mr-2"
-                >
-                  Add Test Transaction
-                </button>
+                <p>Stored Transactions: Removed (using direct contract reads)</p>
                 <button
                   onClick={() => {
                     // Force refresh tickets

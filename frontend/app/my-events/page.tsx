@@ -138,13 +138,15 @@ const EventCard: React.FC<{ event: any }> = ({ event }) => {
               <span>{Math.round((metrics.soldTickets / event.maxTickets) * 100)}%</span>
             </div>
             <div className="w-full bg-slate-700 rounded-full h-2">
+              {/* dynamic width requires inline style — allow this specific case */}
+              {/* eslint-disable-next-line react/forbid-dom-props, react/no-unknown-property */}
               <div
                 className={`h-2 rounded-full transition-all duration-500 ${
                   metrics.soldTickets / event.maxTickets > 0.8 ? 'bg-gradient-to-r from-red-500 to-orange-500' :
                   metrics.soldTickets / event.maxTickets > 0.5 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
                   'bg-gradient-to-r from-cyan-500 to-blue-500'
                 }`}
-                style={{ width: `${Math.min((metrics.soldTickets / event.maxTickets) * 100, 100)}%` }} // Dynamic width for progress bar - inline styles required for data-driven animations
+                style={{ width: `${Math.min((metrics.soldTickets / event.maxTickets) * 100, 100)}%` }}
               ></div>
             </div>
           </div>

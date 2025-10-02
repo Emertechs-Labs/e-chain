@@ -5,6 +5,7 @@ import { CONTRACT_ADDRESSES } from '../../lib/contracts';
 import { uploadTicketMetadata } from '../../lib/ipfs';
 import { ethers } from 'ethers';
 import { readContract, writeContract } from '../../lib/contract-wrapper';
+import { addPendingTx } from './useChainWatcher';
 
 // Safe stringify that handles BigInt and circular refs for logging
 const safeStringify = (v: any) => {
@@ -189,7 +190,8 @@ export const useCreateEvent = () => {
           }
         );
 
-        console.log('[useCreateEvent] writeContract success, txHash:', txHash);
+  console.log('[useCreateEvent] writeContract success, txHash:', txHash);
+  try { addPendingTx(txHash as any); } catch (e) { /* ignore */ }
 
         // Return the transaction hash so callers can track status
         return { txHash };
@@ -251,9 +253,10 @@ export const usePurchaseTicket = () => {
 
         // Use writeContract wrapper with automatic fallback
         const options: { account: `0x${string}`; value: bigint; waitForConfirmation: boolean } = { account: address, value: totalCost, waitForConfirmation: false };
-        const txHash = await writeContract(purchaseData.ticketContract, 'purchaseTicket', [Number(quantity)], options);
+  const txHash = await writeContract(purchaseData.ticketContract, 'purchaseTicket', [Number(quantity)], options);
 
-        console.debug('[usePurchaseTicket] transaction sent', { traceId, txHash });
+  console.debug('[usePurchaseTicket] transaction sent', { traceId, txHash });
+  try { addPendingTx(txHash as any); } catch (e) { /* ignore */ }
 
         return { txHash, purchaseData };
       } catch (error) {
@@ -369,9 +372,10 @@ export const useClaimPOAP = () => {
         if (!walletClient) throw new Error('No wallet client available');
 
         console.debug('[useClaimPOAP] calling walletClient.sendTransaction', { traceId, payload: safeStringify(formatted) });
-        const txHash = await walletClient.sendTransaction(formatted as any);
+  const txHash = await walletClient.sendTransaction(formatted as any);
 
-        console.debug('[useClaimPOAP] wallet sendTransaction result', { traceId, txHash });
+  console.debug('[useClaimPOAP] wallet sendTransaction result', { traceId, txHash });
+  try { addPendingTx(txHash as any); } catch (e) { /* ignore */ }
 
         return { txHash };
       } catch (error) {
@@ -416,6 +420,7 @@ export const useClaimEarlyBird = () => {
         );
 
         console.debug('[useClaimEarlyBird] transaction sent', { traceId, txHash });
+        try { addPendingTx(txHash as any); } catch (e) { /* ignore */ }
 
         return { txHash };
       } catch (error) {
@@ -463,6 +468,7 @@ export const useGenerateReferralCode = () => {
         );
 
         console.debug('[useGenerateReferralCode] transaction sent', { traceId, txHash });
+        try { addPendingTx(txHash as any); } catch (e) { /* ignore */ }
 
         return { txHash, code: codeData.code };
       } catch (error) {
@@ -506,6 +512,7 @@ export const useClaimLoyaltyReward = () => {
         );
 
         console.debug('[useClaimLoyaltyReward] transaction sent', { traceId, txHash });
+        try { addPendingTx(txHash as any); } catch (e) { /* ignore */ }
 
         return { txHash };
       } catch (error) {
@@ -572,6 +579,7 @@ export const useVerifyOrganizer = () => {
         );
 
         console.debug('[useVerifyOrganizer] transaction sent', { traceId, txHash });
+        try { addPendingTx(txHash as any); } catch (e) { /* ignore */ }
 
         return { txHash };
       } catch (error) {
@@ -654,6 +662,7 @@ export const useClaimIncentives = () => {
         );
 
         console.debug('[useClaimIncentives] transaction sent', { traceId, txHash });
+        try { addPendingTx(txHash as any); } catch (e) { /* ignore */ }
 
         return { txHash, claimData };
       } catch (error) {

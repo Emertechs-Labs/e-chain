@@ -1,45 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@libsql/client';
 import { readContract, writeContract } from '../../../lib/contract-wrapper';
 
-// Initialize Turso client
-const client = process.env.TURSO_DATABASE_URL ? createClient({
-  url: process.env.TURSO_DATABASE_URL!,
-  authToken: process.env.TURSO_AUTH_TOKEN!,
-}) : null;
-
-// Create events table if it doesn't exist
-async function initTable() {
-  if (!client) return;
-  try {
-    await client.execute(`
-      CREATE TABLE IF NOT EXISTS events (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        organizer TEXT NOT NULL,
-        ticket_contract TEXT,
-        poap_contract TEXT,
-        incentive_contract TEXT,
-        metadata_uri TEXT,
-        ticket_price TEXT NOT NULL,
-        max_tickets INTEGER NOT NULL,
-        start_time INTEGER NOT NULL,
-        end_time INTEGER NOT NULL,
-        is_active BOOLEAN NOT NULL DEFAULT 1,
-        created_at INTEGER NOT NULL
-      )
-    `);
-  } catch (error) {
-    console.error('Error creating table:', error);
-  }
-}// Webhook secret from environment (set in MultiBaas)
+// Webhook secret from environment (set in MultiBaas)
 const WEBHOOK_SECRET = process.env.MULTIBAAS_WEBHOOK_SECRET || 'your-webhook-secret';
 
 export async function POST(request: NextRequest) {
   try {
-    // Initialize table if needed
-    await initTable();
-
     const body = await request.text();
     const signature = request.headers.get('x-multibaas-signature');
     const timestamp = request.headers.get('x-multibaas-timestamp');
@@ -71,26 +37,8 @@ export async function POST(request: NextRequest) {
           const endTime = parseInt(inputs.find((i: any) => i.name === 'endTime')?.value);
           const metadataUri = inputs.find((i: any) => i.name === 'metadataURI')?.value || '';
 
-          // Insert event into database
-          if (!client) {
-            throw new Error('Database not configured');
-          }
-          await client.execute({
-            sql: `INSERT INTO events (id, name, organizer, ticket_contract, metadata_uri, ticket_price, max_tickets, start_time, end_time, is_active, created_at)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                  ON CONFLICT (id) DO UPDATE SET
-                    name = EXCLUDED.name,
-                    organizer = EXCLUDED.organizer,
-                    ticket_contract = EXCLUDED.ticket_contract,
-                    metadata_uri = EXCLUDED.metadata_uri,
-                    ticket_price = EXCLUDED.ticket_price,
-                    max_tickets = EXCLUDED.max_tickets,
-                    start_time = EXCLUDED.start_time,
-                    end_time = EXCLUDED.end_time`,
-            args: [eventId, name, organizer, ticketContract, metadataUri, ticketPrice, maxTickets, startTime, endTime, 1, Math.floor(Date.now() / 1000)]
-          });
-
-          console.log('Stored new event:', { eventId, name, organizer, startTime, endTime });
+          // Event is now stored on-chain only - no database storage
+          console.log('Received new event (stored on-chain):', { eventId, name, organizer, startTime, endTime });
         }
       }
     }
@@ -103,36 +51,47 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  if (!client) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
-  }
   try {
-    // Initialize table if needed
-    await initTable();
+    // Get events directly from the EventFactory contract
+    const eventCount = await readContract('EventFactory', 'eventCount', []);
 
-    // Fetch all active events from database
-    const result = await client.execute('SELECT * FROM events WHERE is_active = 1 ORDER BY created_at DESC');
+    if (!eventCount || Number(eventCount) === 0) {
+      return NextResponse.json([]);
+    }
 
-    // Convert to expected format
-    const events = result.rows.map((event: any) => ({
-      id: event.id,
-      name: event.name,
-      organizer: event.organizer,
-      ticketContract: event.ticket_contract,
-      poapContract: event.poap_contract,
-      incentiveContract: event.incentive_contract,
-      metadataURI: event.metadata_uri,
-      ticketPrice: event.ticket_price,
-      maxTickets: event.max_tickets,
-      startTime: event.start_time,
-      endTime: event.end_time,
-      isActive: event.is_active === 1,
-      createdAt: event.created_at
-    }));
+    const events = [];
+    const count = Number(eventCount);
+
+    // Get details for each event
+    for (let i = 1; i <= count; i++) {
+      try {
+        const eventDetails = await readContract('EventFactory', 'getEventDetails', [i]);
+
+        if (eventDetails) {
+          events.push({
+            id: i,
+            name: eventDetails.name || 'Unknown Event',
+            organizer: eventDetails.organizer || '0x0000000000000000000000000000000000000000',
+            ticketContract: eventDetails.ticketContract || null,
+            poapContract: null, // Not stored on-chain
+            incentiveContract: null, // Not stored on-chain
+            metadataURI: eventDetails.metadataURI || '',
+            ticketPrice: eventDetails.ticketPrice || '0',
+            maxTickets: Number(eventDetails.maxTickets || 0),
+            startTime: Number(eventDetails.startTime || 0),
+            endTime: Number(eventDetails.endTime || 0),
+            isActive: true, // Assume active unless we check contract
+            createdAt: Number(eventDetails.createdAt || 0)
+          });
+        }
+      } catch (error) {
+        console.warn(`Failed to get details for event ${i}:`, error);
+      }
+    }
 
     return NextResponse.json(events);
   } catch (error) {
-    console.error('Database error:', error);
+    console.error('Contract error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

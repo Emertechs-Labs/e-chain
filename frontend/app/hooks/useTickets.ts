@@ -20,183 +20,7 @@ export interface UserTicket {
   transactionHash?: string; // Transaction that minted this ticket
 }
 
-// Local storage key for user's ticket transactions
-const TICKET_TRANSACTIONS_KEY = 'user_ticket_transactions';
-
-/**
- * Store a successful ticket purchase transaction for later retrieval
- */
-export const storeTicketTransaction = (transactionHash: string, eventId: number, ticketContract: string, quantity: number, userAddress: string) => {
-  try {
-    const stored = localStorage.getItem(TICKET_TRANSACTIONS_KEY);
-    const transactions = stored ? JSON.parse(stored) : [];
-
-    transactions.push({
-      transactionHash,
-      eventId,
-      ticketContract,
-      quantity,
-      userAddress,
-      timestamp: Date.now(),
-      processed: false // Will be marked as processed after extracting token IDs
-    });
-
-    localStorage.setItem(TICKET_TRANSACTIONS_KEY, JSON.stringify(transactions));
-    console.log(`[storeTicketTransaction] Stored transaction ${transactionHash} for ${quantity} tickets`);
-  } catch (error) {
-    console.error('[storeTicketTransaction] Failed to store transaction:', error);
-  }
-};
-
-/**
- * Get stored ticket transactions for the current user
- */
-export const getStoredTicketTransactions = () => {
-  try {
-    const stored = localStorage.getItem(TICKET_TRANSACTIONS_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch (error) {
-    console.error('[getStoredTicketTransactions] Failed to retrieve transactions:', error);
-    return [];
-  }
-};
-
-/**
- * Extract token IDs from a ticket purchase transaction by checking balance changes
- */
-export const extractTokenIdsFromTransaction = async (
-  transactionHash: string, 
-  ticketContract: string, 
-  userAddress: string,
-  expectedQuantity: number
-): Promise<number[]> => {
-  try {
-    console.log(`[extractTokenIdsFromTransaction] Extracting ${expectedQuantity} token IDs from ${transactionHash} for user ${userAddress}`);
-
-    // Wait a bit for the transaction to be fully processed
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Get the user's current balance in the ticket contract      
-    const currentBalance = await readContract(ticketContract as `0x${string}`, 'balanceOf', [userAddress]);
-    const balance = Number(currentBalance);
-
-    if (balance === 0) {
-      console.warn(`[extractTokenIdsFromTransaction] User has no tickets in contract ${ticketContract}`);
-      return [];
-    }
-
-    console.log(`[extractTokenIdsFromTransaction] User has ${balance} tickets in contract ${ticketContract}`);
-
-    // Get all token IDs owned by the user
-    const tokenIdsPromises = [];
-    for (let i = 0; i < balance; i++) {
-      tokenIdsPromises.push(
-        readContract(ticketContract as `0x${string}`, 'tokenOfOwnerByIndex', [userAddress, i])
-      );
-    }
-
-    const allTokenIds = await Promise.all(tokenIdsPromises);
-    const tokenIds = allTokenIds.map(id => Number(id)).sort((a, b) => b - a); // Sort descending (newest first)
-
-    // Take the most recent N tokens (where N = expected quantity)
-    // This assumes the most recently minted tokens are from this transaction
-    const newTokenIds = tokenIds.slice(0, expectedQuantity);
-
-    console.log(`[extractTokenIdsFromTransaction] Extracted token IDs:`, newTokenIds);
-    return newTokenIds;
-  } catch (error) {
-    console.error(`[extractTokenIdsFromTransaction] Failed to extract token IDs from ${transactionHash}:`, String(error));
-    return [];
-  }
-};
-
-/**
- * Process stored transactions to extract and cache token IDs
- */
-export const processStoredTicketTransactions = async (userAddress: string): Promise<UserTicket[]> => {
-  const transactions = getStoredTicketTransactions();
-  console.log('[processStoredTicketTransactions] Retrieved transactions from storage:', transactions);
-  const processedTickets: UserTicket[] = [];
-
-  for (const tx of transactions) {
-    if (tx.processed) continue; // Already processed
-
-    try {
-      console.log(`[processStoredTicketTransactions] Processing transaction ${tx.transactionHash}`);
-
-      // Extract token IDs from the transaction
-      const tokenIds = await extractTokenIdsFromTransaction(tx.transactionHash, tx.ticketContract, userAddress, tx.quantity);
-
-      if (tokenIds.length > 0) {
-        // Get event details
-        const eventDetails = await readContract('EventFactory', 'getEventDetails', [tx.eventId]);
-
-        // Create ticket objects
-        for (const tokenId of tokenIds) {
-          // Check if ticket is still valid/owned by user
-          try {
-            const isValid = await readContract(tx.ticketContract as `0x${string}`, 'isValidTicket', [tokenId]);
-            const ticketIsUsed = !isValid;
-
-            // Get venue from metadata
-            let venue = "TBA";
-            try {
-              if (eventDetails.metadataURI) {
-                const metadata = await fetchMetadataFromIPFS(eventDetails.metadataURI);
-                const defaultMetadata = generateDefaultMetadata({
-                  id: Number(tx.eventId),
-                  name: eventDetails.name,
-                  organizer: eventDetails.organizer,
-                  metadataURI: eventDetails.metadataURI,
-                  ticketContract: tx.ticketContract,
-                  ticketPrice: 0n,
-                  maxTickets: 0,
-                  startTime: 0,
-                  endTime: 0,
-                  isActive: true,
-                  createdAt: 0
-                });
-                venue = metadata?.venue || defaultMetadata.venue || "TBA";
-              }
-            } catch (metadataError) {
-              console.warn(`[processStoredTicketTransactions] Failed to fetch venue for event ${tx.eventId}:`, metadataError);
-            }
-
-            processedTickets.push({
-              tokenId,
-              eventId: tx.eventId,
-              eventName: eventDetails.name,
-              ticketType: "General Admission",
-              purchaseDate: Math.floor(tx.timestamp / 1000),
-              eventDate: Number(eventDetails.startTime),
-              venue,
-              location: venue,
-              isUsed: ticketIsUsed,
-              ticketContract: tx.ticketContract,
-              originalPrice: BigInt(eventDetails.ticketPrice || '0'),
-              transactionHash: tx.transactionHash
-            });
-          } catch (ticketError) {
-            console.warn(`[processStoredTicketTransactions] Failed to get details for token ${tokenId}:`, ticketError);
-          }
-        }
-
-        // Mark transaction as processed
-        tx.processed = true;
-      }
-    } catch (error) {
-      console.error(`[processStoredTicketTransactions] Failed to process transaction ${tx.transactionHash}:`, String(error));
-    }
-  }
-
-  // Update stored transactions
-  localStorage.setItem(TICKET_TRANSACTIONS_KEY, JSON.stringify(transactions));
-
-  console.log(`[processStoredTicketTransactions] Processed ${processedTickets.length} tickets from stored transactions`);
-  return processedTickets;
-};
-
-// Hook to fetch user's tickets using transaction-based approach
+// Hook to fetch user's tickets using contract balance checks only
 export const useUserTickets = () => {
   const { address } = useAccount();
 
@@ -211,28 +35,13 @@ export const useUserTickets = () => {
       }
 
       try {
-        console.log('[useUserTickets] Starting transaction-based ticket retrieval for address:', address);
+        console.log('[useUserTickets] Starting contract balance check for address:', address);
 
-        // First, try to get tickets from stored transactions
-        const transactionTickets = await processStoredTicketTransactions(address);
+        // Get tickets by checking contract balances directly
+        const tickets = await getTicketsFromContractBalances(address);
 
-        // Also do a fallback check of all contracts (in case some tickets weren't captured by transactions)
-        console.log('[useUserTickets] Performing fallback contract balance check...');
-        const contractTickets = await getTicketsFromContractBalances(address);
-
-        // Merge and deduplicate tickets
-        const allTickets = [...transactionTickets];
-        const existingTokenIds = new Set(transactionTickets.map(t => `${t.ticketContract}-${t.tokenId}`));
-
-        for (const ticket of contractTickets) {
-          const ticketKey = `${ticket.ticketContract}-${ticket.tokenId}`;
-          if (!existingTokenIds.has(ticketKey)) {
-            allTickets.push(ticket);
-          }
-        }
-
-        console.log(`[useUserTickets] Total tickets found: ${allTickets.length} (${transactionTickets.length} from transactions, ${contractTickets.length} from contracts)`);
-        return allTickets;
+        console.log(`[useUserTickets] Found ${tickets.length} tickets`);
+        return tickets;
       } catch (error) {
         console.error('[useUserTickets] Error fetching user tickets:', String(error));
         return [];
@@ -293,14 +102,9 @@ async function getTicketsFromContractBalances(address: string): Promise<UserTick
           continue;
         }
 
-        // Get token IDs
-        const tokenIdsPromises = [];
-        for (let i = 0; i < Number(balance); i++) {
-          tokenIdsPromises.push(
-            readContract(event.ticketContract as `0x${string}`, 'tokenOfOwnerByIndex', [address, i])
-          );
-        }
-        const tokenIds = await Promise.all(tokenIdsPromises);
+        // Get token IDs using the contract's getOwnerTickets function
+        const tokenIds = await readContract(event.ticketContract as `0x${string}`, 'getOwnerTickets', [address]);
+        console.log(`[getTicketsFromContractBalances] Found ${tokenIds.length} token IDs for event ${event.id}:`, tokenIds);
 
         // Create ticket objects
         for (const tokenId of tokenIds) {
@@ -349,51 +153,6 @@ async function getTicketsFromContractBalances(address: string): Promise<UserTick
   }
 }
 
-// Local storage key for ticket sales transactions
-const TICKET_SALES_KEY = 'ticket_sales_transactions';
-
-/**
- * Store ticket purchase transaction for sales analytics
- */
-export const storeTicketSaleTransaction = (eventId: number, quantity: number, transactionHash: string) => {
-  try {
-    const stored = localStorage.getItem(TICKET_SALES_KEY);
-    const sales = stored ? JSON.parse(stored) : [];
-
-    sales.push({
-      eventId,
-      quantity,
-      transactionHash,
-      timestamp: Date.now()
-    });
-
-    localStorage.setItem(TICKET_SALES_KEY, JSON.stringify(sales));
-    console.log(`[storeTicketSaleTransaction] Stored sale: ${quantity} tickets for event ${eventId}`);
-  } catch (error) {
-    console.error('[storeTicketSaleTransaction] Failed to store sale:', error);
-  }
-};
-
-/**
- * Get total tickets sold for an event from stored transactions
- */
-export const getEventTicketsSoldFromTransactions = (eventId: number): number => {
-  try {
-    const stored = localStorage.getItem(TICKET_SALES_KEY);
-    if (!stored) return 0;
-
-    const sales = JSON.parse(stored);
-    const eventSales = sales.filter((sale: any) => sale.eventId === eventId);
-    const totalSold = eventSales.reduce((sum: number, sale: any) => sum + sale.quantity, 0);
-
-    console.log(`[getEventTicketsSoldFromTransactions] Event ${eventId} sold ${totalSold} tickets from ${eventSales.length} transactions`);
-    return totalSold;
-  } catch (error) {
-    console.error('[getEventTicketsSoldFromTransactions] Failed to get sales:', error);
-    return 0;
-  }
-};
-
 // Hook to get total tickets sold for an event
 export const useEventTicketsSold = (eventId: number, ticketContract?: string) => {
   return useQuery({
@@ -402,17 +161,10 @@ export const useEventTicketsSold = (eventId: number, ticketContract?: string) =>
       if (!eventId) return 0;
 
       try {
-        // First, try transaction-based sales tracking (most accurate)
-        const transactionSales = getEventTicketsSoldFromTransactions(eventId);
-        if (transactionSales > 0) {
-          console.log(`[useEventTicketsSold] Found ${transactionSales} tickets sold from transactions for event ${eventId}`);
-          return transactionSales;
-        }
-
-        // Fallback: Try contract-based totalSold (less accurate but real-time)
+        // Try contract-based totalSold (most accurate)
         if (ticketContract) {
           try {
-            console.log(`[useEventTicketsSold] No transaction data, checking contract ${ticketContract} for event ${eventId}`);
+            console.log(`[useEventTicketsSold] Checking contract ${ticketContract} for event ${eventId}`);
             const contractSales = await readContract(ticketContract as `0x${string}`, 'totalSold', []);
             const sales = Number(contractSales);
             console.log(`[useEventTicketsSold] Contract reports ${sales} tickets sold for event ${eventId}`);
@@ -422,7 +174,7 @@ export const useEventTicketsSold = (eventId: number, ticketContract?: string) =>
           }
         }
 
-        // Final fallback: API route (least accurate)
+        // Fallback: API route
         try {
           console.log(`[useEventTicketsSold] Falling back to API for event ${eventId}`);
           const response = await fetch(`/api/contracts/ticket-sales?contract=${ticketContract || ''}`);

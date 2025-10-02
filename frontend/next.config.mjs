@@ -26,7 +26,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https: http:",
               "font-src 'self' data:",
-              "connect-src 'self' https://sepolia.base.org https://base.g.alchemy.com https://*.pinata.cloud https://api.pinata.cloud https://gateway.pinata.cloud https://ipfs.io https://*.multibaas.com https://api.web3modal.com https://*.web3modal.org https://*.walletconnect.com https://*.coinbase.com https://*.walletconnect.org https://*.bridge.walletconnect.org wss://*.bridge.walletconnect.org wss://*.walletconnect.org wss://*.walletconnect.com https://*.infura.io wss://*.infura.io http://localhost:*",
+              "connect-src 'self' https://sepolia.base.org https://base.g.alchemy.com https://base-sepolia.g.alchemy.com https://*.pinata.cloud https://api.pinata.cloud https://gateway.pinata.cloud https://ipfs.io https://*.multibaas.com https://api.web3modal.com https://*.web3modal.org https://*.walletconnect.com https://*.coinbase.com https://*.walletconnect.org https://*.bridge.walletconnect.org wss://*.bridge.walletconnect.org wss://*.walletconnect.org wss://*.walletconnect.com wss://base-sepolia.g.alchemy.com https://*.infura.io wss://*.infura.io http://localhost:*",
               "frame-src 'self' https://*.coinbase.com https://*.walletconnect.com https://*.walletconnect.org",
               "worker-src 'self' blob:",
               "child-src 'self' blob:",

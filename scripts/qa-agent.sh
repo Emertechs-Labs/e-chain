@@ -534,7 +534,7 @@ generate_report() {
     print_section "QA Report Generation"
 
     # Generate JSON report for CI/machine consumption
-    local json_report="$TEMP_LOG_DIR/qa-report.json"
+    local json_report="$PROJECT_ROOT/qa-report.json"
     local start_iso=$(date --iso-8601=seconds)
     local status="success"
     [ $total_errors -gt 0 ] && status="failure"

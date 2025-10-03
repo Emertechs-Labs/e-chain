@@ -1,0 +1,24 @@
+[extend]
+# Use default gitleaks config as base
+
+[allowlist]
+description = "Allowlist for false positives"
+paths = [
+  '''docs/''',
+  '''node_modules/''',
+  '''.git/''',
+  '''*.md''',
+  '''*.json''',
+  '''*.lock''',
+  '''*.log''',
+  '''test_results_*''',
+  '''qa_output.log''',
+  '''hardhat.config.ts''',  # Contains test private keys
+]
+
+regexes = [
+  '''0x[0-9a-fA-F]{64}''',  # Allow test private keys
+  '''your_dapp_user_api_key''',
+  '''your_web3_api_key''',
+  '''E2E_PRIVATE_KEY''',
+]

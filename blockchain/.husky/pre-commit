@@ -1,3 +1,13 @@
 # https://typicode.github.io/husky/how-to.html#project-not-in-git-root-directory
+cd ..
+
+# Run gitleaks secret scan
+if command -v gitleaks >/dev/null 2>&1; then
+  echo "🔍 Running gitleaks secret scan..."
+  gitleaks protect --verbose --redact --config .gitleaks.toml --staged
+else
+  echo "⚠️  gitleaks not found, skipping secret scan"
+fi
+
 cd blockchain
 npx lint-staged

@@ -8,7 +8,8 @@ import * as dotenv from 'dotenv';
 // Load environment variables from .env file
 dotenv.config();
 
-let deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000';
+let deployerPrivateKey =
+  process.env.DEPLOYER_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000';
 let deploymentEndpoint = process.env.MULTIBAAS_ENDPOINT || '';
 let adminApiKey = process.env.MULTIBAAS_ADMIN_KEY || '';
 let web3Key = process.env.MULTIBAAS_WEB3_KEY || '';

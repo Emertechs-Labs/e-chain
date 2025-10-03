@@ -97,7 +97,10 @@ contract EventTicket is
         address _factory
     ) external override {
         require(!_initialized, "Already initialized");
-        require(msg.sender == _factory || factory == address(0), "Only factory can initialize");
+        require(
+            msg.sender == _factory || factory == address(0),
+            "Only factory can initialize"
+        );
         require(_organizer != address(0), "Invalid organizer");
         require(_factory != address(0), "Invalid factory");
 
@@ -133,18 +136,18 @@ contract EventTicket is
      */
     function purchaseTicket(
         uint256 quantity
-    ) 
-        external 
-        payable 
-        whenNotPaused 
-        onlyInitialized 
-        returns (uint256[] memory tokenIds) 
+    )
+        external
+        payable
+        whenNotPaused
+        onlyInitialized
+        returns (uint256[] memory tokenIds)
     {
         // Input validation
         require(quantity > 0, "Quantity must be greater than 0");
         require(quantity <= 10, "Max 10 tickets per transaction"); // Anti-spam protection
         require(_totalSold + quantity <= maxSupply, "Exceeds maximum supply");
-        
+
         // Price calculation with overflow protection
         uint256 totalCost = ticketPrice * quantity;
         require(totalCost / quantity == ticketPrice, "Price overflow detected");
@@ -152,7 +155,10 @@ contract EventTicket is
 
         // Rate limiting: configurable max tickets per address per event (default: 1)
         uint256 currentBalance = balanceOf(msg.sender);
-        require(currentBalance + quantity <= maxTicketsPerAddress, "Exceeds max tickets per address");
+        require(
+            currentBalance + quantity <= maxTicketsPerAddress,
+            "Exceeds max tickets per address"
+        );
 
         // Handle revenue distribution
         if (ticketPrice > 0) {
@@ -161,11 +167,11 @@ contract EventTicket is
             uint256 platformFeeBps = factoryContract.platformFeeBps();
             uint256 platformFee = (totalCost * platformFeeBps) / 10000;
             uint256 organizerRevenue = totalCost - platformFee;
-            
+
             // Send platform fee to treasury immediately
             address treasury = factoryContract.treasury();
             payable(treasury).transfer(platformFee);
-            
+
             // Track organizer revenue for withdrawal
             _organizerBalance += organizerRevenue;
         }
@@ -187,7 +193,7 @@ contract EventTicket is
             _ticketInfo[tokenId] = TicketInfo({
                 eventId: eventId,
                 seatNumber: 0, // General admission
-                tier: 0,       // Standard tier
+                tier: 0, // Standard tier
                 isUsed: false,
                 mintedAt: block.timestamp,
                 originalBuyer: msg.sender
@@ -342,7 +348,9 @@ contract EventTicket is
      * @notice Set maximum tickets allowed per address (organizer only)
      * @param newLimit New maximum tickets per address (0 means unlimited)
      */
-    function setMaxTicketsPerAddress(uint256 newLimit) external onlyOrganizerOrFactory {
+    function setMaxTicketsPerAddress(
+        uint256 newLimit
+    ) external onlyOrganizerOrFactory {
         maxTicketsPerAddress = newLimit;
         emit MaxTicketsPerAddressUpdated(newLimit);
     }
@@ -425,7 +433,7 @@ contract EventTicket is
     function withdraw() external onlyOwner nonReentrant {
         uint256 balance = _organizerBalance;
         require(balance > 0, "No funds to withdraw");
-        
+
         _organizerBalance = 0;
         (bool success, ) = payable(owner()).call{value: balance}("");
         require(success, "Transfer failed");

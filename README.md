@@ -422,6 +422,77 @@ npm run test:integration
 - [ ] Secondary market trading
 - [ ] Real-time updates via WebSocket
 
+## 🔍 Quality Assurance (QA) Agent
+
+Echain includes a comprehensive automated QA system that ensures code quality, runs tests, and validates builds before commits and deployments.
+
+### QA Features
+
+- **Automatic Documentation Updates**: Keeps project documentation synchronized with code changes
+- **Code Quality Checks**: ESLint, TypeScript type checking, and Solidity linting
+- **Comprehensive Testing**: Runs all test suites (frontend, contracts, integration)
+- **Build Verification**: Ensures production builds complete successfully
+- **Security Scanning**: Basic security checks and vulnerability detection
+- **Performance Analysis**: Bundle size and performance metrics validation
+
+### QA Triggers
+
+The QA agent automatically runs on:
+- **Git Commits**: Pre-commit and pre-push hooks prevent problematic code from being committed
+- **Docker Operations**: Validates containers before build/run operations
+- **Development Server**: Checks code quality when starting dev servers
+
+### Using the QA Agent
+
+```bash
+# Run full QA suite manually
+npm run qa
+
+# Run specific QA checks
+npm run qa:lint          # Code linting only
+npm run qa:test          # Testing only
+npm run qa:build         # Build verification only
+npm run qa:security      # Security checks only
+npm run qa:performance   # Performance analysis only
+
+# Docker integration
+npm run docker:qa        # QA check before Docker operations
+
+# Development server with QA
+npm run dev:qa           # Start dev server with QA validation
+```
+
+### QA Configuration
+
+Customize QA behavior in `.qa-config`:
+
+```bash
+# Timeout settings (seconds)
+QA_TIMEOUT_LINT=300
+QA_TIMEOUT_TEST=600
+QA_TIMEOUT_BUILD=300
+
+# Enable/disable specific checks
+QA_ENABLE_LINT=true
+QA_ENABLE_TEST=true
+QA_ENABLE_BUILD=true
+QA_ENABLE_SECURITY=true
+QA_ENABLE_PERFORMANCE=true
+
+# Environment-specific settings
+QA_STRICT_MODE=true
+QA_FAIL_FAST=false
+```
+
+### QA Reports
+
+QA results are logged to:
+- **Console Output**: Real-time feedback during checks
+- **Log Files**: Detailed reports in `logs/qa/` directory
+- **Git Hook Output**: Clear pass/fail messages for commits
+
+For detailed QA documentation, see [QA Agent Guide](./docs/qa/README.md).
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.

@@ -61,21 +61,29 @@ contract IncentiveManager is ERC721, Ownable, Pausable {
         require(_eventFactory != address(0), "Invalid event factory");
         require(_eventTicket != address(0), "Invalid event ticket");
         require(_poapAttendance != address(0), "Invalid POAP attendance");
-        
+
         eventFactory = _eventFactory;
         eventTicket = _eventTicket;
         poapAttendance = _poapAttendance;
     }
 
     // Early bird claim - requires event-specific ticket contract address
-    function claimEarlyBird(uint256 eventId, address ticketContract) external whenNotPaused {
+    function claimEarlyBird(
+        uint256 eventId,
+        address ticketContract
+    ) external whenNotPaused {
         require(!earlyBirdClaimed[eventId][msg.sender], "Already claimed");
-        require(IEventTicketForIncentives(ticketContract).eventId() == eventId, "Invalid ticket contract");
-        
-        uint256 ticketCount = IEventTicketForIncentives(ticketContract).balanceOf(msg.sender);
+        require(
+            IEventTicketForIncentives(ticketContract).eventId() == eventId,
+            "Invalid ticket contract"
+        );
+
+        uint256 ticketCount = IEventTicketForIncentives(ticketContract)
+            .balanceOf(msg.sender);
         require(ticketCount > 0, "No tickets purchased");
-        
-        uint256 totalTickets = IEventTicketForIncentives(ticketContract).totalSold();
+
+        uint256 totalTickets = IEventTicketForIncentives(ticketContract)
+            .totalSold();
         require(totalTickets <= earlyBirdLimit, "Early bird period ended");
 
         earlyBirdClaimed[eventId][msg.sender] = true;

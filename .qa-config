@@ -1,0 +1,95 @@
+# Echain QA Agent Configuration
+# Version: 2.0.0
+
+# ===========================================
+# QA Agent Settings
+# ===========================================
+
+# Timeout settings (in seconds)
+TIMEOUT_LINT=300
+TIMEOUT_TEST=600
+TIMEOUT_BUILD=300
+TIMEOUT_SECURITY=120
+
+# Enable/disable specific checks
+ENABLE_LINTING=true
+ENABLE_TESTING=true
+ENABLE_BUILD_VERIFICATION=true
+ENABLE_SECURITY_CHECKS=true
+ENABLE_PERFORMANCE_CHECKS=true
+ENABLE_DOC_UPDATES=true
+
+# ===========================================
+# Project Structure
+# ===========================================
+
+# Frontend settings
+FRONTEND_DIR="frontend"
+FRONTEND_BUILD_CMD="npm run build"
+FRONTEND_LINT_CMD="npm run lint"
+FRONTEND_TEST_CMD="npm run test -- --watchAll=false --passWithNoTests"
+FRONTEND_TYPE_CHECK_CMD="npm run type-check"
+
+# Blockchain settings
+BLOCKCHAIN_DIR="blockchain"
+BLOCKCHAIN_COMPILE_CMD="npx hardhat compile"
+BLOCKCHAIN_TEST_CMD="npm test"
+BLOCKCHAIN_LINT_CMD="npm run fix:eslint"
+BLOCKCHAIN_SOL_LINT_CMD="npm run fix:sol"
+
+# ===========================================
+# Quality Gates
+# ===========================================
+
+# Fail build if any of these conditions are met
+FAIL_ON_LINT_ERRORS=true
+FAIL_ON_TEST_FAILURES=true
+FAIL_ON_BUILD_FAILURES=true
+FAIL_ON_SECURITY_VULNERABILITIES=false  # Warn instead of fail
+FAIL_ON_PERFORMANCE_ISSUES=false       # Warn instead of fail
+
+# ===========================================
+# Notification Settings
+# ===========================================
+
+# Slack webhook for notifications (optional)
+SLACK_WEBHOOK_URL=""
+
+# Email notifications (optional)
+EMAIL_RECIPIENTS=""
+
+# ===========================================
+# Custom Commands
+# ===========================================
+
+# Pre-QA commands (run before checks)
+PRE_QA_COMMANDS=(
+    "echo 'Starting QA checks...'"
+)
+
+# Post-QA commands (run after checks)
+POST_QA_COMMANDS=(
+    "echo 'QA checks completed'"
+)
+
+# ===========================================
+# Environment-Specific Settings
+# ===========================================
+
+# Development environment
+if [ "$NODE_ENV" = "development" ]; then
+    ENABLE_PERFORMANCE_CHECKS=false
+    TIMEOUT_TEST=300
+fi
+
+# CI/CD environment
+if [ -n "$CI" ] || [ -n "$CONTINUOUS_INTEGRATION" ]; then
+    ENABLE_DOC_UPDATES=false  # Docs updated separately in CI
+    SLACK_WEBHOOK_URL="$SLACK_WEBHOOK_CI"
+fi
+
+# Production environment
+if [ "$NODE_ENV" = "production" ]; then
+    FAIL_ON_SECURITY_VULNERABILITIES=true
+    ENABLE_PERFORMANCE_CHECKS=true
+fi

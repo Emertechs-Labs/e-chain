@@ -73,7 +73,9 @@ interface IEventFactory {
      * @param eventId Event ID
      * @return Event struct
      */
-    function getEventDetails(uint256 eventId) external view returns (Event memory);
+    function getEventDetails(
+        uint256 eventId
+    ) external view returns (Event memory);
 
     /**
      * @notice Gets all events created by an organizer

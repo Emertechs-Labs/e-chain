@@ -4,7 +4,25 @@
   "description": "MultiBaas Sample App is a simple voting demo for EVM blockchains",
   "scripts": {
     "postinstall": "node postinstall.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "qa": "bash scripts/qa-agent.sh",
+    "qa:lint": "bash scripts/qa-agent.sh --lint-only",
+    "qa:test": "bash scripts/qa-agent.sh --test-only",
+    "qa:build": "bash scripts/qa-agent.sh --build-only",
+    "qa:security": "bash scripts/qa-agent.sh --security-only",
+    "qa:docs": "bash scripts/qa-agent.sh --docs-only",
+    "dev": "npm run qa && npm run dev:frontend",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:blockchain": "cd blockchain && npm run dev",
+    "build": "npm run qa:build && npm run build:all",
+    "build:all": "cd frontend && npm run build && cd ../blockchain && npx hardhat compile",
+    "test": "npm run qa:test",
+    "test:all": "bash scripts/run_all_tests.sh",
+    "lint": "npm run qa:lint",
+    "lint:fix": "cd frontend && npm run lint:fix && cd ../blockchain && npm run fix:all",
+    "docker:build": "npm run qa && docker build -t echain .",
+    "docker:run": "docker run -p 3000:3000 echain",
+    "docker:commit": "npm run qa && docker commit $(docker ps -q) echain:$(date +%Y%m%d_%H%M%S)",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",

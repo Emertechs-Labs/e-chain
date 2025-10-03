@@ -56,7 +56,7 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
 
     /// @notice Fee for organizer verification (0.002 ETH = ~$5)
     uint256 public constant ORGANIZER_VERIFICATION_FEE = 0.002 ether;
-    
+
     /// @notice Platform treasury address
     address public treasury;
 
@@ -144,11 +144,23 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
         onlyVerifiedOrganizer
         returns (uint256 eventId)
     {
-        require(bytes(name).length > 0 && bytes(name).length <= 100, "Invalid event name length");
-        require(bytes(metadataURI).length > 0 && bytes(metadataURI).length <= 200, "Invalid metadata URI length");
-        require(maxTickets > 0 && maxTickets <= 100000, "Invalid max tickets range");
+        require(
+            bytes(name).length > 0 && bytes(name).length <= 100,
+            "Invalid event name length"
+        );
+        require(
+            bytes(metadataURI).length > 0 && bytes(metadataURI).length <= 200,
+            "Invalid metadata URI length"
+        );
+        require(
+            maxTickets > 0 && maxTickets <= 100000,
+            "Invalid max tickets range"
+        );
         require(ticketPrice <= 1000 ether, "Ticket price too high");
-        require(startTime > block.timestamp + 3600, "Start time must be at least 1 hour in future");
+        require(
+            startTime > block.timestamp + 3600,
+            "Start time must be at least 1 hour in future"
+        );
         require(endTime > startTime, "End time before start");
         require(endTime <= startTime + 365 days, "Event duration too long");
 
@@ -165,8 +177,13 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
         eventId = _eventIdCounter;
 
         // Deploy EventTicket contract clone using CREATE2 for deterministic addresses
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender, eventId, block.timestamp, block.number));
-        address ticketContract = Clones.cloneDeterministic(eventTicketTemplate, salt);
+        bytes32 salt = keccak256(
+            abi.encodePacked(msg.sender, eventId, block.timestamp, block.number)
+        );
+        address ticketContract = Clones.cloneDeterministic(
+            eventTicketTemplate,
+            salt
+        );
 
         // Initialize the ticket contract
         IEventTicket(ticketContract).initialize(
@@ -251,14 +268,14 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
         Event storage eventData = events[eventId];
         bool wasActive = eventData.isActive;
         eventData.isActive = isActive;
-        
+
         // Update active events index
         if (isActive && !wasActive) {
             _addToActiveEvents(eventId);
         } else if (!isActive && wasActive) {
             _removeFromActiveEvents(eventId);
         }
-        
+
         emit EventStatusChanged(eventId, isActive);
     }
 
@@ -313,7 +330,7 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
             uint256 lastEventId = _activeEvents[_activeEvents.length - 1];
             _activeEvents[index - 1] = lastEventId;
             _activeEventIndex[lastEventId] = index;
-            
+
             // Remove the last element
             _activeEvents.pop();
             _activeEventIndex[eventId] = 0;
@@ -324,23 +341,33 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
      * @dev Gets current active events (events that are active and not ended)
      * @return activeEventIds Array of currently active event IDs
      */
-    function _getCurrentActiveEventIds() internal view returns (uint256[] memory activeEventIds) {
+    function _getCurrentActiveEventIds()
+        internal
+        view
+        returns (uint256[] memory activeEventIds)
+    {
         uint256 activeCount = 0;
-        
+
         // First pass: count currently active events
         for (uint256 i = 0; i < _activeEvents.length; i++) {
             uint256 eventId = _activeEvents[i];
-            if (events[eventId].isActive && events[eventId].endTime > block.timestamp) {
+            if (
+                events[eventId].isActive &&
+                events[eventId].endTime > block.timestamp
+            ) {
                 activeCount++;
             }
         }
-        
+
         // Second pass: collect active event IDs
         activeEventIds = new uint256[](activeCount);
         uint256 index = 0;
         for (uint256 i = 0; i < _activeEvents.length; i++) {
             uint256 eventId = _activeEvents[i];
-            if (events[eventId].isActive && events[eventId].endTime > block.timestamp) {
+            if (
+                events[eventId].isActive &&
+                events[eventId].endTime > block.timestamp
+            ) {
                 activeEventIds[index] = eventId;
                 index++;
             }
@@ -385,22 +412,24 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
         require(limit > 0 && limit <= 100, "Invalid limit");
 
         uint256[] memory currentActiveIds = _getCurrentActiveEventIds();
-        
+
         uint256 totalActive = currentActiveIds.length;
         uint256 startIndex = offset;
         uint256 endIndex = startIndex + limit;
-        
+
         if (endIndex > totalActive) {
             endIndex = totalActive;
         }
-        
-        uint256 resultLength = endIndex > startIndex ? endIndex - startIndex : 0;
+
+        uint256 resultLength = endIndex > startIndex
+            ? endIndex - startIndex
+            : 0;
         eventIds = new uint256[](resultLength);
-        
+
         for (uint256 i = 0; i < resultLength; i++) {
             eventIds[i] = currentActiveIds[startIndex + i];
         }
-        
+
         hasMore = endIndex < totalActive;
     }
 
@@ -418,8 +447,13 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
         uint256 timestamp,
         uint256 blockNumber
     ) external view returns (address predictedAddress) {
-        bytes32 salt = keccak256(abi.encodePacked(organizer, eventId, timestamp, blockNumber));
-        predictedAddress = Clones.predictDeterministicAddress(eventTicketTemplate, salt);
+        bytes32 salt = keccak256(
+            abi.encodePacked(organizer, eventId, timestamp, blockNumber)
+        );
+        predictedAddress = Clones.predictDeterministicAddress(
+            eventTicketTemplate,
+            salt
+        );
     }
 
     /**
@@ -439,19 +473,26 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
      * @notice Allows anyone to become a verified organizer by paying a verification fee
      * @param organizer Address to verify (can be msg.sender or another address)
      */
-    function selfVerifyOrganizer(address organizer) external payable nonReentrant whenNotPaused {
+    function selfVerifyOrganizer(
+        address organizer
+    ) external payable nonReentrant whenNotPaused {
         require(!verifiedOrganizers[organizer], "Already verified");
-        require(msg.value >= ORGANIZER_VERIFICATION_FEE, "Insufficient verification fee");
+        require(
+            msg.value >= ORGANIZER_VERIFICATION_FEE,
+            "Insufficient verification fee"
+        );
 
         // Mark as verified
         verifiedOrganizers[organizer] = true;
 
         // Transfer fee to treasury
         payable(treasury).transfer(ORGANIZER_VERIFICATION_FEE);
-        
+
         // Refund excess payment
         if (msg.value > ORGANIZER_VERIFICATION_FEE) {
-            payable(msg.sender).transfer(msg.value - ORGANIZER_VERIFICATION_FEE);
+            payable(msg.sender).transfer(
+                msg.value - ORGANIZER_VERIFICATION_FEE
+            );
         }
 
         emit OrganizerVerified(organizer);
@@ -482,15 +523,22 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
      */
     function proposeTreasuryChange(address newTreasury) external onlyOwner {
         require(newTreasury != address(0), "Invalid treasury");
-        require(!pendingTreasuryChange.executed || block.timestamp > pendingTreasuryChange.executeAfter, "Pending change exists");
-        
+        require(
+            !pendingTreasuryChange.executed ||
+                block.timestamp > pendingTreasuryChange.executeAfter,
+            "Pending change exists"
+        );
+
         pendingTreasuryChange = PendingChange({
             newTreasury: newTreasury,
             executeAfter: block.timestamp + TIMELOCK_DELAY,
             executed: false
         });
-        
-        emit TreasuryChangeProposed(newTreasury, block.timestamp + TIMELOCK_DELAY);
+
+        emit TreasuryChangeProposed(
+            newTreasury,
+            block.timestamp + TIMELOCK_DELAY
+        );
     }
 
     /**
@@ -498,13 +546,19 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
      */
     function executeTreasuryChange() external onlyOwner {
         require(!pendingTreasuryChange.executed, "Already executed");
-        require(block.timestamp >= pendingTreasuryChange.executeAfter, "Timelock not expired");
-        require(pendingTreasuryChange.newTreasury != address(0), "No pending change");
-        
+        require(
+            block.timestamp >= pendingTreasuryChange.executeAfter,
+            "Timelock not expired"
+        );
+        require(
+            pendingTreasuryChange.newTreasury != address(0),
+            "No pending change"
+        );
+
         address newTreasury = pendingTreasuryChange.newTreasury;
         pendingTreasuryChange.executed = true;
         treasury = newTreasury;
-        
+
         emit TreasuryUpdated(newTreasury);
     }
 

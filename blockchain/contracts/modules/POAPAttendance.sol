@@ -28,13 +28,15 @@ contract POAPAttendance is ERC721, EIP712, Ownable {
 
     // Mapping from tokenId to Attendance data
     mapping(uint256 => Attendance) public attendances;
-    
+
     // Nonce mapping to prevent signature replay attacks
     mapping(address => uint256) public nonces;
 
     // EIP-712 structured data signing
-    bytes32 private constant MINT_ATTENDANCE_TYPEHASH = 
-        keccak256("MintAttendance(uint256 eventId,address attendee,uint256 nonce,uint256 deadline)");
+    bytes32 private constant MINT_ATTENDANCE_TYPEHASH =
+        keccak256(
+            "MintAttendance(uint256 eventId,address attendee,uint256 nonce,uint256 deadline)"
+        );
 
     address public eventFactory;
 
@@ -48,7 +50,11 @@ contract POAPAttendance is ERC721, EIP712, Ownable {
 
     constructor(
         address _eventFactory
-    ) ERC721("POAP Attendance", "POAP") EIP712("POAPAttendance", "1") Ownable(msg.sender) {
+    )
+        ERC721("POAP Attendance", "POAP")
+        EIP712("POAPAttendance", "1")
+        Ownable(msg.sender)
+    {
         eventFactory = _eventFactory;
     }
 
@@ -75,19 +81,21 @@ contract POAPAttendance is ERC721, EIP712, Ownable {
         require(block.timestamp <= deadline, "Signature expired");
 
         // EIP-712 structured data signing for domain separation
-        bytes32 structHash = keccak256(abi.encode(
-            MINT_ATTENDANCE_TYPEHASH,
-            eventId,
-            attendee,
-            nonce,
-            deadline
-        ));
+        bytes32 structHash = keccak256(
+            abi.encode(
+                MINT_ATTENDANCE_TYPEHASH,
+                eventId,
+                attendee,
+                nonce,
+                deadline
+            )
+        );
         bytes32 digest = _hashTypedDataV4(structHash);
         address signer = ECDSA.recover(digest, signature);
-        
+
         if (signer != owner() && signer != eventFactory)
             revert InvalidSignature();
-            
+
         // Increment nonce to prevent replay
         nonces[attendee]++;
 

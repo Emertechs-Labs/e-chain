@@ -15,7 +15,6 @@ import "../interfaces/IEventTicket.sol";
  * @author Echain Team
  */
 contract Marketplace is Ownable, ReentrancyGuard, Pausable, IERC721Receiver {
-
     // ============ Structs ============
 
     struct Listing {
@@ -62,10 +61,7 @@ contract Marketplace is Ownable, ReentrancyGuard, Pausable, IERC721Receiver {
         uint256 marketplaceFee
     );
 
-    event ListingCancelled(
-        bytes32 indexed listingId,
-        address indexed seller
-    );
+    event ListingCancelled(bytes32 indexed listingId, address indexed seller);
 
     event ContractApproved(address indexed ticketContract, bool approved);
     event MarketplaceFeeUpdated(uint256 newFee);
@@ -75,7 +71,10 @@ contract Marketplace is Ownable, ReentrancyGuard, Pausable, IERC721Receiver {
 
     modifier validListing(bytes32 listingId) {
         require(listings[listingId].active, "Listing not active");
-        require(listings[listingId].seller != address(0), "Listing does not exist");
+        require(
+            listings[listingId].seller != address(0),
+            "Listing does not exist"
+        );
         _;
     }
 
@@ -107,11 +106,14 @@ contract Marketplace is Ownable, ReentrancyGuard, Pausable, IERC721Receiver {
     ) external whenNotPaused nonReentrant returns (bytes32 listingId) {
         require(approvedContracts[ticketContract], "Contract not approved");
         require(price > 0, "Price must be greater than 0");
-        
+
         IERC721 nft = IERC721(ticketContract);
         require(nft.ownerOf(tokenId) == msg.sender, "Not token owner");
-        require(nft.getApproved(tokenId) == address(this) || 
-                nft.isApprovedForAll(msg.sender, address(this)), "Not approved for transfer");
+        require(
+            nft.getApproved(tokenId) == address(this) ||
+                nft.isApprovedForAll(msg.sender, address(this)),
+            "Not approved for transfer"
+        );
 
         // Verify ticket is valid and unused
         IEventTicket eventTicket = IEventTicket(ticketContract);
@@ -119,7 +121,14 @@ contract Marketplace is Ownable, ReentrancyGuard, Pausable, IERC721Receiver {
 
         // Generate unique listing ID
         _listingIdCounter++;
-        listingId = keccak256(abi.encodePacked(ticketContract, tokenId, msg.sender, _listingIdCounter));
+        listingId = keccak256(
+            abi.encodePacked(
+                ticketContract,
+                tokenId,
+                msg.sender,
+                _listingIdCounter
+            )
+        );
 
         // Transfer ticket to marketplace for escrow
         nft.safeTransferFrom(msg.sender, address(this), tokenId);
@@ -134,7 +143,13 @@ contract Marketplace is Ownable, ReentrancyGuard, Pausable, IERC721Receiver {
             listedAt: block.timestamp
         });
 
-        emit TicketListed(listingId, ticketContract, tokenId, msg.sender, price);
+        emit TicketListed(
+            listingId,
+            ticketContract,
+            tokenId,
+            msg.sender,
+            price
+        );
         return listingId;
     }
 
@@ -142,7 +157,9 @@ contract Marketplace is Ownable, ReentrancyGuard, Pausable, IERC721Receiver {
      * @notice Purchase a listed ticket
      * @param listingId Unique identifier of the listing
      */
-    function buyTicket(bytes32 listingId) external payable whenNotPaused nonReentrant validListing(listingId) {
+    function buyTicket(
+        bytes32 listingId
+    ) external payable whenNotPaused nonReentrant validListing(listingId) {
         Listing storage listing = listings[listingId];
         require(msg.sender != listing.seller, "Cannot buy own listing");
         require(msg.value >= listing.price, "Insufficient payment");
@@ -170,16 +187,29 @@ contract Marketplace is Ownable, ReentrancyGuard, Pausable, IERC721Receiver {
             payable(msg.sender).transfer(msg.value - listing.price);
         }
 
-        emit TicketSold(listingId, msg.sender, listing.seller, listing.price, fee);
+        emit TicketSold(
+            listingId,
+            msg.sender,
+            listing.seller,
+            listing.price,
+            fee
+        );
     }
 
     /**
      * @notice Cancel a listing and return ticket to seller
      * @param listingId Unique identifier of the listing
      */
-    function cancelListing(bytes32 listingId) external nonReentrant validListing(listingId) onlyListingSeller(listingId) {
+    function cancelListing(
+        bytes32 listingId
+    )
+        external
+        nonReentrant
+        validListing(listingId)
+        onlyListingSeller(listingId)
+    {
         Listing storage listing = listings[listingId];
-        
+
         // Mark listing as inactive
         listing.active = false;
 
@@ -209,17 +239,17 @@ contract Marketplace is Ownable, ReentrancyGuard, Pausable, IERC721Receiver {
         uint256 limit
     ) external view returns (bytes32[] memory listingIds, bool hasMore) {
         require(limit > 0 && limit <= 100, "Invalid limit");
-        
+
         // This is a simplified implementation - in production, consider using an indexing solution
         // for better performance with large datasets
-        
+
         bytes32[] memory tempIds = new bytes32[](limit);
         uint256 found = 0;
         uint256 skipped = 0;
-        
+
         // Note: This would need optimization for production use
         // Consider implementing proper indexing for listings
-        
+
         listingIds = new bytes32[](found);
         hasMore = false; // Simplified for this implementation
     }
@@ -229,7 +259,9 @@ contract Marketplace is Ownable, ReentrancyGuard, Pausable, IERC721Receiver {
      * @param listingId Unique identifier of the listing
      * @return Listing struct
      */
-    function getListing(bytes32 listingId) external view returns (Listing memory) {
+    function getListing(
+        bytes32 listingId
+    ) external view returns (Listing memory) {
         return listings[listingId];
     }
 
@@ -240,7 +272,10 @@ contract Marketplace is Ownable, ReentrancyGuard, Pausable, IERC721Receiver {
      * @param ticketContract Address of the EventTicket contract
      * @param approved Whether the contract is approved
      */
-    function setContractApproval(address ticketContract, bool approved) external onlyOwner {
+    function setContractApproval(
+        address ticketContract,
+        bool approved
+    ) external onlyOwner {
         require(ticketContract != address(0), "Invalid contract address");
         approvedContracts[ticketContract] = approved;
         emit ContractApproved(ticketContract, approved);
@@ -284,9 +319,11 @@ contract Marketplace is Ownable, ReentrancyGuard, Pausable, IERC721Receiver {
      * @notice Emergency function to cancel any listing (admin only)
      * @param listingId Unique identifier of the listing
      */
-    function emergencyCancelListing(bytes32 listingId) external onlyOwner validListing(listingId) {
+    function emergencyCancelListing(
+        bytes32 listingId
+    ) external onlyOwner validListing(listingId) {
         Listing storage listing = listings[listingId];
-        
+
         // Mark listing as inactive
         listing.active = false;
 

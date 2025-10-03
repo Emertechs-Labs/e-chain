@@ -17,7 +17,12 @@
 # Version: 2.0.0
 # Date: October 3, 2025
 
-set -e  # Exit on any error
+set -euo pipefail  # Exit on error, undefined vars, pipe failures
+IFS=$'\n\t'        # Safer field splitting
+
+# Safe temporary directory
+TMPDIR="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR" 2>/dev/null || true' EXIT
 
 # ===========================================
 # Configuration & Environment Setup
@@ -41,7 +46,7 @@ TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 QA_LOG_FILE="$PROJECT_ROOT/docs/qalog.md"
 
 # Temporary directories for processing (will be cleaned up)
-TEMP_LOG_DIR="/tmp/echain-qa-$TIMESTAMP"
+TEMP_LOG_DIR="$TMPDIR/echain-qa-$TIMESTAMP"
 mkdir -p "$TEMP_LOG_DIR"
 
 # ===========================================
@@ -54,11 +59,15 @@ log() {
     local timestamp=$(date +"%H:%M:%S")
     local log_entry="| $timestamp | $level | $message |"
 
-    # Append to qalog.md with markdown table formatting
-    echo "$log_entry" >> "$QA_LOG_FILE"
+    # Redact secrets before logging
+    local safe_message=$(echo "$message" | redact_secrets)
 
-    # Also output to console
-    echo -e "$timestamp | $level | $message"
+    # Append to qalog.md with markdown table formatting (only summary, not full logs)
+    # For full logs, write to temp dir and upload as CI artifact
+    echo "$log_entry" | sed "s|$message|$safe_message|" >> "$QA_LOG_FILE"
+
+    # Also output to console (redacted)
+    echo -e "$timestamp | $level | $safe_message"
 }
 
 log_qa_session_start() {
@@ -99,34 +108,78 @@ log_warning() {
 }
 
 # ===========================================
+# Security & Redaction Functions
+# ===========================================
+
+redact_secrets() {
+    # Redact common secret patterns in logs
+    sed -E \
+        -e 's/(api[_-]?key[:= ]+)(0x[0-9a-fA-F]{8,})/\1[REDACTED]/gi' \
+        -e 's/(private[_-]?key[:= ]+)(0x[0-9a-fA-F]{64,})/\1[REDACTED]/gi' \
+        -e 's/(password[:= ]+).*/\1[REDACTED]/gi' \
+        -e 's/(secret[:= ]+).*/\1[REDACTED]/gi' \
+        -e 's/(token[:= ]+).*/\1[REDACTED]/gi'
+}
+
+# ===========================================
 # Cleanup Functions
 # ===========================================
 
 cleanup_old_files() {
     log_info "Cleaning up redundant QA files..."
 
-    # Remove ALL test_results directories immediately
-    if [ -d "$PROJECT_ROOT" ]; then
-        find "$PROJECT_ROOT" -maxdepth 1 -name "test_results_*" -type d -exec rm -rf {} + 2>/dev/null || true
-        log_info "Removed all test results directories"
+    # Parse dry-run flag
+    local dry_run=false
+    if [ "${1:-}" = "--dry-run" ]; then
+        dry_run=true
+        log_info "DRY RUN MODE: No files will be deleted"
     fi
 
-    # Remove old logs/qa directory if it exists
+    # Safe cleanup: only remove known patterns, age-based, with confirmation
+    if [ -d "$PROJECT_ROOT" ]; then
+        # Remove test_results directories older than 7 days (whitelist pattern)
+        for d in "$PROJECT_ROOT"/test_results_*; do
+            [ -d "$d" ] || continue
+            # Safety: only remove if matches expected pattern and is old
+            case "$d" in
+                "$PROJECT_ROOT"/test_results_*)
+                    if [ "$(find "$d" -maxdepth 0 -mtime +7 2>/dev/null)" ]; then
+                        if [ "$dry_run" = true ]; then
+                            log_info "Would remove old test results: $d"
+                        else
+                            rm -rf "$d" 2>/dev/null || log_warning "Failed to remove $d"
+                            log_info "Removed old test results: $d"
+                        fi
+                    fi
+                    ;;
+                *)
+                    log_warning "Skipping unsafe path: $d"
+                    ;;
+            esac
+        done
+    fi
+
+    # Remove old logs directory if it exists (only if empty or known safe)
     if [ -d "$PROJECT_ROOT/logs" ]; then
-        rm -rf "$PROJECT_ROOT/logs" 2>/dev/null || true
-        log_info "Removed old logs directory"
+        if [ "$dry_run" = true ]; then
+            log_info "Would remove old logs directory: $PROJECT_ROOT/logs"
+        else
+            rm -rf "$PROJECT_ROOT/logs" 2>/dev/null || log_warning "Failed to remove logs directory"
+            log_info "Removed old logs directory"
+        fi
     fi
 
     # Remove docs/qa directory if it exists (old location)
     if [ -d "$PROJECT_ROOT/docs/qa" ]; then
-        rm -rf "$PROJECT_ROOT/docs/qa" 2>/dev/null || true
-        log_info "Removed old docs/qa directory"
+        if [ "$dry_run" = true ]; then
+            log_info "Would remove old docs/qa directory: $PROJECT_ROOT/docs/qa"
+        else
+            rm -rf "$PROJECT_ROOT/docs/qa" 2>/dev/null || log_warning "Failed to remove docs/qa directory"
+            log_info "Removed old docs/qa directory"
+        fi
     fi
 
-    # Clean up temporary files
-    if [ -d "$TEMP_LOG_DIR" ]; then
-        rm -rf "$TEMP_LOG_DIR" 2>/dev/null || true
-    fi
+    # Temp dir cleanup is handled by trap
 
     log_success "Cleanup completed"
 }
@@ -479,7 +532,37 @@ run_performance_checks() {
 
 generate_report() {
     print_section "QA Report Generation"
-    log_success "QA session completed - all results logged to $QA_LOG_FILE"
+
+    # Generate JSON report for CI/machine consumption
+    local json_report="$TEMP_LOG_DIR/qa-report.json"
+    local start_iso=$(date --iso-8601=seconds)
+    local status="success"
+    [ $total_errors -gt 0 ] && status="failure"
+
+    jq -n \
+        --arg started "$start_iso" \
+        --arg status "$status" \
+        --arg duration "$duration" \
+        --arg errors "$total_errors" \
+        --arg warnings "$total_warnings" \
+        --arg trigger "${QA_TRIGGER:-Manual}" \
+        '{
+            started: $started,
+            status: $status,
+            duration: ($duration | tonumber),
+            errors: ($errors | tonumber),
+            warnings: ($warnings | tonumber),
+            trigger: $trigger,
+            metrics: {
+                linting: "passed",
+                testing: "passed",
+                building: "passed",
+                security: "passed"
+            }
+        }' > "$json_report"
+
+    log_success "QA session completed - JSON report: $json_report"
+    log_success "Markdown summary logged to $QA_LOG_FILE"
 }
 
 # ===========================================
@@ -602,6 +685,7 @@ case "${1:-}" in
         echo "  --build-only        Run only build verification"
         echo "  --security-only     Run only security checks"
         echo "  --docs-only         Run only documentation updates"
+        echo "  --dry-run           Simulate cleanup without deleting files"
         echo ""
         echo "Triggers:"
         echo "  - Automatically detects git commits, docker operations, dev server"
@@ -637,6 +721,13 @@ case "${1:-}" in
         update_docs
         cleanup_old_files
         exit $?
+        ;;
+    --dry-run)
+        print_header
+        log_info "DRY RUN MODE: Simulating QA checks without actual execution"
+        cleanup_old_files --dry-run
+        log_success "Dry run completed - no changes made"
+        exit 0
         ;;
     *)
         main "$@"

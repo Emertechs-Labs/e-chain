@@ -553,6 +553,18 @@ generate_report() {
             errors: ($errors | tonumber),
             warnings: ($warnings | tonumber),
             trigger: $trigger,
+            next_steps: [
+                "Open PR: Create pull request from '\''preview'\'' → '\''main'\''",
+                "Test CI: Push/PR will trigger QA workflow & upload artifacts",
+                "Install gitleaks: For local pre-commit hooks"
+            ],
+            ci_features: [
+                "Runs QA agent in Node.js 18 container",
+                "Secret scanning with gitleaks",
+                "Uploads JSON reports + logs as artifacts (30-day retention)",
+                "Comments QA results on PRs",
+                "Fails CI if QA finds critical errors"
+            ],
             metrics: {
                 linting: "passed",
                 testing: "passed",
@@ -651,6 +663,23 @@ main() {
     echo "📁 QA Log: $QA_LOG_FILE"
     echo ""
 
+    # Next steps recommendations
+    echo -e "${CYAN}🚀 NEXT STEPS${NC}"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "📋 Open PR: Create pull request from 'preview' → 'main'"
+    echo "🔄 Test CI: Push/PR will trigger QA workflow & upload artifacts"
+    echo "🔧 Install gitleaks: For local pre-commit hooks"
+    echo "   curl -sSfL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz | tar -xz && sudo mv gitleaks /usr/local/bin/"
+    echo ""
+    echo -e "${CYAN}⚙️  CI WORKFLOW FEATURES${NC}"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "🐳 Runs QA agent in Node.js 18 container"
+    echo "🔍 Secret scanning with gitleaks"
+    echo "📤 Uploads JSON reports + logs as artifacts (30-day retention)"
+    echo "💬 Comments QA results on PRs"
+    echo "❌ Fails CI if QA finds critical errors"
+    echo ""
+
     # Exit with appropriate code
     if [ $total_errors -gt 0 ]; then
         echo -e "${RED}❌ QA CHECKS FAILED${NC}"
@@ -685,6 +714,19 @@ case "${1:-}" in
         echo "  --build-only        Run only build verification"
         echo "  --security-only     Run only security checks"
         echo "  --docs-only         Run only documentation updates"
+        echo "  --dry-run           Simulate cleanup without deleting files"
+        echo ""
+        echo "Next Steps After QA:"
+        echo "  - Open PR: Create pull request from 'preview' → 'main'"
+        echo "  - Test CI: Push/PR triggers QA workflow & artifact uploads"
+        echo "  - Install gitleaks: For local pre-commit secret scanning"
+        echo ""
+        echo "CI Workflow Features:"
+        echo "  - Runs QA agent in Node.js 18 container"
+        echo "  - Secret scanning with gitleaks"
+        echo "  - Uploads JSON reports + logs as artifacts (30-day retention)"
+        echo "  - Comments QA results on PRs"
+        echo "  - Fails CI if QA finds critical errors"
         echo "  --dry-run           Simulate cleanup without deleting files"
         echo ""
         echo "Triggers:"

@@ -48,6 +48,7 @@
   ],
   "dependencies": {
     "@curvegrid/multibaas-sdk": "^1.0.12",
+    "@vercel/analytics": "^1.5.0",
     "polkadot-api": "^1.19.2"
   },
   "devDependencies": {

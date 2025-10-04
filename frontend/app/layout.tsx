@@ -7,7 +7,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ChainWatcherClient from './components/ChainWatcherClient';
 import RealtimeSubscriptionsClient from './components/RealtimeSubscriptionsClient';
 import RealtimeStatus from './components/RealtimeStatus';
-import { Analytics } from '@vercel/analytics/next';
+import { Analytics } from '@vercel/analytics';
 
 // Use system font stack to avoid remote Google Fonts fetch during dev/build
 // Keep a CSS variable for compatibility with existing styles

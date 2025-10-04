@@ -47,7 +47,8 @@
     "frontend"
   ],
   "dependencies": {
-    "@curvegrid/multibaas-sdk": "^1.0.12"
+    "@curvegrid/multibaas-sdk": "^1.0.12",
+    "polkadot-api": "^1.19.2"
   },
   "devDependencies": {
     "lint-staged": "^16.2.2"

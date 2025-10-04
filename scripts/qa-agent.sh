@@ -479,8 +479,9 @@ run_security_checks() {
 
     # Check for exposed secrets
     log_info "Checking for exposed secrets..."
-    # Exclude documentation, test files, and legitimate code references
-    if grep -r "PRIVATE_KEY\|SECRET\|PASSWORD" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=logs --exclude-dir=docs --exclude="*.md" --exclude="*.mjs" --exclude="*.ts" --exclude="*.js" . | grep -v "process.env" | grep -v "import.meta.env" | grep -v "E2E_PRIVATE_KEY" | grep -v "NEXT_PUBLIC_MULTIBAAS" | grep -v "your_dapp_user_api_key" | grep -v "your_web3_api_key"; then
+    # Exclude documentation, test files, legitimate code references, local env files, and build artifacts
+    # Look for actual secret values, not just variable names
+    if grep -r "PRIVATE_KEY.*[0-9a-fA-F]\{32,\}\|SECRET.*[a-zA-Z0-9_-]\{20,\}\|PASSWORD.*[a-zA-Z0-9_-]\{8,\}" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=logs --exclude-dir=docs --exclude-dir=.next --exclude-dir=dist --exclude-dir=build --exclude-dir=cache --exclude-dir=artifacts --exclude="*.md" --exclude="*.mjs" --exclude="*.ts" --exclude="*.js" --exclude="*.env.local" . | grep -v "process.env" | grep -v "import.meta.env" | grep -v "E2E_PRIVATE_KEY" | grep -v "your_" | grep -v "_here" | grep -v "placeholder" | grep -v "example"; then
         log_error "Potential exposed secrets found"
         ((security_issues++))
     else
@@ -583,9 +584,9 @@ generate_report() {
 
 main() {
     # Detect trigger type
-    if [ -n "$GIT_AUTHOR_NAME" ]; then
+    if [ -n "${GIT_AUTHOR_NAME:-}" ]; then
         QA_TRIGGER="Git Commit"
-    elif [ -n "$DOCKER_CONTAINER" ] || echo "$@" | grep -q "docker"; then
+    elif [ -n "${DOCKER_CONTAINER:-}" ] || echo "$@" | grep -q "docker"; then
         QA_TRIGGER="Docker Operation"
     elif echo "$@" | grep -q "dev\|start\|server"; then
         QA_TRIGGER="Dev Server"

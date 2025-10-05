@@ -1,51 +1,32 @@
 # Base Testnet Deployment Guide
 
-This guide walks you through deploying the Echain smart contracts to Base Sepolia testnet using Curvegrid MultiBaas.
+This guide walks you through deploying the Echain smart contracts directly to Base Sepolia testnet.
 
 ## Prerequisites
 
 1. **Node.js** (v16 or higher)
-2. **MultiBaas Account** with Base Sepolia network configured
-3. **Base Sepolia ETH** for deployment (get from [Base Sepolia Faucet](https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet))
-4. **Deployer wallet** with private key
+2. **Base Sepolia ETH** for deployment (get from [Base Sepolia Faucet](https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet))
+3. **Deployer wallet** with private key
+4. **BaseScan API Key** for contract verification (optional)
 
 ## Setup Instructions
 
 ### 1. Environment Configuration
 
-Copy the template configuration file:
-```bash
-cp deployment-config.base-testnet.template.js deployment-config.base-testnet.js
-```
-
-Set the following environment variables:
+Create a `.env` file in the blockchain directory:
 
 ```bash
-# MultiBaas Configuration
-export MULTIBAAS_ENDPOINT="https://your-deployment.multibaas.com"
-export MULTIBAAS_WEB3_KEY="your_web3_api_key"
-export MULTIBAAS_ADMIN_KEY="your_admin_api_key"
+# Deployer wallet private key (must have Base Sepolia ETH)
+DEPLOYER_PRIVATE_KEY="0x..."
 
-# Deployer Configuration
-export DEPLOYER_PRIVATE_KEY="0x..."
+# Optional: Custom Base Sepolia RPC URL (defaults to public RPC)
+BASE_TESTNET_RPC_URL="https://sepolia.base.org"
 
-# Optional: Custom RPC (defaults to public Base Sepolia RPC)
-export BASE_TESTNET_RPC_URL="https://sepolia.base.org"
+# Optional: BaseScan API Key for contract verification
+BASESCAN_API_KEY="YOUR_BASESCAN_API_KEY_HERE"
 ```
 
-### 2. MultiBaas API Keys
-
-Create API keys in your MultiBaas dashboard:
-
-1. **Web3 API Key**: Navigation bar > Admin > API Keys
-   - Must be in the "Web3" group
-   - Used for web3 endpoint access
-
-2. **Admin API Key**: Navigation bar > Admin > API Keys  
-   - Must be in the "Administrators" group
-   - Used for deployment and contract management
-
-### 3. Get Testnet Funds
+### 2. Get Testnet Funds
 
 1. Visit [Base Sepolia Faucet](https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet)
 2. Request testnet ETH for your deployer address
@@ -66,17 +47,26 @@ This script will verify:
 
 ## Deployment Commands
 
-### Option 1: Direct Hardhat Deployment
+Deploy the contracts directly to Base Sepolia:
 
 ```bash
-export HARDHAT_NETWORK=base-testnet
-npx hardhat run scripts/deploy-base-testnet.ts --network base-testnet
+# Set your private key
+export PRIVATE_KEY="0x..."
+
+# Deploy EventFactory and related contracts
+forge script scripts/DeployEventFactory.s.sol --rpc-url https://sepolia.base.org --private-key $PRIVATE_KEY --broadcast --verify
 ```
 
-### Option 2: MultiBaas Deployment
+### Alternative Deployment Methods
+
+For more complex deployments, you can also use:
 
 ```bash
-HARDHAT_NETWORK=base-testnet npx hardhat mb-deploy --network base-testnet
+# Deploy without verification (faster)
+forge script scripts/DeployEventFactory.s.sol --rpc-url https://sepolia.base.org --private-key $PRIVATE_KEY --broadcast
+
+# Deploy to local testnet first
+forge script scripts/DeployEventFactory.s.sol --rpc-url http://localhost:8545 --private-key $PRIVATE_KEY --broadcast
 ```
 
 ## Network Information
@@ -84,7 +74,7 @@ HARDHAT_NETWORK=base-testnet npx hardhat mb-deploy --network base-testnet
 - **Network Name**: Base Sepolia
 - **Chain ID**: 84532
 - **RPC URL**: https://sepolia.base.org
-- **Block Explorer**: https://sepolia-explorer.base.org
+- **Block Explorer**: https://sepolia.basescan.org
 - **Faucet**: https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet
 
 ## Post-Deployment
@@ -114,18 +104,18 @@ NEXT_PUBLIC_INCENTIVE_ADDRESS=0x...
 
 1. **Insufficient Balance**: Ensure deployer wallet has enough Base Sepolia ETH
 2. **Network Mismatch**: Verify you're connected to Base Sepolia (Chain ID: 84532)
-3. **API Key Issues**: Ensure API keys are in correct groups (Web3 and Administrators)
-4. **RPC Issues**: Try using a different RPC endpoint if deployment fails
+3. **RPC Issues**: Try using a different RPC endpoint if deployment fails
+4. **Gas Estimation**: Base Sepolia may have variable gas prices
 
 ### Support Resources
 
 - [Base Documentation](https://docs.base.org/)
-- [MultiBaas Documentation](https://docs.curvegrid.com/)
-- [Hardhat Documentation](https://hardhat.org/docs)
+- [Foundry Documentation](https://book.getfoundry.sh/)
+- [Echain Deployment Guide](../docs/deployment/DEPLOYMENT_CHECKLIST.md)
 
 ## Security Notes
 
-- **Never commit** actual private keys or API keys to git
+- **Never commit** actual private keys to git
 - Use environment variables for all sensitive configuration
-- The `deployment-config.base-testnet.js` file is gitignored for security
-- Keep your MultiBaas API keys secure and rotate them regularly
+- Keep your BaseScan API key secure
+- Test all functionality thoroughly before mainnet deployment

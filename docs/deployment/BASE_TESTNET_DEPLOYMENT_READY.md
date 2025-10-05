@@ -8,11 +8,11 @@
 3. **`blockchain/setup-base-deployment.sh`** - Pre-deployment verification script
 4. **`blockchain/BASE_TESTNET_DEPLOYMENT.md`** - Complete deployment guide
 5. **`blockchain/.gitignore`** - Updated to allow template files while securing config
-6. **`blockchain/hardhat.config.ts`** - Updated with Base testnet network support
+6. **`blockchain/foundry.toml`** - Updated with Base testnet profiles and RPC aliases
 
 ### 🔧 **Configuration Updates:**
-- **Hardhat Config**: Added Base Sepolia testnet support (Chain ID: 84532)
-- **MultiBaas Integration**: Configured for Curvegrid deployment
+- **Foundry Config**: Added Base Sepolia profile (Chain ID: 84532)
+- **Direct RPC Integration**: Configured for Base Sepolia deployment
 - **Security**: Environment variable based configuration
 
 ---
@@ -29,9 +29,9 @@ cp deployment-config.base-testnet.template.js deployment-config.base-testnet.js
 
 Set these environment variables:
 ```bash
-export MULTIBAAS_ENDPOINT="https://your-deployment.multibaas.com"
-export MULTIBAAS_WEB3_KEY="your_web3_api_key"
-export MULTIBAAS_ADMIN_KEY="your_admin_api_key"
+export BASE_RPC_URL="https://sepolia.base.org"
+export POLKADOT_RPC_URL="wss://rococo-contracts-rpc.polkadot.io"
+export CARDANO_RPC_URL="https://preview-api.cardano.moonsonglabs.com"
 export DEPLOYER_PRIVATE_KEY="0x..."
 ```
 
@@ -48,15 +48,22 @@ export DEPLOYER_PRIVATE_KEY="0x..."
 ### **Step 4: Deploy to Base Testnet**
 Choose one of these deployment methods:
 
-**Option A: Direct Hardhat Deployment**
+**Option A: Forge Script Deployment**
 ```bash
-export HARDHAT_NETWORK=base-testnet
-npx hardhat run scripts/deploy-base-testnet.ts --network base-testnet
+forge script scripts/DeployEventFactory.s.sol \
+	--rpc-url "$BASE_RPC_URL" \
+	--private-key "$DEPLOYER_PRIVATE_KEY" \
+	--broadcast \
+	--verify
 ```
 
-**Option B: MultiBaas Deployment (Recommended)**
+**Option B: Automated Shell Script (Recommended)**
 ```bash
-HARDHAT_NETWORK=base-testnet npx hardhat mb-deploy --network base-testnet
+./setup-base-deployment.sh && \
+forge script scripts/DeployEventFactory.s.sol \
+	--rpc-url "$BASE_RPC_URL" \
+	--private-key "$DEPLOYER_PRIVATE_KEY" \
+	--broadcast
 ```
 
 ---
@@ -77,7 +84,7 @@ HARDHAT_NETWORK=base-testnet npx hardhat mb-deploy --network base-testnet
 ✅ **Template Files**: Safe to commit, actual config gitignored
 ✅ **Network Verification**: Deployment script verifies correct network
 ✅ **Balance Checks**: Ensures sufficient ETH before deployment
-✅ **MultiBaas Integration**: Secure API key handling
+✅ **Direct RPC Integration**: Native blockchain connections
 
 ---
 
@@ -99,4 +106,4 @@ NEXT_PUBLIC_MARKETPLACE_ADDRESS=0xD061393A54784da5Fea48CC845163aBc2B11537A
 
 ## 🎉 READY TO DEPLOY!
 
-All files have been pushed to GitHub and you're ready to deploy to Base testnet. Follow the steps above and you'll have your Echain contracts live on Base Sepolia testnet with full Curvegrid MultiBaas integration!
+All files have been pushed to GitHub and you're ready to deploy to Base testnet. Follow the steps above and you'll have your Echain contracts live on Base Sepolia testnet with full direct RPC integration!

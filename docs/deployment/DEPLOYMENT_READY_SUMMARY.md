@@ -51,17 +51,20 @@ cp deployment-config.template.js deployment-config.development.js
 
 # Edit with your configuration:
 # - Add your private key
-# - Set MultiBaas endpoint (if using)
+# - Set direct RPC endpoint (Base Sepolia)
 # - Set treasury address
 ```
 
 ### 2. Deploy to Testnet
 
 ```bash
-# Option A: Use the enhanced secure deployment script
-npx hardhat run scripts/deploy-secure.ts --network development
+# Option A: Run the forge deployment script with broadcasting
+forge script scripts/DeployEventFactory.s.sol \
+   --rpc-url "$BASE_TESTNET_RPC_URL" \
+   --private-key "$DEPLOYER_PRIVATE_KEY" \
+   --broadcast
 
-# Option B: Use the standard deployment script  
+# Option B: Use the npm wrapper script  
 npm run deploy:events:dev
 ```
 

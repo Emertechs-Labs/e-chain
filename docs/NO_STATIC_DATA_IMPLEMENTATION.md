@@ -135,7 +135,7 @@ To make the system fully complete with real data:
    - `TURSO_DATABASE_URL`
    - `TURSO_AUTH_TOKEN`
    - `NEXT_PUBLIC_PINATA_JWT`
-   - MultiBaas credentials
+   - Multi-chain RPC credentials (Base, Polkadot, Cardano)
 
 3. **Smart Contracts**: Ensure all contracts deployed on Base Sepolia
 

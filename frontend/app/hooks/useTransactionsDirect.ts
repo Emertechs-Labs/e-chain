@@ -1,8 +1,8 @@
 /**
- * Direct Wallet Transaction Hooks (No MultiBaas)
- * 
- * These hooks bypass MultiBaas completely and interact directly with contracts
- * using wagmi. Use these when MultiBaas is unavailable or misconfigured.
+ * Direct Wallet Transaction Hooks
+ *
+ * These hooks interact directly with smart contracts using wagmi,
+ * providing fast and reliable transaction handling.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -13,7 +13,7 @@ import { generateVerificationQR, uploadVerificationData, uploadTicketMetadata, V
 import { readContract } from '../../lib/contract-wrapper';
 
 /**
- * Create Event - Direct Wallet Transaction (No MultiBaas)
+ * Create Event - Direct Wallet Transaction
  */
 export const useCreateEventDirect = () => {
   const { address } = useAccount();
@@ -82,7 +82,7 @@ export const useCreateEventDirect = () => {
 };
 
 /**
- * Purchase Ticket - Direct Wallet Transaction (No MultiBaas)
+ * Purchase Ticket - Direct Wallet Transaction
  */
 export const usePurchaseTicketDirect = () => {
   const { address } = useAccount();

@@ -12,19 +12,13 @@ async function testContractWrapper() {
   try {
     // Test eventCount first (this should exist)
     console.log('Testing eventCount...');
-    const eventCount = await readContract('EventFactory', 'eventCount', [], {
-      useMultiBaas: false,
-      skipFallback: false
-    });
+    const eventCount = await readContract('EventFactory', 'eventCount', []);
     console.log(`✅ eventCount: ${eventCount}`);
 
     // Test isVerifiedOrganizer
     console.log('Testing isVerifiedOrganizer...');
     const testAddress = '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'; // Example address
-    const isVerified = await readContract('EventFactory', 'isVerifiedOrganizer', [testAddress], {
-      useMultiBaas: false,
-      skipFallback: false
-    });
+    const isVerified = await readContract('EventFactory', 'isVerifiedOrganizer', [testAddress]);
     console.log(`✅ isVerifiedOrganizer(${testAddress}): ${isVerified}`);
 
     return { eventCount, isVerified };

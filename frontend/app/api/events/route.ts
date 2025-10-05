@@ -1,54 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readContract, writeContract } from '../../../lib/contract-wrapper';
-
-// Webhook secret from environment (set in MultiBaas)
-const WEBHOOK_SECRET = process.env.MULTIBAAS_WEBHOOK_SECRET || 'your-webhook-secret';
-
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.text();
-    const signature = request.headers.get('x-multibaas-signature');
-    const timestamp = request.headers.get('x-multibaas-timestamp');
-
-    // Validate webhook signature (basic validation)
-    if (!signature || !timestamp) {
-      return NextResponse.json({ error: 'Missing signature or timestamp' }, { status: 401 });
-    }
-
-    // For now, skip full validation and trust the request
-    // In production, implement HMAC validation as per docs
-
-    const events = JSON.parse(body);
-
-    for (const webhookEvent of events) {
-      if (webhookEvent.event === 'event.emitted') {
-        const eventData = webhookEvent.data;
-
-        // Check if it's an EventCreated event from EventFactory
-        if (eventData.event.name === 'EventCreated') {
-          const inputs = eventData.event.inputs;
-          const eventId = parseInt(inputs.find((i: any) => i.name === 'eventId')?.value);
-          const organizer = inputs.find((i: any) => i.name === 'organizer')?.value;
-          const ticketContract = inputs.find((i: any) => i.name === 'ticketContract')?.value;
-          const name = inputs.find((i: any) => i.name === 'name')?.value;
-          const ticketPrice = inputs.find((i: any) => i.name === 'ticketPrice')?.value;
-          const maxTickets = parseInt(inputs.find((i: any) => i.name === 'maxTickets')?.value);
-          const startTime = parseInt(inputs.find((i: any) => i.name === 'startTime')?.value);
-          const endTime = parseInt(inputs.find((i: any) => i.name === 'endTime')?.value);
-          const metadataUri = inputs.find((i: any) => i.name === 'metadataURI')?.value || '';
-
-          // Event is now stored on-chain only - no database storage
-          console.log('Received new event (stored on-chain):', { eventId, name, organizer, startTime, endTime });
-        }
-      }
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Webhook error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+import { readContract } from '../../../lib/contract-wrapper';
 
 export async function GET() {
   try {

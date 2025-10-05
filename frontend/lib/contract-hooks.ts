@@ -1,8 +1,7 @@
 /**
- * React Hooks for Contract Interaction with Automatic Fallback
- * 
+ * React Hooks for Contract Interaction
+ *
  * Easy-to-use hooks for reading and writing to smart contracts
- * with automatic MultiBaas → Direct fallback.
  */
 
 'use client';
@@ -23,10 +22,9 @@ export function useContractRead<T = any>(
   options: {
     enabled?: boolean;
     refetchInterval?: number;
-    useMultiBaas?: boolean;
   } = {}
 ) {
-  const { enabled = true, refetchInterval, useMultiBaas = true } = options;
+  const { enabled = true, refetchInterval } = options;
   
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<Error | null>(null);
@@ -51,8 +49,7 @@ export function useContractRead<T = any>(
       const result = await readContract<T>(
         contractName,
         functionName,
-        args,
-        { useMultiBaas }
+        args
       );
 
       setData(result);
@@ -64,7 +61,7 @@ export function useContractRead<T = any>(
       setIsRefetching(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contractName, functionName, argsKey, enabled, useMultiBaas]);
+  }, [contractName, functionName, argsKey, enabled]);
 
   useEffect(() => {
     fetchData();
@@ -91,14 +88,13 @@ export function useContractWrite(
   contractName: keyof typeof CONTRACT_ADDRESSES,
   functionName: string,
   options: {
-    useMultiBaas?: boolean;
     waitForConfirmation?: boolean;
     onSuccess?: (txHash: `0x${string}`) => void;
     onError?: (error: Error) => void;
   } = {}
 ) {
   const { address } = useAccount();
-  const { useMultiBaas = true, waitForConfirmation = true, onSuccess, onError } = options;
+  const { waitForConfirmation = true, onSuccess, onError } = options;
 
   const [isPending, setIsPending] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -129,7 +125,6 @@ export function useContractWrite(
           {
             account: address,
             value,
-            useMultiBaas,
             waitForConfirmation: false, // We'll handle this manually
           }
         );
@@ -159,7 +154,7 @@ export function useContractWrite(
         throw error;
       }
     },
-    [address, contractName, functionName, useMultiBaas, waitForConfirmation, onSuccess, onError]
+    [address, contractName, functionName, waitForConfirmation, onSuccess, onError]
   );
 
   const reset = useCallback(() => {
@@ -235,62 +230,6 @@ export function useContractSimulate(
     error,
     result,
   };
-}
-
-/**
- * Hook for checking MultiBaas health
- */
-export function useMultiBaasHealth(checkInterval?: number) {
-  const [isHealthy, setIsHealthy] = useState<boolean | null>(null);
-  const [isChecking, setIsChecking] = useState(false);
-
-  const checkHealth = useCallback(async () => {
-    try {
-      setIsChecking(true);
-      const { checkMultiBaasHealth } = await import('./contract-wrapper');
-      const healthy = await checkMultiBaasHealth();
-      setIsHealthy(healthy);
-      return healthy;
-    } catch (error) {
-      console.error('Health check failed:', error);
-      setIsHealthy(false);
-      return false;
-    } finally {
-      setIsChecking(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    checkHealth();
-
-    if (checkInterval) {
-      const interval = setInterval(checkHealth, checkInterval);
-      return () => clearInterval(interval);
-    }
-  }, [checkHealth, checkInterval]);
-
-  return {
-    isHealthy,
-    isChecking,
-    checkHealth,
-  };
-}
-
-/**
- * Hook for getting fallback mode
- */
-export function useFallbackMode() {
-  const [mode, setMode] = useState<'multibaas' | 'direct' | 'both' | null>(null);
-
-  useEffect(() => {
-    async function getMode() {
-      const { getFallbackMode } = await import('./contract-wrapper');
-      setMode(getFallbackMode());
-    }
-    getMode();
-  }, []);
-
-  return mode;
 }
 
 // Export types

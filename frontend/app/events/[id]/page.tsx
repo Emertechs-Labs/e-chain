@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { useEvent } from "../../hooks/useEvents";
-import { usePurchaseTicketDirect } from "../../hooks/useTransactionsDirect"; // Direct wallet (no MultiBaas)
+import { usePurchaseTicketDirect } from "../../hooks/useTransactionsDirect"; // Direct wallet transaction
 import { useClaimPOAP } from "../../hooks/useTransactions";
 import { formatEther } from "viem";
 import { toast } from "sonner";
@@ -56,7 +56,7 @@ const EventDetailPage: React.FC = () => {
       if (!event?.ticketContract) return 0;
 
       try {
-        // Use wrapper with MultiBaas fallback to direct RPC
+        // Use direct contract interaction
         const totalSold = await readContract(
           'EventTicket',
           'totalSold',

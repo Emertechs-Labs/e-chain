@@ -22,7 +22,7 @@ npm test
 ### Prerequisites Checklist
 - [ ] **Configure environment variables**
 - [ ] **Obtain testnet ETH**
-- [ ] **Set up MultiBaas account (if using)**
+- [ ] **Confirm direct RPC endpoint access**
 - [ ] **Configure treasury address**
 
 ### Step 1: Environment Setup
@@ -37,12 +37,10 @@ cp deployment-config.template.js deployment-config.development.js
 ```javascript
 // deployment-config.development.js
 const deploymentConfig = {
-  deployerPrivateKey: 'YOUR_PRIVATE_KEY',
-  deploymentEndpoint: 'YOUR_MULTIBAAS_ENDPOINT',
-  web3Key: 'YOUR_WEB3_API_KEY',
-  adminApiKey: 'YOUR_ADMIN_API_KEY',
-  // OR use direct RPC
-  rpcUrl: 'https://your-testnet-rpc.com'
+   deployerPrivateKey: process.env.DEPLOYER_PRIVATE_KEY,
+   rpcUrl: process.env.BASE_TESTNET_RPC_URL ?? 'https://sepolia.base.org',
+   verifierUrl: process.env.BASESCAN_API_URL,
+   verificationKey: process.env.BASESCAN_API_KEY
 };
 ```
 
@@ -59,8 +57,11 @@ export NODE_ENV=development
 # Deploy using secure deployment script
 npm run deploy:events:dev
 
-# Or use the enhanced secure deployment
-npx hardhat run scripts/deploy-secure.ts --network development
+# Or run the forge script directly
+forge script scripts/DeployEventFactory.s.sol \
+   --rpc-url "$BASE_TESTNET_RPC_URL" \
+   --private-key "$DEPLOYER_PRIVATE_KEY" \
+   --broadcast
 ```
 
 ### Step 3: Verify Deployment

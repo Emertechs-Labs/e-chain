@@ -25,7 +25,7 @@ const handleTransactionError = (error: any): string => {
     return 'Network error: Please check your internet connection and try again.';
   }
 
-  // Handle MultiBaas API errors
+  // Handle transaction errors
   if (error?.response?.status === 403) {
     return 'Access denied: Please check your API key configuration.';
   }
@@ -45,7 +45,7 @@ const handleTransactionError = (error: any): string => {
   return 'Transaction failed. Please try again.';
 };
 
-// Helper: convert MultiBaas unsigned tx to viem/wagmi-friendly transaction
+// Helper: convert transaction data to viem/wagmi-friendly format
 const formatForWallet = (txData: any, accountAddress: string) => {
   if (!txData) throw new Error('Missing txData');
   // sdk returns the unsigned tx typically under txData.tx or txData

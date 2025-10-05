@@ -51,20 +51,20 @@ run_test() {
 echo "Starting comprehensive production testing..."
 echo ""
 
-# Test 1: Basic Production Tests
-run_test "basic_production" \
-         "./test_production.sh" \
-         "Basic contract interactions, API health, and MultiBaas connectivity"
+# Test 1: Blockchain Contract Tests
+run_test "blockchain_contracts" \
+         "cd ../blockchain && npm test" \
+         "Smart contract unit tests and functionality verification"
 
-# Test 2: Ticket Purchase Tests  
-run_test "ticket_purchase" \
-         "./test_tickets.sh" \
-         "Ticket pricing, purchase transactions, transfers, and refunds"
+# Test 2: Frontend Integration Tests
+run_test "frontend_integration" \
+         "cd ../frontend && npm run test" \
+         "Frontend component tests and contract integration"
 
-# Test 3: POAP Functionality Tests
-run_test "poap_functionality" \
-         "./test_poap.sh" \
-         "POAP claims, eligibility, metadata, and attendance verification"
+# Test 3: End-to-End Deployment Tests
+run_test "deployment_verification" \
+         "cd ../blockchain && npm run deploy:events:dev" \
+         "Verify deployment scripts work correctly"
 
 # Generate summary report
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -83,70 +83,61 @@ cat > "$SUMMARY_FILE" << EOF
 
 ## Test Overview
 
-This report summarizes the results of comprehensive production testing for the Echain DApp.
+This report summarizes the results of comprehensive production testing for the Echain DApp using direct contract integration.
 
 ## Tests Performed
 
-### 1. Basic Production Tests
-- **File:** basic_production_results.log
-- **Focus:** Core API functionality, contract connectivity, MultiBaas integration
+### 1. Blockchain Contract Tests
+- **File:** blockchain_contracts_results.log
+- **Focus:** Smart contract functionality and unit tests
 - **Key Areas:** 
-  - API health checks
-  - Contract version verification
-  - Event counting and platform fee checks
-  - Event creation transactions
-  - Organizer verification
-  - Storage services
-  - Error handling
+  - Contract compilation and deployment
+  - Unit test execution
+  - Gas optimization verification
+  - Security property validation
 
-### 2. Ticket Purchase Tests
-- **File:** ticket_purchase_results.log
-- **Focus:** Complete ticket lifecycle testing
+### 2. Frontend Integration Tests
+- **File:** frontend_integration_results.log
+- **Focus:** Frontend component and contract integration testing
 - **Key Areas:**
-  - Event listing and details
-  - Ticket pricing and availability
-  - Purchase transaction generation
-  - Batch purchasing
-  - Ticket transfers
-  - Refund functionality
-  - Capacity management
+  - Component rendering and interactions
+  - Contract read/write operations
+  - Wallet connection handling
+  - Error state management
 
-### 3. POAP Functionality Tests
-- **File:** poap_functionality_results.log
-- **Focus:** POAP claiming and management
+### 3. Deployment Verification Tests
+- **File:** deployment_verification_results.log
+- **Focus:** Deployment script validation and contract addresses
 - **Key Areas:**
-  - POAP eligibility verification
-  - Claim transaction generation
-  - Token metadata and URIs
-  - Ownership verification
-  - Transfer functionality
-  - Attendance requirements
+  - Deployment script execution
+  - Contract address verification
+  - Network connectivity testing
+  - Configuration validation
 
 ## Quick Results Analysis
 
 To analyze the results:
 
-1. **Check HTTP Status Codes:** Look for 200 (success) vs 4xx/5xx (errors)
-2. **Review Response Times:** Identify performance bottlenecks
-3. **Examine Error Messages:** Understand any integration issues
-4. **Validate Transaction Data:** Ensure unsigned transactions are properly formatted
+1. **Check Test Results:** Look for PASSED vs FAILED test outcomes
+2. **Review Gas Usage:** Identify optimization opportunities
+3. **Examine Error Messages:** Understand any contract or integration issues
+4. **Validate Deployment:** Ensure contracts are properly deployed and accessible
 
 ## Common Issues to Look For
 
-- **401/403 Errors:** API key or permission issues
-- **404 Errors:** Contract or method not found
-- **500 Errors:** Server-side integration problems
-- **Timeout Issues:** Network connectivity problems
-- **Invalid Transaction Format:** MultiBaas integration issues
+- **Compilation Errors:** Contract syntax or dependency issues
+- **Test Failures:** Logic errors in smart contracts
+- **Deployment Failures:** Network connectivity or configuration problems
+- **Integration Issues:** Frontend-contract communication problems
 
 ## Next Steps
 
 Based on the test results:
 
 1. **If all tests pass:** Ready for production deployment
-2. **If basic tests fail:** Fix MultiBaas integration issues first
-3. **If ticket tests fail:** Review EventTicket contract configuration
-4. **If POAP tests fail:** Check POAPAttendance contract setup
+2. **If contract tests fail:** Fix smart contract logic issues
+3. **If frontend tests fail:** Review contract integration code
+4. **If deployment fails:** Check network configuration and deployment scripts
 
 ## Detailed Results
 
@@ -171,12 +162,12 @@ echo ""
 for test_file in "$RESULTS_DIR"/*_results.log; do
     if [ -f "$test_file" ]; then
         test_name=$(basename "$test_file" _results.log)
-        success_count=$(grep -c "Status: 200" "$test_file" 2>/dev/null || echo "0")
-        error_count=$(grep -c "Status: [45][0-9][0-9]" "$test_file" 2>/dev/null || echo "0")
+        success_count=$(grep -c "PASSED\|SUCCESS\|✅" "$test_file" 2>/dev/null || echo "0")
+        error_count=$(grep -c "FAILED\|ERROR\|❌" "$test_file" 2>/dev/null || echo "0")
         
         echo "📋 $test_name:"
-        echo "   ✅ Successful responses: $success_count"
-        echo "   ❌ Error responses: $error_count"
+        echo "   ✅ Successful tests: $success_count"
+        echo "   ❌ Failed tests: $error_count"
         echo ""
     fi
 done
@@ -192,6 +183,6 @@ echo "To review detailed results:"
 echo "  cd $RESULTS_DIR && ls -la"
 echo ""
 echo "To analyze specific test results:"
-echo "  cat $RESULTS_DIR/basic_production_results.log"
-echo "  cat $RESULTS_DIR/ticket_purchase_results.log"
-echo "  cat $RESULTS_DIR/poap_functionality_results.log"
+echo "  cat $RESULTS_DIR/blockchain_contracts_results.log"
+echo "  cat $RESULTS_DIR/frontend_integration_results.log"
+echo "  cat $RESULTS_DIR/deployment_verification_results.log"

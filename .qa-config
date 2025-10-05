@@ -32,10 +32,13 @@ FRONTEND_TYPE_CHECK_CMD="npm run type-check"
 
 # Blockchain settings
 BLOCKCHAIN_DIR="blockchain"
-BLOCKCHAIN_COMPILE_CMD="npx hardhat compile"
-BLOCKCHAIN_TEST_CMD="npm test"
+BLOCKCHAIN_COMPILE_CMD="npm run compile"
+BLOCKCHAIN_TEST_CMD="npm run test"
 BLOCKCHAIN_LINT_CMD="npm run fix:eslint"
 BLOCKCHAIN_SOL_LINT_CMD="npm run fix:sol"
+
+# Documentation settings
+DOC_UPDATE_CMD="npm run docs:update"
 
 # ===========================================
 # Quality Gates

@@ -1,0 +1,49 @@
+# Test & Deploy
+
+Validate your manifest and embed configuration, then share
+
+Before sharing your Mini App, validate everything works.
+
+## Pre-deployment checklist
+
+- App is deployed at a public HTTPS domain
+- Environment variables are set on your deployment platform
+- `/.well-known/farcaster.json` returns valid JSON
+- `fc:frame` metadata renders a launch button when shared
+
+## Validation Tools
+
+Base Build is the place to test and validate your Mini App. In addition to tracking your app's usage and redeeming builder rewards, it includes a Preview tool, which helps you:
+
+- Validate your app's manifest and metadata
+- Test how your app will appear in the Base app
+- Verify ownership and account association
+
+The Preview tool provides clear visual cues:
+- ✅ Green check marks when things are set up correctly
+- ❌ Red indicators when something needs your attention
+
+### Components of the Preview Tool
+
+The Preview tool has three main components:
+
+- Console: Preview your app and review logs to make informed decisions about performance.
+- Account Association: Confirm your app is linked to the correct account, signatures are valid, and the domain matches what's specified in the manifest.
+- Metadata: Ensure your Mini App renders exactly as expected by verifying required fields like name, icon, tags, and splash image.
+
+### Getting Started
+
+1. Import your app into Base Build
+2. Visit the Preview tool to begin validating your app
+
+## Share and test
+
+1. Create a cast with your app's URL
+2. Verify preview and launch button
+3. Test launch and frame readiness
+
+Launch Checklist: Follow the launch checklist to get the most out of your mini app.
+
+Troubleshooting: Common problems and fixes
+
+**Reference:** [Test & Deploy](https://docs.base.org/cookbook/minikit/test-and-deploy)

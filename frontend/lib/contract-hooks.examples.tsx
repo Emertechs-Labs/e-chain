@@ -2,14 +2,14 @@
  * Example Component Using Contract Hooks with Fallback
  * 
  * This demonstrates real-world usage of the contract hooks
- * with automatic MultiBaas → Direct fallback.
+ * Direct contract interaction with automatic error handling.
  */
 
 'use client';
 
 import { useState } from 'react';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { useContractRead, useContractWrite, useContractSimulate, useMultiBaasHealth } from '@/lib/contract-hooks';
+import { useContractRead, useContractWrite, useContractSimulate } from '@/lib/contract-hooks';
 import { parseEther, formatEther } from 'viem';
 
 /**
@@ -24,7 +24,6 @@ export function EventDetails({ eventId }: { eventId: bigint }) {
     {
       enabled: true,
       refetchInterval: 10000, // Auto-refresh every 10 seconds
-      useMultiBaas: true, // Try MultiBaas first
     }
   );
 
@@ -381,39 +380,7 @@ export function CreateEvent() {
 }
 
 /**
- * EXAMPLE 4: System Health Monitor
- * Shows current fallback status
- */
-export function SystemHealth() {
-  const { isHealthy, isChecking, checkHealth } = useMultiBaasHealth(30000); // Check every 30s
-
-  return (
-    <div className="card">
-      <h3 className="text-lg font-semibold mb-2">System Status</h3>
-      
-      <div className="flex items-center gap-2">
-        <div className={`w-3 h-3 rounded-full ${
-          isHealthy === null ? 'bg-gray-400' :
-          isHealthy ? 'bg-green-500' : 'bg-red-500'
-        }`} />
-        <span>
-          MultiBaas: {
-            isChecking ? 'Checking...' :
-            isHealthy === null ? 'Unknown' :
-            isHealthy ? 'Online' : 'Offline (using fallback)'
-          }
-        </span>
-      </div>
-
-      <button onClick={checkHealth} className="btn-secondary mt-2">
-        Check Now
-      </button>
-    </div>
-  );
-}
-
-/**
- * EXAMPLE 5: Ticket Balance Display
+ * EXAMPLE 4: Ticket Balance Display
  * Shows user's ticket balance with auto-refresh
  */
 export function MyTickets({ eventId }: { eventId: bigint }) {

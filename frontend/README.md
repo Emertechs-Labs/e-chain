@@ -56,12 +56,6 @@ A blockchain-powered event ticketing platform built with Next.js, featuring NFT 
 # Wallet Configuration
 NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=your_reown_project_id_here
 
-# MultiBaas Configuration
-NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL=https://your-deployment.multibaas.com
-NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY=your_dapp_user_api_key
-NEXT_PUBLIC_MULTIBAAS_WEB3_API_KEY=your_web3_api_key
-NEXT_PUBLIC_MULTIBAAS_CHAIN_ID=84532
-
 # Contract Addresses (Base Sepolia)
 NEXT_PUBLIC_EVENT_FACTORY_ADDRESS=0xbE36039Bfe7f48604F73daD61411459B17fd2e85
 NEXT_PUBLIC_EVENT_TICKET_ADDRESS=0x127b53D8f29DcDe4DDfcCb24ad8b88B515D08180

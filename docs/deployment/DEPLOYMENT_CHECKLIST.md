@@ -29,12 +29,12 @@ npm test
 
 ### Coverage Testing
 ```bash
-npx hardhat coverage
+forge coverage
 ```
 
 ### Gas Analysis
 ```bash
-npx hardhat test --gas-reporter
+forge test --gas-report
 ```
 
 ### Slither Static Analysis

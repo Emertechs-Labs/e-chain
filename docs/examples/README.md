@@ -15,8 +15,8 @@
 **Current Status**: ✅ **Fully Deployed & Operational**
 - **Network**: Base Sepolia Testnet
 - **Frontend**: Next.js 15 with TypeScript, deployed on Vercel
-- **Smart Contracts**: Solidity ^0.8.24, deployed via Hardhat
-- **API**: MultiBaas integration with fallback systems
+- **Smart Contracts**: Solidity ^0.8.26, deployed with Foundry
+- **API**: Direct RPC integration using Viem clients and WebSocket subscriptions
 - **Real-time**: WebSocket subscriptions for live updates
 - **Wallet**: RainbowKit + Reown for Web3 connectivity
 
@@ -29,12 +29,12 @@ const CONTRACT_ADDRESSES = {
 };
 ```
 
-### API Configuration
+### RPC Configuration
 ```javascript
-const API_CONFIG = {
-  multibaasUrl: "https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com",
-  dappApiKey: process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY,
-  websocketUrl: "wss://kwp44rxeifggriyd4hmbjq7dey.multibaas.com/ws"
+const RPC_CONFIG = {
+  httpUrl: "https://sepolia.base.org",
+  websocketUrl: "wss://sepolia.base.org/ws",
+  chainId: 84532
 };
 ```
 
@@ -870,45 +870,48 @@ export function EventCard({ event }: EventCardProps) {
 #### Node.js Backend Integration
 ```javascript
 // server/eventService.js
-const { EchainAPI } = require('@echain/api');
+import { createPublicClient, createWalletClient, http, parseEther } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { baseSepolia } from 'viem/chains';
+import EventFactoryABI from '../abis/EventFactory.json' assert { type: 'json' };
+import POAPAttendanceABI from '../abis/POAPAttendance.json' assert { type: 'json' };
+
+const account = privateKeyToAccount(process.env.EVENT_FACTORY_DEPLOYER_KEY);
 
 class EventService {
-  constructor(apiKey) {
-    this.api = new EchainAPI(apiKey);
+  constructor() {
+    this.publicClient = createPublicClient({
+      chain: baseSepolia,
+      transport: http(process.env.BASE_RPC_URL)
+    });
+
+    this.walletClient = createWalletClient({
+      account,
+      chain: baseSepolia,
+      transport: http(process.env.BASE_RPC_URL)
+    });
   }
 
-  async createEvent(organizerId, eventData) {
+  async createEvent(eventData) {
     try {
-      // Validate organizer permissions
-      const organizer = await this.validateOrganizer(organizerId);
-
-      // Create event via MultiBaas API
-      const response = await fetch(`${process.env.MULTIBAAS_URL}/api/v0/contracts/event_factory/call`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.MULTIBAAS_DAPP_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          function: 'createEvent',
-          inputs: [
-            eventData.name,
-            eventData.metadataURI,
-            eventData.ticketPrice,
-            eventData.maxTickets.toString(),
-            eventData.startTime.toString(),
-            eventData.endTime.toString()
-          ],
-          from: organizer.address
-        })
+      const { request, result: eventId } = await this.publicClient.simulateContract({
+        account,
+        address: process.env.EVENT_FACTORY_ADDRESS,
+        abi: EventFactoryABI,
+        functionName: 'createEvent',
+        args: [
+          eventData.name,
+          eventData.metadataURI,
+          parseEther(eventData.ticketPrice),
+          BigInt(eventData.maxTickets),
+          BigInt(eventData.startTime),
+          BigInt(eventData.endTime)
+        ]
       });
 
-      if (!response.ok) throw new Error('Event creation failed');
+      const transactionHash = await this.walletClient.writeContract(request);
 
-      const result = await response.json();
-      const eventId = result.data.events?.EventCreated?.eventId;
-
-      return { eventId, transactionHash: result.data.transactionHash };
+      return { eventId: Number(eventId), transactionHash };
     } catch (error) {
       console.error('Event creation error:', error);
       throw new Error('Failed to create event');
@@ -917,32 +920,22 @@ class EventService {
 
   async processCheckIn(eventId, attendeeAddress, signature) {
     try {
-      // Verify ticket ownership
-      const hasTicket = await this.verifyTicketOwnership(eventId, attendeeAddress);
-      if (!hasTicket) throw new Error('No valid ticket found');
-
-      // Process check-in and mint POAP
-      const response = await fetch(`${process.env.MULTIBAAS_URL}/api/v0/contracts/poap_contract/call`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.MULTIBAAS_DAPP_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          function: 'mintAttendance',
-          inputs: [
-            eventId.toString(),
-            attendeeAddress,
-            '1', // nonce
-            signature
-          ]
-        })
+      const { request } = await this.publicClient.simulateContract({
+        account,
+        address: process.env.POAP_CONTRACT_ADDRESS,
+        abi: POAPAttendanceABI,
+        functionName: 'mintAttendance',
+        args: [
+          BigInt(eventId),
+          attendeeAddress,
+          BigInt(1),
+          signature
+        ]
       });
 
-      if (!response.ok) throw new Error('Check-in failed');
+      const transactionHash = await this.walletClient.writeContract(request);
 
-      const result = await response.json();
-      return { success: true, transactionHash: result.data.transactionHash };
+      return { success: true, transactionHash };
     } catch (error) {
       console.error('Check-in error:', error);
       throw new Error('Check-in failed');
@@ -950,7 +943,7 @@ class EventService {
   }
 }
 
-module.exports = EventService;
+export default EventService;
 ```
 
 #### Python Analytics Integration
@@ -1169,12 +1162,12 @@ const CONTRACT_ADDRESSES = {
 };
 ```
 
-### API Configuration
+### RPC Configuration
 ```javascript
-const API_CONFIG = {
-  multibaasUrl: "https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com",
-  dappApiKey: process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY,
-  websocketUrl: "wss://kwp44rxeifggriyd4hmbjq7dey.multibaas.com/ws"
+const RPC_CONFIG = {
+  httpUrl: "https://sepolia.base.org",
+  websocketUrl: "wss://sepolia.base.org/ws",
+  chainId: 84532
 };
 ```
 

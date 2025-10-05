@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.26;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
-import "../interfaces/IEventFactory.sol";
-import "../interfaces/IEventTicket.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {IEventFactory} from "../interfaces/IEventFactory.sol";
+import {IEventTicket} from "../interfaces/IEventTicket.sol";
 
 /**
  * @title EventFactory
@@ -23,7 +23,7 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
     uint256 private _eventIdCounter;
 
     /// @notice Template contract address for EventTicket clones
-    address public immutable eventTicketTemplate;
+    address public immutable EVENT_TICKET_TEMPLATE;
 
     /// @notice Template contract address for POAP clones (optional)
     address public poapTemplate;
@@ -109,7 +109,7 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
         require(_eventTicketTemplate != address(0), "Invalid ticket template");
         require(_treasury != address(0), "Invalid treasury");
 
-        eventTicketTemplate = _eventTicketTemplate;
+        EVENT_TICKET_TEMPLATE = _eventTicketTemplate;
         treasury = _treasury;
 
         // Owner is automatically verified
@@ -121,7 +121,7 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
     /**
      * @notice Creates a new event and deploys its ticketing contract
      * @param name Event name
-     * @param metadataURI IPFS URI containing event metadata
+    * @param metadataUri IPFS URI containing event metadata
      * @param ticketPrice Price per ticket in wei
      * @param maxTickets Maximum number of tickets
      * @param startTime Event start timestamp
@@ -129,8 +129,8 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
      * @return eventId The ID of the newly created event
      */
     function createEvent(
-        string calldata name,
-        string calldata metadataURI,
+    string calldata name,
+    string calldata metadataUri,
         uint256 ticketPrice,
         uint256 maxTickets,
         uint256 startTime,
@@ -149,7 +149,7 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
             "Invalid event name length"
         );
         require(
-            bytes(metadataURI).length > 0 && bytes(metadataURI).length <= 200,
+            bytes(metadataUri).length > 0 && bytes(metadataUri).length <= 200,
             "Invalid metadata URI length"
         );
         require(
@@ -177,11 +177,17 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
         eventId = _eventIdCounter;
 
         // Deploy EventTicket contract clone using CREATE2 for deterministic addresses
-        bytes32 salt = keccak256(
-            abi.encodePacked(msg.sender, eventId, block.timestamp, block.number)
-        );
+        bytes32 salt;
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, caller())
+            mstore(add(ptr, 0x20), eventId)
+            mstore(add(ptr, 0x40), timestamp())
+            mstore(add(ptr, 0x60), number())
+            salt := keccak256(ptr, 0x80)
+        }
         address ticketContract = Clones.cloneDeterministic(
-            eventTicketTemplate,
+            EVENT_TICKET_TEMPLATE,
             salt
         );
 
@@ -204,7 +210,7 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
             poapContract: address(0), // Will be set later if needed
             incentiveContract: address(0), // Will be set later if needed
             name: name,
-            metadataURI: metadataURI,
+            metadataUri: metadataUri,
             ticketPrice: ticketPrice,
             maxTickets: maxTickets,
             startTime: startTime,
@@ -239,21 +245,21 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
      * @notice Updates event metadata (only organizer)
      * @param eventId Event ID to update
      * @param name New event name
-     * @param metadataURI New metadata URI
+    * @param metadataUri New metadata URI
      */
     function updateEvent(
         uint256 eventId,
         string calldata name,
-        string calldata metadataURI
+    string calldata metadataUri
     ) external validEventId(eventId) onlyEventOrganizer(eventId) {
         require(bytes(name).length > 0, "Empty event name");
-        require(bytes(metadataURI).length > 0, "Empty metadata URI");
+    require(bytes(metadataUri).length > 0, "Empty metadata URI");
 
-        Event storage eventData = events[eventId];
-        eventData.name = name;
-        eventData.metadataURI = metadataURI;
+    Event storage eventData = events[eventId];
+    eventData.name = name;
+    eventData.metadataUri = metadataUri;
 
-        emit EventUpdated(eventId, name, metadataURI);
+    emit EventUpdated(eventId, name, metadataUri);
     }
 
     /**
@@ -284,7 +290,7 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
      * @param eventId Event ID
      * @param poapContract Address of POAP contract
      */
-    function setPOAPContract(
+    function setPoapContract(
         uint256 eventId,
         address poapContract
     ) external validEventId(eventId) onlyEventOrganizer(eventId) {
@@ -437,21 +443,27 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
      * @notice Predicts the ticket contract address for an event before creation
      * @param organizer Organizer address
      * @param eventId Event ID
-     * @param timestamp Creation timestamp
+    * @param creationTimestamp Creation timestamp
      * @param blockNumber Creation block number
      * @return predictedAddress The predicted contract address
      */
     function predictTicketContractAddress(
         address organizer,
         uint256 eventId,
-        uint256 timestamp,
+    uint256 creationTimestamp,
         uint256 blockNumber
     ) external view returns (address predictedAddress) {
-        bytes32 salt = keccak256(
-            abi.encodePacked(organizer, eventId, timestamp, blockNumber)
-        );
+        bytes32 salt;
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, organizer)
+            mstore(add(ptr, 0x20), eventId)
+            mstore(add(ptr, 0x40), creationTimestamp)
+            mstore(add(ptr, 0x60), blockNumber)
+            salt := keccak256(ptr, 0x80)
+        }
         predictedAddress = Clones.predictDeterministicAddress(
-            eventTicketTemplate,
+            EVENT_TICKET_TEMPLATE,
             salt
         );
     }
@@ -576,7 +588,7 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
      * @notice Sets POAP template address (only owner)
      * @param newTemplate New POAP template address
      */
-    function setPOAPTemplate(address newTemplate) external onlyOwner {
+    function setPoapTemplate(address newTemplate) external onlyOwner {
         require(newTemplate != address(0), "Invalid template");
         poapTemplate = newTemplate;
     }

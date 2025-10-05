@@ -36,7 +36,7 @@ The Echain platform has undergone a comprehensive security audit with **ZERO cri
 - **Finding**: API routes implement proper validation and error handling
 - **Endpoints Audited**:
   - `/api/events` - Webhook processing with signature validation
-  - `/api/multibaas/*` - Contract interaction with input sanitization
+  - `/api/contracts/*` - Direct RPC contract interaction with input sanitization
 - **Security Features**:
   - Input validation on all endpoints
   - Proper error handling without data leakage
@@ -58,7 +58,8 @@ The Echain platform has undergone a comprehensive security audit with **ZERO cri
 - **Audit Results**: `npm audit` returned 0 vulnerabilities
 - **Dependencies Reviewed**:
   - `better-sqlite3`: Latest secure version
-  - `@curvegrid/multibaas-sdk`: Official SDK
+  - `viem`: Direct RPC interactions for Ethereum/Base
+  - `@polkadot/api`: Polkadot network interactions
   - `ethers`: Required for TypeChain compatibility
 - **Supply Chain**: All packages from reputable sources
 

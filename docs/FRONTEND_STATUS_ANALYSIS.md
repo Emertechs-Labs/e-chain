@@ -236,7 +236,7 @@ Key Insight: Each event has its OWN ticket contract address
 
 2. **Verify Contract Connection**:
    - Look for contract read errors
-   - Check if MultiBaas fallback activates
+   - Confirm direct RPC fallback activates if primary request fails
    - Verify network is Base Sepolia (84532)
 
 3. **Check Network Tab**:
@@ -286,9 +286,9 @@ Key Insight: Each event has its OWN ticket contract address
 - **Last Deploy**: After contract wrapper fix
 
 ### Environment Variables (Production)
-- `NEXT_PUBLIC_MULTIBAAS_API_KEY` - Set ✅
-- `NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_ID` - Set ✅
 - `NEXT_PUBLIC_BASE_RPC_URL` - Set ✅
+- `NEXT_PUBLIC_CHAIN_ID` - Set ✅
+- `NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID` - Set ✅
 - `NEXT_PUBLIC_PINATA_JWT` - Set ✅
 
 ### Files Modified in Latest Fixes

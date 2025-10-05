@@ -8,7 +8,7 @@
 
 **Complete smart contract architecture for the blockchain events platform**
 
-*Built with OpenZeppelin standards, deployed on Base Sepolia with MultiBaas integration*
+*Built with OpenZeppelin standards, deployed on Base Sepolia with direct RPC integration*
 
 [🏭 Core Contracts](#-core-contracts) • [📦 Module Contracts](#-module-contracts) • [🔒 Security](#-security-architecture) • [🚀 Deployment](#-deployment--upgradeability)
 
@@ -22,7 +22,7 @@
 - **✅ Production Ready**: All contracts deployed and tested on Base Sepolia
 - **✅ Security Audited**: OpenZeppelin contracts with comprehensive testing
 - **✅ Gas Optimized**: Efficient patterns for cost-effective operations
-- **✅ MultiBaas Integrated**: REST API and real-time event support
+- **✅ Direct RPC Integration**: Viem/Foundry alignment with real-time event support
 - **✅ Upgradeable Design**: Proxy patterns for future enhancements
 
 ### Architecture Principles
@@ -525,7 +525,7 @@ Deployed Contracts:
   POAP_1: 0x0987654321098765432109876543210987654321
   IncentiveManager: 0xfedcba0987654321fedcba0987654321fedcba09
 
-Deployment Method: MultiBaas managed deployment
+Deployment Method: Forge scripted deployment (broadcast via Foundry)
 Security: OpenZeppelin contracts with custom audits
 ```
 
@@ -566,58 +566,24 @@ contract IncentiveManagerProxy is TransparentUpgradeableProxy, Ownable {
 
 ### Deployment Scripts
 
-#### Hardhat Deployment
-```typescript
-// scripts/deploy.ts
-async function main() {
-  // Deploy implementation contracts
-  const EventFactory = await ethers.getContractFactory("EventFactory");
-  const factoryImpl = await EventFactory.deploy();
-  await factoryImpl.deployed();
-
-  // Deploy proxy
-  const EventFactoryProxy = await ethers.getContractFactory("ERC1967Proxy");
-  const proxy = await EventFactoryProxy.deploy(
-    factoryImpl.address,
-    "0x" // Initialize data
-  );
-  await proxy.deployed();
-
-  // Initialize proxy
-  const factory = EventFactory.attach(proxy.address);
-  await factory.initialize(
-    process.env.PLATFORM_FEE_RECIPIENT,
-    process.env.PLATFORM_FEE_BPS
-  );
-
-  console.log("EventFactory deployed to:", proxy.address);
-}
+#### Forge Deployment
+```bash
+forge script scripts/DeployEventFactory.s.sol \
+    --rpc-url "$BASE_TESTNET_RPC_URL" \
+    --private-key "$DEPLOYER_PRIVATE_KEY" \
+    --broadcast \
+    --verify
 ```
 
-#### MultiBaas Deployment
-```typescript
-// MultiBaas deployment configuration
-const deploymentConfig = {
-  network: "base-sepolia",
-  contracts: [
-    {
-      name: "EventFactory",
-      source: "contracts/core/EventFactory.sol",
-      constructorArgs: [],
-      verify: true
-    },
-    {
-      name: "IncentiveManager",
-      source: "contracts/modules/IncentiveManager.sol",
-      proxy: "transparent",
-      verify: true
-    }
-  ],
-  dependencies: [
-    "@openzeppelin/contracts@5.4.0",
-    "@openzeppelin/contracts-upgradeable@5.4.0"
-  ]
-};
+#### Broadcast Configuration
+```toml
+# foundry.toml excerpt
+[rpc_endpoints]
+base-testnet = "${BASE_TESTNET_RPC_URL}"
+
+[profile.base-testnet]
+chain_id = 84532
+sender = "${DEPLOYER_ADDRESS}"
 ```
 
 ---
@@ -820,7 +786,7 @@ contract EventFactoryTest is Test {
 
 ### Integration Tests
 ```typescript
-// Hardhat test
+// TypeScript integration test
 describe("Event Creation Flow", function () {
   it("Should create event and mint tickets", async function () {
     // Deploy contracts
@@ -2041,7 +2007,7 @@ contract EventFactoryVerification is EventFactory {
 
 ### Fuzz Testing
 ```typescript
-// Hardhat fuzz testing
+// TypeScript-based fuzz testing
 describe("EventFactory Fuzz Tests", function () {
   it("Should handle random event creation parameters", async function () {
     for (let i = 0; i < 1000; i++) {

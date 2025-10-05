@@ -4,8 +4,6 @@ const { Wallet } = require('ethers');
 
 // Global vars /////////////////////////
 
-const CURVEGRID_PRIVATE_TESTNET_CHAIN_ID = 2017072401;
-
 // Ripped from wagmi/chains with a couple of manual additions
 const CHAIN_ID_TO_RPC = {
   1: {
@@ -144,10 +142,6 @@ const CHAIN_ID_TO_RPC = {
 
 const configFiles = [
   {
-    source: 'blockchain/deployment-config.template.js',
-    destination: 'blockchain/deployment-config.development.js',
-  },
-  {
     source: 'frontend/.env.example',
     destination: 'frontend/.env.development',
   },
@@ -187,305 +181,61 @@ async function copyFiles() {
   }
 }
 
-async function checkNetwork(config) {
-  const apiEndpoint = `${config.deploymentURL}/api/v0/chains/ethereum/status`;
-
-  try {
-    const request = {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.adminApiKey}`
-      },
-    };
-
-    const response = await fetch(apiEndpoint, request);
-
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status} - ${response.statusText} - \nFull request:\n${JSON.stringify(request)}\nFull response:\n${JSON.stringify(response)}`);
-    }
-
-    const data = await response.json();
-    // console.dir(data);
-    return { chainID: data.result.chainID };
-
-  } catch (error) {
-    console.error(`❌ API Request Error: ${error.message}`);
-  }
-
-  return {};
-
-}
-
-async function createAPIKey(deploymentURL, apiKey, label, groupID) {
-  const apiEndpoint = `${deploymentURL}/api/v0/api_keys`;
-  const requestBody = {
-    label: label,
-    groupIDs: [groupID]
-  };
-
-  try {
-
-    const request = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify(requestBody)
-    };
-
-    const response = await fetch(apiEndpoint, request);
-
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status} - ${response.statusText} - \nFull request:\n${JSON.stringify(request)}\nFull response:\n${JSON.stringify(response)}`);
-    }
-
-    const data = await response.json();
-    return data.result.key;
-  } catch (error) {
-    console.error(`❌ API Request Error: ${error.message}`);
-    console.error(error.stack);
-  }
-
-  return ''
-
-}
-
-async function callFaucet(deploymentURL, apiKey, address) {
-  const apiEndpoint = `${deploymentURL}/api/v0/chains/ethereum/faucet`;
-
-  const requestBody = {
-    address: address
-  };
-
-  try {
-
-    const request = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify(requestBody)
-    };
-
-    const response = await fetch(apiEndpoint, request);
-
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status} - ${response.statusText} - \nFull request:\n${JSON.stringify(request)}\nFull response:\n${JSON.stringify(response)}`);
-    }
-
-    const data = await response.json();
-    console.log('✅ Got money from faucet.');
-    return {}
-  } catch (error) {
-    console.error(`❌ API Request Error: ${error.message}`);
-  }
-
-  return {}
-}
-
-async function setupCORS(deploymentURL, apiKey) {
-  const apiEndpoint = `${deploymentURL}/api/v0/cors`;
-
-  // Check if the origin "http://localhost:3000" is already there
-  try {
-    const response = await fetch(apiEndpoint, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`❌ API request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    const corsOrigins = data.result.map(entry => entry.origin);
-    if (corsOrigins.includes("http://localhost:3000")) {
-      console.log(`✅ "http://localhost:3000" is already in the CORS list.`);
-      return {};
-    }
-  } catch (error) {
-    console.error(`❌ API Request Error: ${error.message}`);
-  }
-
-
-  // If no localhost:3000, add it
-  const requestBody = {
-    origin: 'http://localhost:3000'
-  };
-
-  try {
-    const request = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify(requestBody)
-    };
-
-    const response = await fetch(apiEndpoint, request);
-
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status} - ${response.statusText} - \nFull request:\n${JSON.stringify(request)}\nFull response:\n${JSON.stringify(response)}`);
-    }
-
-    await response.json();
-    console.log(`✅ "http://localhost:3000" added to CORS.`);
-    return {}
-  } catch (error) {
-    console.error(`❌ API Request Error: ${error.message}`);
-  }
-
-  return {}
-}
-
-async function promptForDeploymentInfo() {
-
-  // Abort if config files are missing
-  for (const { destination } of configFiles) {
-    if (!fs.existsSync(destination)) {
-      console.log(`❌ Missing configuration file ${destination}`);
-      return false;
-    }
-  }
-
-  // Ask user for required information
-  let deploymentURL = '';
-  let url = '';
-  for (;;) {
-    deploymentURL = await askQuestion('Enter MultiBaas Deployment URL: ');
-    try {
-      url = new URL(deploymentURL);
-    } catch (error) {
-      console.error(error.message);
-      console.log('URL should be of the format https://<DEPLOYMENT ID>.multibaas.com\n');
-      continue;
-    }
-    break;
-  }
-  deploymentURL = `${url.protocol}//${url.hostname}`; // Keep only protocol + domain
-
-  let adminApiKey = await askQuestion('Enter MultiBaas Admin API Key: ');
-  adminApiKey = adminApiKey.replace(/[\r\n\s]+/g, ''); // Remove newlines and spaces
-
-  let reownProjectId = await askQuestion('Enter Reown WalletKit project ID: ');
-  reownProjectId = reownProjectId.replace(/[\r\n\s]+/g, ''); // Remove newlines and spaces
-
-  console.log('');
-
-  return { deploymentURL, adminApiKey, reownProjectId };
-
-}
-
-async function provisionApiKeys(config) {
-  // Timestamp
-  const date = new Date();
-  const dateString = new Date().toISOString().replace(/[^\d]/g, '');
-
-  // Create Web3 API Key
-  const WEB_3_GROUP_ID = 6;
-  const web3KeyLabel = `web3key_${dateString}`;
-
-  const web3Key = await createAPIKey(config.deploymentURL, config.adminApiKey, web3KeyLabel, WEB_3_GROUP_ID);
-  if (web3Key === '') {
-    console.error('Aborting configuration');
-    process.exit(1);
-  } else {
-    console.log('✅ Created Web3 API Key:', web3Key);
-  }
-
-  // Create DApp User API Key
-  const DAPP_USER_GROUP_ID = 5;
-  const dappUserKeyLabel = `dapp_user_key_${dateString}`;
-
-  const dappUserKey = await createAPIKey(config.deploymentURL, config.adminApiKey, dappUserKeyLabel, DAPP_USER_GROUP_ID);
-  if (dappUserKey !== '') {
-    console.log('✅ Created Dapp User API Key:', dappUserKey);
-  }
-
-  return { web3Key, dappUserKey };
-}
-
-
-async function writeConfiguration(config) {
-
-  // Update blockchain config file
-  const blockchainConfigPath = configFiles[0].destination;
-  let blockchainConfig = fs.readFileSync(blockchainConfigPath, 'utf8');
-  blockchainConfig = blockchainConfig.replace(/deploymentEndpoint:.*/, `deploymentEndpoint: '${config.deploymentURL}',`);
-  blockchainConfig = blockchainConfig.replace(/adminApiKey:.*/, `adminApiKey:\n    '${config.adminApiKey}',`);
-  if (config.chainID === CURVEGRID_PRIVATE_TESTNET_CHAIN_ID) {
-    blockchainConfig = blockchainConfig.replace(/web3Key:.*/, `web3Key:\n    '${config.web3Key}',`);
-  } else {
-    blockchainConfig = blockchainConfig.replace(/web3Key:.*/, `// web3Key:`);
-    const chainInfo = CHAIN_ID_TO_RPC[config.chainID];
-    if (!chainInfo) {
-      console.warn(`⚠️  Warning: Chain ID ${config.chainID} not found in supported RPC list. You need to manually configure the RPC URL in blockchain/deployment-config.development.js`);
-      blockchainConfig = blockchainConfig.replace(/rpcUrl:.*/, `rpcUrl: 'YOUR_RPC_URL_HERE', // Chain ID ${config.chainID} does not support automatic configuration`);
-    } else {
-      blockchainConfig = blockchainConfig.replace(/rpcUrl:.*/, `rpcUrl: '${chainInfo.url}',`);
-    }
-  }
-  blockchainConfig = blockchainConfig.replace(/deployerPrivateKey:.*/, `deployerPrivateKey: '${config.wallet.privateKey}',`);
-  fs.writeFileSync(blockchainConfigPath, blockchainConfig, 'utf8');
-  console.log(`✅ Updated ${blockchainConfigPath}.`);
-
-
-  // Update frontend config file
-  const frontendConfigPath = configFiles[1].destination;
-  let frontendConfig = fs.readFileSync(frontendConfigPath, 'utf8');
-  frontendConfig = frontendConfig.replace(/NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL=.*/, `NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL='${config.deploymentURL}'`);
-  frontendConfig = frontendConfig.replace(/NEXT_PUBLIC_MULTIBAAS_WEB3_API_KEY=.*/, `NEXT_PUBLIC_MULTIBAAS_WEB3_API_KEY='${config.web3Key}'`);
-  frontendConfig = frontendConfig.replace(/NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY=.*/, `NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY='${config.dappUserKey}'`);
-  frontendConfig = frontendConfig.replace(/NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=.*/, `NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID='${config.reownProjectId}'`);
-  frontendConfig = frontendConfig.replace(/NEXT_PUBLIC_MULTIBAAS_CHAIN_ID=.*/, `NEXT_PUBLIC_MULTIBAAS_CHAIN_ID='${config.chainID}'`);
-  fs.writeFileSync(frontendConfigPath, frontendConfig, 'utf8');
-  console.log(`✅ Updated ${frontendConfigPath}.`);
-
-  // Check if chain ID needs manual configuration
-  const chainInfo = CHAIN_ID_TO_RPC[config.chainID];
-  if (!chainInfo && config.chainID !== CURVEGRID_PRIVATE_TESTNET_CHAIN_ID) {
-    console.warn(`⚠️  Chain ID ${config.chainID} is not automatically supported.`);
-    console.warn(`   Please add a custom chain configuration to frontend/app/providers.tsx`);
-    console.warn(`   Follow the template in providers.tsx for guidance.`);
-  }
-
-}
-
-async function setupPrivateDeployerKey(config) {
+async function setupDeployerWallet() {
   const wallet = Wallet.createRandom();
-  console.log('✅ Generated Ethereum Wallet (Feel free to replace with your own):')
+  console.log('✅ Generated Ethereum Wallet for deployment:');
   console.log(`   Address: ${wallet.address}`);
   console.log(`   Private Key: ${wallet.privateKey}`);
-
-  if (config.chainID === CURVEGRID_PRIVATE_TESTNET_CHAIN_ID) {
-    console.log('  Detected Curvegrid Private Testnet, asking faucet for money...');
-    await callFaucet(config.deploymentURL, config.adminApiKey, wallet.address);
-  } else {
-    console.log('💸 YOU WILL HAVE TO FUND THIS ACCOUNT TO USE IT AS A DEPLOYER.');
-  }
+  console.log('');
+  console.log('💸 IMPORTANT: Fund this wallet with Base Sepolia ETH from:');
+  console.log('   https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet');
+  console.log('');
 
   return { wallet };
+}
+
+async function promptForWalletKitId() {
+  let reownProjectId = await askQuestion('Enter Reown WalletKit project ID (optional, press Enter to skip): ');
+  reownProjectId = reownProjectId.replace(/[\r\n\s]+/g, ''); // Remove newlines and spaces
+
+  return { reownProjectId };
+}
+
+async function writeFrontendConfiguration(config) {
+  // Update frontend config file
+  const frontendConfigPath = configFiles[0].destination;
+  let frontendConfig = fs.readFileSync(frontendConfigPath, 'utf8');
+
+  // Update contract addresses for Base Sepolia deployment
+  frontendConfig = frontendConfig.replace(/NEXT_PUBLIC_EVENT_FACTORY_ADDRESS=.*/, `NEXT_PUBLIC_EVENT_FACTORY_ADDRESS=0xA97cB40548905B05A67fCD4765438aFBEA4030fc`);
+  frontendConfig = frontendConfig.replace(/NEXT_PUBLIC_EVENT_TICKET_ADDRESS=.*/, `NEXT_PUBLIC_EVENT_TICKET_ADDRESS=0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C`);
+  frontendConfig = frontendConfig.replace(/NEXT_PUBLIC_POAP_ADDRESS=.*/, `NEXT_PUBLIC_POAP_ADDRESS=0x08344CfBfB3afB2e114A0dbABbaF40e7eB62FD33`);
+  frontendConfig = frontendConfig.replace(/NEXT_PUBLIC_INCENTIVE_ADDRESS=.*/, `NEXT_PUBLIC_INCENTIVE_ADDRESS=0x1cfDae689817B954b72512bC82f23F35B997617D`);
+  frontendConfig = frontendConfig.replace(/NEXT_PUBLIC_MARKETPLACE_ADDRESS=.*/, `NEXT_PUBLIC_MARKETPLACE_ADDRESS=0xD061393A54784da5Fea48CC845163aBc2B11537A`);
+
+  // Update network configuration
+  frontendConfig = frontendConfig.replace(/NEXT_PUBLIC_CHAIN_ID=.*/, `NEXT_PUBLIC_CHAIN_ID=84532`);
+  frontendConfig = frontendConfig.replace(/NEXT_PUBLIC_RPC_URL=.*/, `NEXT_PUBLIC_RPC_URL=https://sepolia.base.org`);
+
+  // Update WalletKit project ID if provided
+  if (config.reownProjectId) {
+    frontendConfig = frontendConfig.replace(/NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=.*/, `NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID='${config.reownProjectId}'`);
+  }
+
+  fs.writeFileSync(frontendConfigPath, frontendConfig, 'utf8');
+  console.log(`✅ Updated ${frontendConfigPath} with Base Sepolia contract addresses.`);
 }
 
 async function runConfig() {
   // Main script
 
-  console.log("\n#### Begin Post-Installation ####\n");
-  console.log("\nYou will need:\n");
-  console.log("1. A MultiBaas deployment URL");
-  console.log("2. A MultiBaas Admin API key for the deployment");
-  console.log("3. A Reown WalletKit project ID");
+  console.log("\n#### Echain Direct Deployment Setup ####\n");
+  console.log("\nThis will configure your development environment for direct Base Sepolia deployment.\n");
 
-  proceed = await prompt("\nNOTE: You can re-run this configuration script any time with 'npm run postinstall'\n\nContinue?");
+  const proceed = await prompt("\nContinue with setup?");
 
   if (!proceed) {
-    console.log('Skipping post-installation\n');
+    console.log('Skipping setup\n');
     rl.close();
     return;
   }
@@ -493,32 +243,39 @@ async function runConfig() {
   console.log("🚀 Copying configuration files...\n");
   await copyFiles();
 
-  console.log('\n🔧 MultiBaas Configuration...\n');
-  let config = {};
-  config = { ...config, ... await promptForDeploymentInfo() };
-  config = { ...config, ... await provisionApiKeys(config) };
-  config = { ...config, ... await checkNetwork(config) };
-  config = { ...config, ... await setupPrivateDeployerKey(config) };
-  await setupCORS(config.deploymentURL, config.adminApiKey);
+  console.log('\n🔧 Development Environment Configuration...\n');
 
-  writeConfiguration(config);
+  // Setup deployer wallet
+  const walletConfig = await setupDeployerWallet();
 
+  // Optional WalletKit setup
+  const walletKitConfig = await promptForWalletKitId();
 
-  console.log('\n#### Configuration complete 🦦 ####\n\n');
+  const config = {
+    ...walletConfig,
+    ...walletKitConfig
+  };
 
+  // Write frontend configuration
+  await writeFrontendConfiguration(config);
 
-  console.log('To deploy the voting contract:');
+  console.log('\n#### Configuration Complete! 🦦 ####\n\n');
 
-  console.log('cd blockchain');
-  console.log('npm run deploy:voting:dev');
-
-
-  console.log('\nTo run the frontend server after deploying the contract:');
-
-  console.log('cd frontend');
-  console.log('npm run dev');
-
-  console.log();
+  console.log('Next steps:');
+  console.log('');
+  console.log('1. Fund your deployer wallet with Base Sepolia ETH:');
+  console.log('   https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet');
+  console.log('');
+  console.log('2. Update blockchain/.env with your deployer private key');
+  console.log('');
+  console.log('3. Deploy contracts (if needed):');
+  console.log('   cd blockchain');
+  console.log('   npm run deploy:events:dev');
+  console.log('');
+  console.log('4. Start the frontend:');
+  console.log('   cd frontend');
+  console.log('   npm run dev');
+  console.log('');
 
   rl.close();
 }

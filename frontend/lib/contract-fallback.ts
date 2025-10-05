@@ -2,7 +2,7 @@
  * Direct Smart Contract Fallback
  * 
  * This module provides direct blockchain interaction as a fallback
- * when MultiBaas is unavailable or fails.
+ * Direct contract interaction with robust error handling.
  */
 
 import { createPublicClient, createWalletClient, custom, http, type Address, type Chain } from 'viem';

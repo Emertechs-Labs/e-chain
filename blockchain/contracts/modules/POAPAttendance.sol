@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.26;
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -81,15 +81,16 @@ contract POAPAttendance is ERC721, EIP712, Ownable {
         require(block.timestamp <= deadline, "Signature expired");
 
         // EIP-712 structured data signing for domain separation
-        bytes32 structHash = keccak256(
-            abi.encode(
-                MINT_ATTENDANCE_TYPEHASH,
-                eventId,
-                attendee,
-                nonce,
-                deadline
-            )
-        );
+        bytes32 structHash;
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f) // MINT_ATTENDANCE_TYPEHASH
+            mstore(add(ptr, 0x20), eventId)
+            mstore(add(ptr, 0x40), attendee)
+            mstore(add(ptr, 0x60), nonce)
+            mstore(add(ptr, 0x80), deadline)
+            structHash := keccak256(ptr, 0xA0)
+        }
         bytes32 digest = _hashTypedDataV4(structHash);
         address signer = ECDSA.recover(digest, signature);
 

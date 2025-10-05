@@ -17,7 +17,7 @@ Optional (for server- or CI-driven E2E tests)
 
 # Vercel environment variables
 
-Concise, deploy-ready instructions for environment variables the frontend needs to enable realtime, optional automated E2E runs, and (optionally) server-side MultiBaas calls.
+Concise, deploy-ready instructions for environment variables the frontend needs to enable realtime, optional automated E2E runs, and multi-chain RPC connections.
 
 ## Required for realtime (high priority)
 
@@ -37,10 +37,10 @@ Concise, deploy-ready instructions for environment variables the frontend needs 
 - E2E_RPC_URL (optional)
   - Description: HTTPS RPC URL used by the E2E script when sending transactions (if you run full automated purchases). If using a WS-enabled RPC for realtime, set NEXT_PUBLIC_WS_PROVIDER separately.
 
-## Optional (server-side MultiBaas)
+## Optional (multi-chain RPC configuration)
 
-- MULTIBAAS_API_KEY and NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL
-  - Used only if you operate a MultiBaas server and want the frontend to call it server-side. If not using MultiBaas, the client will fallback to direct RPC reads/writes.
+- Multi-chain RPC URLs and API keys
+  - Used for connecting to Base, Polkadot, and Cardano networks directly. Required for full multi-chain functionality across all supported blockchains.
 
 ---
 
@@ -49,7 +49,7 @@ Concise, deploy-ready instructions for environment variables the frontend needs 
 1. In Vercel, go to your Project → Settings → Environment Variables.
 2. Click "Add" and enter the Name (for example `NEXT_PUBLIC_WS_PROVIDER`) and the Value (the wss:// endpoint).
 3. Set the Environment to both "Preview" and "Production" (or whichever you need) and click "Save".
-4. Repeat for any optional variables (`E2E_PRIVATE_KEY`, `E2E_RPC_URL`, `MULTIBAAS_API_KEY`, `NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL`).
+4. Repeat for any optional variables (`E2E_PRIVATE_KEY`, `E2E_RPC_URL`, multi-chain RPC URLs).
 5. After adding env vars, trigger a redeploy (either by pushing to the repo branch or clicking "Redeploy" in Vercel) so the new variables are applied.
 
 ## How to add these via Vercel CLI (interactive)

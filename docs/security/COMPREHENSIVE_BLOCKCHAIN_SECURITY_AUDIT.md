@@ -629,7 +629,7 @@ The Echain smart contract system demonstrates solid architectural foundations bu
 
 ### Tools Used
 - Manual code review
-- Hardhat testing framework
+- Foundry testing toolkit (Forge, Cast, Anvil)
 - Static analysis (manual)
 - Architecture analysis
 - Economic model review

@@ -1,0 +1,34 @@
+[profile.default]
+src = 'contracts'
+out = 'out'
+libs = ['lib']
+
+# Compiler settings
+solc_version = '0.8.26'
+optimizer = true
+optimizer_runs = 99999
+evm_version = 'cancun'
+
+# Remappings
+remappings = [
+  '@openzeppelin/=lib/openzeppelin-contracts/',
+  'forge-std/=lib/forge-std/src/'
+]
+
+# RPC endpoints
+[rpc_endpoints]
+localhost = "http://127.0.0.1:8545"
+base_sepolia = "https://sepolia.base.org"
+
+# Etherscan API keys
+[etherscan]
+base_sepolia = { key = "${BASESCAN_API_KEY}" }
+
+# Test settings
+[fmt]
+line_length = 120
+tab_width = 4
+bracket_spacing = false
+
+[lint]
+exclude_lints = ["mixed-case-function"]

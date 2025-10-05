@@ -42,6 +42,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 
+# Load optional QA configuration
+if [ -f "$PROJECT_ROOT/.qa-config" ]; then
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/.qa-config"
+fi
+
 # Single QA log file in docs directory (append-only)
 QA_LOG_FILE="$PROJECT_ROOT/docs/qalog.md"
 
@@ -245,36 +251,25 @@ run_with_timeout() {
 update_docs() {
     print_section "Documentation Updates"
 
-    local docs_updated=false
-
-    # Update API documentation
-    if [ -f "docs/api/README.md" ]; then
-        log_info "Updating API documentation..."
-        # Add any API doc generation commands here
-        docs_updated=true
+    if [ "${ENABLE_DOC_UPDATES:-true}" != "true" ]; then
+        log_info "Documentation updates disabled"
+        return 0
     fi
 
-    # Update component documentation
-    if [ -d "frontend/components" ]; then
-        log_info "Checking component documentation..."
-        # Add component doc generation if needed
-        docs_updated=true
+    if [ ! -d "docs" ]; then
+        log_info "Docs directory not found - skipping documentation update"
+        return 0
     fi
 
-    # Update contract documentation
-    if [ -d "blockchain/contracts" ]; then
-        log_info "Checking contract documentation..."
-        # Add contract doc generation if needed
-        docs_updated=true
-    fi
+    local doc_cmd="${DOC_UPDATE_CMD:-npm run docs:update}"
 
-    if [ "$docs_updated" = true ]; then
+    if run_with_timeout 180 "$doc_cmd" "Documentation build/update"; then
         log_success "Documentation updated successfully"
-    else
-        log_info "No documentation updates needed"
+        return 0
     fi
 
-    return 0
+    log_warning "Documentation update command failed"
+    return 1
 }
 
 # ===========================================

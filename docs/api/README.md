@@ -3,12 +3,14 @@
 <div align="center">
 
 ![Echain API](https://img.shields.io/badge/Echain-API-00D4FF?style=for-the-badge&logo=api&logoColor=white)
-![MultiBaas](https://img.shields.io/badge/Curvegrid_MultiBaas-REST_API-00AEEF?style=for-the-badge&logo=api&logoColor=white)
+![Direct RPC](https://img.shields.io/badge/Direct_RPC-Multi--Chain-00AEEF?style=for-the-badge&logo=api&logoColor=white)
 ![Base Network](https://img.shields.io/badge/Base-Sepolia-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)
+![Polkadot](https://img.shields.io/badge/Polkadot-Rococo-E6007A?style=for-the-badge&logo=polkadot&logoColor=white)
+![Cardano](https://img.shields.io/badge/Cardano-Preview-0033AD?style=for-the-badge&logo=cardano&logoColor=white)
 
-**Complete API reference for the Echain blockchain events platform**
+**Complete API reference for the Echain multi-chain blockchain events platform**
 
-*RESTful API built on MultiBaas for seamless Web3 integration*
+*Direct RPC integration across Base, Polkadot, and Cardano networks*
 
 [🏗️ Architecture](#-api-architecture) • [🚀 Quick Start](#-quick-start) • [📋 Endpoints](#-api-endpoints) • [🔄 Real-time](#-real-time-events) • [🛠️ SDK](#-sdk-integration)
 
@@ -36,24 +38,25 @@ graph TB
         D[Admin Dashboards]
     end
 
-    subgraph "API Gateway (MultiBaas)"
+    subgraph "Direct RPC Integration"
         E[Authentication Layer]
         F[Rate Limiting]
         G[Request Routing]
         H[Response Formatting]
     end
 
-    subgraph "Blockchain Layer"
-        I[EventFactory Contract]
-        J[EventTicket Contracts]
-        K[POAP Contract]
-        L[IncentiveManager]
+    subgraph "Blockchain Networks"
+        I[Base Sepolia RPC]
+        J[Polkadot Rococo RPC]
+        K[Cardano Preview RPC]
+        L[Cross-chain Bridges]
     end
 
-    subgraph "Data Layer"
-        M[IPFS Storage]
-        N[The Graph Indexing]
-        O[Analytics DB]
+    subgraph "Smart Contracts"
+        M[EventFactory Contract]
+        N[EventTicket Contracts]
+        O[POAP Contract]
+        P[IncentiveManager]
     end
 
     A --> E
@@ -67,19 +70,24 @@ graph TB
     E --> L
 
     I --> M
-    J --> M
-    K --> M
-
-    I --> N
     J --> N
-    K --> N
-    L --> N
+    K --> O
+    L --> P
 
-    N --> O
+    M --> Q[IPFS Storage]
+    N --> Q
+    O --> Q
+
+    M --> R[The Graph Indexing]
+    N --> R
+    O --> R
+    P --> R
+
+    R --> S[Analytics DB]
 
     style E fill:#e1f5fe
     style I fill:#f3e5f5
-    style M fill:#e8f5e8
+    style Q fill:#e8f5e8
 ```
 
 ### Advanced Features
@@ -96,37 +104,46 @@ graph TB
 
 ### Base Configuration
 ```yaml
-Base URL: https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com/api/v0
-Network: Base Sepolia (Chain ID: 84532)
+Base RPC: https://sepolia.base.org
+Polkadot RPC: wss://rococo-contracts-rpc.polkadot.io
+Cardano RPC: https://preview-api.cardano.moonsonglabs.com
 Protocol: HTTPS + WSS (WebSocket)
 Rate Limits:
-  - DApp User: 100 requests/minute
-  - Admin: 1000 requests/minute
-  - WebSocket: 50 messages/minute
+  - Base: 100 requests/minute
+  - Polkadot: 100 requests/minute
+  - Cardano: 100 requests/minute
 ```
 
 ### Authentication Methods
 
-#### API Key Authentication
+#### Direct RPC Authentication
 ```typescript
-// Header-based authentication
-const headers = {
-  'Authorization': `Bearer ${process.env.MULTIBAAS_DAPP_USER_API_KEY}`,
-  'Content-Type': 'application/json'
+// Wallet-based authentication for transactions
+const authMethods = {
+  base: {
+    rpcUrl: 'https://sepolia.base.org',
+    chainId: 84532,
+    wallet: 'MetaMask' // or other Web3 wallet
+  },
+  polkadot: {
+    rpcUrl: 'wss://rococo-contracts-rpc.polkadot.io',
+    wallet: 'Polkadot.js'
+  },
+  cardano: {
+    rpcUrl: 'https://preview-api.cardano.moonsonglabs.com',
+    wallet: 'Cardano Wallet'
+  }
 };
 
-// Example request
-fetch('/api/v0/contracts/event_factory/query', {
-  method: 'POST',
-  headers,
-  body: JSON.stringify({
-    function: 'getActiveEvents',
-    inputs: ['0', '10']
-  })
-});
+// Example transaction signing
+const signTransaction = async (tx: any, network: string) => {
+  const provider = new ethers.providers.JsonRpcProvider(authMethods[network].rpcUrl);
+  const signer = provider.getSigner();
+  return await signer.sendTransaction(tx);
+};
 ```
 
-#### API Key Types & Permissions
+#### API Key Types & Permissions (Legacy Support)
 ```typescript
 const apiKeyTypes = {
   dappUser: {
@@ -136,9 +153,9 @@ const apiKeyTypes = {
       'query_events',
       'get_transaction_status'
     ],
-    usage: 'Frontend applications',
+    usage: 'Frontend applications with wallet integration',
     rateLimit: '100/minute',
-    security: 'Safe for client-side use'
+    security: 'Safe for client-side use with wallet signatures'
   },
 
   admin: {
@@ -207,68 +224,75 @@ interface ApiResponse {
 
 ## 🚀 Quick Start
 
-### 1. Get API Access
+### 1. Get RPC Access
 ```bash
-# Current production deployment
-MULTIBAAS_URL="https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com"
-DAPP_API_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzU5MDUzNzQxLCJqdGkiOiI3ZmJhM2ZmZS03Y2NhLTRlM2ItODY2Ni00MTJmMDIwMmM0NjkifQ.5xoeq2EUzDE-NNC0R_mrMtQVAG2xWfDRoRz3RNkf_OY"
+# Current production RPC endpoints
+BASE_RPC_URL="https://sepolia.base.org"
+POLKADOT_RPC_URL="wss://rococo-contracts-rpc.polkadot.io"
+CARDANO_RPC_URL="https://preview-api.cardano.moonsonglabs.com"
+
+# Optional: API key for enhanced features (legacy support)
+DAPP_API_KEY="your-wallet-private-key-or-api-key"
 ```
 
-### 2. Test Connection
+### 2. Test RPC Connection
 ```bash
-# Test API connectivity
-curl -X POST "${MULTIBAAS_URL}/api/v0/contracts/event_factory/query" \
-  -H "Authorization: Bearer ${DAPP_API_KEY}" \
+# Test Base RPC connectivity
+curl -X POST "${BASE_RPC_URL}" \
   -H "Content-Type: application/json" \
   -d '{
-    "function": "getActiveEvents",
-    "inputs": ["0", "5"]
+    "jsonrpc": "2.0",
+    "method": "eth_blockNumber",
+    "params": [],
+    "id": 1
+  }'
+
+# Test contract query (example)
+curl -X POST "${BASE_RPC_URL}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "eth_call",
+    "params": [{
+      "to": "0x1234567890123456789012345678901234567890",
+      "data": "0x..."
+    }, "latest"],
+    "id": 1
   }'
 ```
 
 ### 3. Basic Event Query
 ```typescript
-// Fetch active events
+// Direct RPC contract interaction
 const getActiveEvents = async () => {
-  const response = await fetch('/api/v0/contracts/event_factory/query', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${DAPP_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      function: 'getActiveEvents',
-      inputs: ['0', '10'] // offset, limit
-    })
-  });
+  const provider = new ethers.providers.JsonRpcProvider(BASE_RPC_URL);
+  const contract = new ethers.Contract(eventFactoryAddress, eventFactoryABI, provider);
 
-  const data = await response.json();
-  return data.data.output; // [eventIds[], hasMore]
+  const [eventIds, hasMore] = await contract.getActiveEvents(0, 10);
+  return { eventIds, hasMore };
 };
 ```
 
 ### 4. Purchase Ticket
 ```typescript
-// Purchase event tickets
+// Direct RPC transaction
 const purchaseTickets = async (eventId: string, quantity: number) => {
-  const contractLabel = `event_ticket_${eventId}`;
+  const provider = new ethers.providers.JsonRpcProvider(BASE_RPC_URL);
+  const signer = provider.getSigner(); // Assumes wallet is connected
 
-  const response = await fetch(`/api/v0/contracts/${contractLabel}/call`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${DAPP_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      function: 'purchaseTickets',
-      inputs: [userAddress, quantity.toString()],
-      from: userAddress,
-      value: (ticketPrice * quantity).toString()
-    })
-  });
+  const ticketContract = new ethers.Contract(
+    getTicketContractAddress(eventId),
+    eventTicketABI,
+    signer
+  );
 
-  const data = await response.json();
-  return data.data.transactionHash;
+  const tx = await ticketContract.purchaseTickets(
+    await signer.getAddress(),
+    quantity,
+    { value: ticketPrice.mul(quantity) }
+  );
+
+  return await tx.wait();
 };
 ```
 
@@ -908,50 +932,84 @@ DELETE /marketplace/listings/{listingId}
 
 ### WebSocket Connection
 ```typescript
-// Establish WebSocket connection
-const ws = new WebSocket('wss://kwp44rxeifggriyd4hmbjq7dey.multibaas.com/ws');
-
-// Connection established
-ws.onopen = () => {
-  console.log('Connected to Echain real-time API');
+// Establish direct RPC WebSocket connections
+const wsConnections = {
+  base: new WebSocket('wss://sepolia.base.org/ws'),
+  polkadot: new WebSocket('wss://rococo-contracts-rpc.polkadot.io'),
+  cardano: new WebSocket('wss://preview-api.cardano.moonsonglabs.com/ws')
 };
 
-// Handle incoming messages
-ws.onmessage = (event) => {
+// Base WebSocket connection
+const baseWs = wsConnections.base;
+
+baseWs.onopen = () => {
+  console.log('Connected to Base Sepolia WebSocket');
+  // Subscribe to contract events
+  baseWs.send(JSON.stringify({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'eth_subscribe',
+    params: ['logs', {
+      address: [eventFactoryAddress, ticketContractAddresses],
+      topics: [eventSignatures]
+    }]
+  }));
+};
+
+baseWs.onmessage = (event) => {
   const message = JSON.parse(event.data);
   handleRealtimeEvent(message);
 };
 
-// Handle connection errors
-ws.onerror = (error) => {
-  console.error('WebSocket error:', error);
+baseWs.onerror = (error) => {
+  console.error('Base WebSocket error:', error);
 };
 
-// Handle disconnection
-ws.onclose = () => {
-  console.log('WebSocket disconnected');
+baseWs.onclose = () => {
+  console.log('Base WebSocket disconnected');
   // Implement reconnection logic
 };
 ```
 
 ### Event Subscription
 ```typescript
-// Subscribe to specific events
+// Subscribe to specific contract events via direct RPC
 const subscribeToEvents = () => {
-  ws.send(JSON.stringify({
-    action: 'subscribe',
-    eventTypes: [
-      'TicketsPurchased',
-      'AttendeeCheckedIn',
-      'EventCreated',
-      'RewardEarned'
-    ],
-    filters: {
-      // Optional: Filter by event ID or user address
-      eventId: '1',
-      userAddress: '0x742d35Cc6635C0532925a3b8D7ba6C4a1e5aF1e9'
-    }
+  // Base network event subscription
+  baseWs.send(JSON.stringify({
+    jsonrpc: '2.0',
+    id: 2,
+    method: 'eth_subscribe',
+    params: ['logs', {
+      address: [
+        eventFactoryAddress,
+        ticketContractAddresses,
+        poapContractAddress
+      ],
+      topics: [
+        // Event signatures to monitor
+        ethers.utils.id('TicketsPurchased(address,uint256,uint256,uint256[])'),
+        ethers.utils.id('AttendeeCheckedIn(address,uint256,uint256)'),
+        ethers.utils.id('EventCreated(uint256,address,string,string,uint256,uint256,uint256,uint256)')
+      ]
+    }]
   }));
+
+  // Polkadot event subscription
+  polkadotApi.query.system.events((events) => {
+    events.forEach((record) => {
+      const { event } = record;
+      if (event.section === 'contracts' && event.method === 'ContractEmitted') {
+        handlePolkadotEvent(event);
+      }
+    });
+  });
+
+  // Cardano event monitoring (via polling or WebSocket)
+  setInterval(async () => {
+    const latestBlock = await cardanoLucid.provider.getLatestBlock();
+    // Check for new transactions/events
+  }, 10000);
 };
 ```
 
@@ -1044,70 +1102,93 @@ const subscribeToEvents = () => {
 
 ### TypeScript/JavaScript SDK
 ```typescript
-// MultiBaas SDK integration
-import { Configuration, ContractsApi } from '@curvegrid/multibaas-sdk';
+// Multi-chain SDK integration
+import { createPublicClient, createWalletClient, http } from 'viem';
+import { baseSepolia } from 'viem/chains';
+import { ApiPromise, WsProvider } from '@polkadot/api';
+import { Blockfrost, Lucid } from 'lucid-cardano';
 
-const config = new Configuration({
-  basePath: 'https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com',
-  apiKey: process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY
+// Base/Ethereum integration
+const baseClient = createPublicClient({
+  chain: baseSepolia,
+  transport: http('https://sepolia.base.org')
 });
 
-const contractsApi = new ContractsApi(config);
+const baseWallet = createWalletClient({
+  chain: baseSepolia,
+  transport: http('https://sepolia.base.org')
+});
+
+// Polkadot/Substrate integration
+const polkadotApi = await ApiPromise.create({
+  provider: new WsProvider('wss://rococo-contracts-rpc.polkadot.io')
+});
+
+// Cardano integration
+const cardanoLucid = await Lucid.new(
+  new Blockfrost('https://cardano-preview.blockfrost.io/api/v0', 'previewApiKey'),
+  'Preview'
+);
 
 // Type-safe contract interactions
 export class EchainAPI {
-  private api: ContractsApi;
+  private baseClient: any;
+  private polkadotApi: ApiPromise;
+  private cardanoLucid: Lucid;
 
-  constructor(apiKey: string) {
-    const config = new Configuration({
-      basePath: 'https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com',
-      apiKey
-    });
-    this.api = new ContractsApi(config);
+  constructor() {
+    this.baseClient = baseClient;
+    this.polkadotApi = polkadotApi;
+    this.cardanoLucid = cardanoLucid;
   }
 
-  // Get active events
+  // Get active events from Base
   async getActiveEvents(offset = 0, limit = 20) {
-    const response = await this.api.callContractFunction(
-      'ethereum',
-      'event_factory',
-      'EventFactory',
-      'getActiveEvents',
-      { args: [offset.toString(), limit.toString()] }
-    );
-    return response.data.output;
+    const result = await this.baseClient.readContract({
+      address: eventFactoryAddress,
+      abi: eventFactoryABI,
+      functionName: 'getActiveEvents',
+      args: [BigInt(offset), BigInt(limit)]
+    });
+    return result;
   }
 
-  // Purchase tickets
+  // Purchase tickets on Base
   async purchaseTickets(eventId: string, quantity: number, buyer: string) {
-    const contractLabel = `event_ticket_${eventId}`;
-    const response = await this.api.callContractFunction(
-      'ethereum',
-      contractLabel,
-      'EventTicket',
-      'purchaseTickets',
-      {
-        args: [buyer, quantity.toString()],
-        from: buyer,
-        value: (ticketPrice * quantity).toString()
-      }
-    );
-    return response.data;
+    const ticketContractAddress = getTicketContractAddress(eventId);
+    const hash = await this.baseWallet.writeContract({
+      address: ticketContractAddress,
+      abi: eventTicketABI,
+      functionName: 'purchaseTickets',
+      args: [buyer, BigInt(quantity)],
+      value: ticketPrice * BigInt(quantity)
+    });
+    return hash;
   }
 }
 ```
 
 ### React Hooks Integration
 ```typescript
-// Custom hooks for React applications
+// Custom hooks for multi-chain React applications
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { usePublicClient, useWalletClient, useAccount } from 'wagmi';
+import { usePolkadotExtension } from '@polkadot/react-hooks';
+import { useLucid } from 'lucid-cardano';
 
 export function useEvents() {
+  const publicClient = usePublicClient();
+
   return useQuery({
     queryKey: ['events'],
     queryFn: async () => {
-      const api = new EchainAPI(process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY!);
-      return await api.getActiveEvents();
+      const result = await publicClient.readContract({
+        address: eventFactoryAddress,
+        abi: eventFactoryABI,
+        functionName: 'getActiveEvents',
+        args: [0n, 20n]
+      });
+      return result;
     },
     refetchInterval: 30000, // Refresh every 30 seconds
   });
@@ -1115,11 +1196,23 @@ export function useEvents() {
 
 export function usePurchaseTickets() {
   const queryClient = useQueryClient();
+  const { address } = useAccount();
+  const walletClient = useWalletClient();
 
   return useMutation({
     mutationFn: async ({ eventId, quantity }: { eventId: string; quantity: number }) => {
-      const api = new EchainAPI(process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY!);
-      return await api.purchaseTickets(eventId, quantity, userAddress);
+      if (!walletClient.data || !address) throw new Error('Wallet not connected');
+
+      const ticketContractAddress = getTicketContractAddress(eventId);
+      const hash = await walletClient.data.writeContract({
+        address: ticketContractAddress,
+        abi: eventTicketABI,
+        functionName: 'purchaseTickets',
+        args: [address, BigInt(quantity)],
+        value: ticketPrice * BigInt(quantity)
+      });
+
+      return hash;
     },
     onSuccess: () => {
       // Invalidate and refetch events and user tickets
@@ -1133,7 +1226,7 @@ export function useWebSocketEvents() {
   const [events, setEvents] = useState<WebSocketEvent[]>([]);
 
   useEffect(() => {
-    const ws = new WebSocket('wss://kwp44rxeifggriyd4hmbjq7dey.multibaas.com/ws');
+    const ws = new WebSocket('wss://sepolia.base.org/ws'); // Direct RPC WebSocket
 
     ws.onmessage = (event) => {
       const wsEvent = JSON.parse(event.data);
@@ -1418,41 +1511,44 @@ const trackApiError = (error: ApiError, context: any) => {
 
 #### Health Check Endpoints
 ```typescript
-// API health monitoring
+// Multi-chain health monitoring
 const healthEndpoints = {
-  // Overall API health
+  // Overall platform health
   '/health': {
     method: 'GET',
     response: {
       status: 'ok' | 'degraded' | 'down',
       timestamp: number,
       version: string,
-      services: {
-        multibaas: 'ok' | 'degraded' | 'down',
-        database: 'ok' | 'degraded' | 'down',
-        websocket: 'ok' | 'degraded' | 'down'
+      networks: {
+        base: 'ok' | 'degraded' | 'down',
+        polkadot: 'ok' | 'degraded' | 'down',
+        cardano: 'ok' | 'degraded' | 'down'
       }
     }
   },
 
-  // Detailed service health
+  // Detailed network health
   '/health/detailed': {
     method: 'GET',
     response: {
-      multibaas: {
+      base: {
         status: 'ok',
-        latency: 145,
+        rpcLatency: 145,
+        blockNumber: 12345678,
         lastCheck: 1735689600
       },
-      database: {
+      polkadot: {
         status: 'ok',
-        connectionPool: 5,
-        activeConnections: 2
+        wsConnected: true,
+        blockNumber: 9876543,
+        lastCheck: 1735689600
       },
-      websocket: {
+      cardano: {
         status: 'ok',
-        activeConnections: 1250,
-        messagesPerSecond: 45
+        apiConnected: true,
+        slotNumber: 45678912,
+        lastCheck: 1735689600
       }
     }
   }
@@ -1526,9 +1622,9 @@ const solutions = {
 ```typescript
 // Problem: Contract not found
 const contractSolutions = {
-  verifyDeployment: 'Check contract is deployed on Base Sepolia',
-  checkLabel: 'Verify contract label matches MultiBaas registration',
-  updateAddress: 'Ensure contract address is current'
+  verifyDeployment: 'Check contract is deployed on the target network',
+  checkAddress: 'Verify contract address is correct for the network',
+  updateNetwork: 'Ensure RPC endpoint matches the contract network'
 };
 ```
 
@@ -1555,17 +1651,31 @@ const websocketSolutions = {
 
 ### Debug Tools
 ```bash
-# Test API connectivity
-curl -X POST "${MULTIBAAS_URL}/api/v0/status" \
-  -H "Authorization: Bearer ${API_KEY}"
+# Test Base RPC connectivity
+curl -X POST "${BASE_RPC_URL}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "eth_blockNumber",
+    "params": [],
+    "id": 1
+  }'
 
-# Check contract state
-curl -X POST "${MULTIBAAS_URL}/api/v0/contracts/event_factory/query" \
-  -H "Authorization: Bearer ${API_KEY}" \
-  -d '{"function": "getActiveEvents", "inputs": ["0", "1"]}'
+# Check contract state directly
+curl -X POST "${BASE_RPC_URL}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "eth_call",
+    "params": [{
+      "to": "0x1234567890123456789012345678901234567890",
+      "data": "0x..."
+    }, "latest"],
+    "id": 1
+  }'
 
 # Monitor WebSocket events
-wscat -c "wss://kwp44rxeifggriyd4hmbjq7dey.multibaas.com/ws"
+wscat -c "wss://sepolia.base.org/ws"
 ```
 
 ---
@@ -1573,20 +1683,23 @@ wscat -c "wss://kwp44rxeifggriyd4hmbjq7dey.multibaas.com/ws"
 ## 📞 Support & Resources
 
 ### API Resources
-- **[MultiBaas Documentation](https://docs.curvegrid.com/multibaas/)**: Complete API reference
-- **[Base Network Docs](https://docs.base.org/)**: Network-specific information
-- **[Web3.js Documentation](https://web3js.readthedocs.io/)**: Web3 integration guides
+- **[Base Network Docs](https://docs.base.org/)**: Base network documentation and RPC details
+- **[Polkadot Docs](https://wiki.polkadot.network/)**: Polkadot/Substrate development guides
+- **[Cardano Docs](https://docs.cardano.org/)**: Cardano blockchain integration guides
+- **[viem Documentation](https://viem.sh/)**: Ethereum RPC client library
+- **[@polkadot/api](https://polkadot.js.org/docs/api/)**: Polkadot/Substrate API reference
+- **[Lucid Cardano](https://lucid.spacebudz.io/)**: Cardano development framework
 
 ### Developer Tools
-- **API Explorer**: Test endpoints in MultiBaas console
-- **Contract Playground**: Interact with deployed contracts
-- **Event Monitor**: Real-time event streaming
-- **Analytics Dashboard**: API usage and performance metrics
+- **RPC Explorers**: Direct blockchain explorers for each network
+- **Contract Deployment Tools**: Foundry scripts, Viem clients, or native deployment flows
+- **Event Monitoring**: Direct WebSocket connections and event filtering
+- **Analytics Dashboard**: Custom analytics using The Graph or similar indexing
 
 ### Community Support
 - **GitHub Issues**: Report bugs and request features
 - **Discord Community**: Get help from other developers
-- **Technical Blog**: Tutorials and best practices
+- **Technical Blog**: Tutorials and best practices for multi-chain development
 
 ---
 
@@ -1594,9 +1707,9 @@ wscat -c "wss://kwp44rxeifggriyd4hmbjq7dey.multibaas.com/ws"
 
 <div align="center">
 
-[![Try API](https://img.shields.io/badge/Try_API-Live_Demo-00D4FF?style=for-the-badge)](https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com/)
-[![SDK](https://img.shields.io/badge/SDK-Download-10B981?style=for-the-badge)](https://github.com/curvegrid/multibaas-js-sdk)
-[![Docs](https://img.shields.io/badge/Full_Docs-View-6366F1?style=for-the-badge)](https://docs.curvegrid.com/multibaas/)
+[![Try API](https://img.shields.io/badge/Try_RPC-Live_Demo-00D4FF?style=for-the-badge)](https://sepolia.base.org/)
+[![SDK](https://img.shields.io/badge/SDK-Download-10B981?style=for-the-badge)](https://github.com/wagmi-dev/viem)
+[![Docs](https://img.shields.io/badge/Full_Docs-View-6366F1?style=for-the-badge)](https://docs.base.org/)
 
 </div>
 ```json
@@ -1630,7 +1743,7 @@ Subscribe to real-time updates using WebSocket connections.
 
 ### Connection
 ```javascript
-const ws = new WebSocket('wss://kwp44rxeifggriyd4hmbjq7dey.multibaas.com/ws');
+const ws = new WebSocket('wss://sepolia.base.org/ws');
 ```
 
 ### Event Subscriptions
@@ -1712,47 +1825,50 @@ Error: 403 Forbidden - Invalid project configuration
 ```
 Error: Unauthorized
 ```
-- Check API key is correct and has proper permissions
-- Verify key is in "DApp Users" group for frontend access
-- Ensure MultiBaas deployment URL is correct
+- Check wallet connection and permissions
+- Verify network selection in wallet
+- Ensure correct contract addresses for the selected network
 
 **Contract Call Failures**
 ```
 Error: Contract not found
 ```
-- Verify contract is deployed and registered in MultiBaas
-- Check contract label matches MultiBaas registration
-- Ensure address is correct for Base Sepolia network
+- Verify contract is deployed on the target network
+- Check contract address is correct for the network
+- Ensure RPC endpoint matches the contract network
 
 **Network Issues**
 ```
 Error: Network timeout
 ```
-- Check MultiBaas service status
+- Check RPC endpoint status for the target network
 - Verify network connectivity
-- Check rate limits and back off if needed
+- Use alternative RPC endpoints if needed
 
 ## �🛠️ SDK Integration
 
 ### JavaScript/TypeScript SDK
 ```typescript
-import { Configuration, ContractsApi } from '@curvegrid/multibaas-sdk';
+import { createPublicClient, createWalletClient, http } from 'viem';
+import { baseSepolia } from 'viem/chains';
 
-const config = new Configuration({
-  basePath: 'https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com',
-  apiKey: process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY
+const publicClient = createPublicClient({
+  chain: baseSepolia,
+  transport: http('https://sepolia.base.org')
 });
 
-const contractsApi = new ContractsApi(config);
+const walletClient = createWalletClient({
+  chain: baseSepolia,
+  transport: http('https://sepolia.base.org')
+});
 
 // Get active events
-const events = await contractsApi.callContractFunction(
-  'ethereum',
-  'event_factory',
-  'EventFactory',
-  'getActiveEvents',
-  { args: [0, 50] }
-);
+const events = await publicClient.readContract({
+  address: '0x1234567890123456789012345678901234567890',
+  abi: eventFactoryABI,
+  functionName: 'getActiveEvents',
+  args: [0n, 50n]
+});
 ```
 
 ### React Hooks
@@ -1777,4 +1893,4 @@ function EventPage({ eventId }: { eventId: string }) {
 }
 ```
 
-This API documentation provides comprehensive coverage of all platform capabilities while maintaining ease of use through the MultiBaas abstraction layer.
+This API documentation provides comprehensive coverage of all platform capabilities with direct multi-chain RPC integration across Base, Polkadot, and Cardano networks.

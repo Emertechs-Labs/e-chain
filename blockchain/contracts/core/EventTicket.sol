@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.26;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/interfaces/IERC2981.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "../interfaces/IEventTicket.sol";
-import "../interfaces/IEventFactory.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import {ERC721Burnable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IERC2981} from "@openzeppelin/contracts/interfaces/IERC2981.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {IEventTicket} from "../interfaces/IEventTicket.sol";
+import {IEventFactory} from "../interfaces/IEventFactory.sol";
 
 /**
  * @title EventTicket
@@ -88,8 +89,8 @@ contract EventTicket is
     // ============ Initializer ============
 
     function initialize(
-        string calldata name,
-        string calldata symbol,
+        string calldata /* name */,
+        string calldata /* symbol */,
         address _organizer,
         uint256 _eventId,
         uint256 _ticketPrice,
@@ -415,7 +416,7 @@ contract EventTicket is
 
     // ============ Admin Functions ============
 
-    function setTokenURI(
+    function setTokenUri(
         uint256 tokenId,
         string calldata uri
     ) external onlyOwner validTokenId(tokenId) {
@@ -478,9 +479,15 @@ contract EventTicket is
         super.burn(tokenId);
     }
 
+    /// @dev Required override to resolve multiple inheritance (ERC721 + URI storage)
     function tokenURI(
         uint256 tokenId
-    ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
+    )
+        public
+        view
+        override(ERC721, ERC721URIStorage)
+        returns (string memory)
+    {
         return super.tokenURI(tokenId);
     }
 

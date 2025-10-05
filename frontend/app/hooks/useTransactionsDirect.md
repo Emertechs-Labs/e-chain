@@ -1,18 +1,16 @@
-# Direct Wallet Transaction Hooks (MultiBaas Bypass)
+# Direct Wallet Transaction Hooks
 
-This file provides direct wallet interaction hooks that bypass MultiBaas entirely.
-Use these when MultiBaas is unavailable or misconfigured.
+This file provides direct wallet interaction hooks for blockchain transactions.
+These hooks interact directly with smart contracts using wagmi, providing
+fast and reliable transaction handling.
 
 ## Usage
 
-Replace MultiBaas-based hooks with these direct hooks:
+Use these hooks for all wallet transactions:
 
 ```typescript
-// Instead of: useCreateEvent() (uses MultiBaas)
 import { useCreateEventDirect } from './useTransactionsDirect';
-
-// Instead of: usePurchaseTicket() (uses MultiBaas)  
 import { usePurchaseTicketDirect } from './useTransactionsDirect';
 ```
 
-These hooks use wagmi's `writeContract` directly, eliminating MultiBaas dependency for writes.
+These hooks use wagmi's `writeContract` directly for optimal performance and reliability.

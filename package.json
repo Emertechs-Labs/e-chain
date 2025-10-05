@@ -1,20 +1,20 @@
 {
-  "name": "multibaas-sample-app",
+  "name": "echain",
   "version": "1.0.0",
-  "description": "MultiBaas Sample App is a simple voting demo for EVM blockchains",
+  "description": "Echain - Web3-native event management platform built on Base with direct contract integration",
   "scripts": {
-    "postinstall": "node postinstall.js",
     "qa": "bash scripts/qa-agent.sh",
     "qa:lint": "bash scripts/qa-agent.sh --lint-only",
     "qa:test": "bash scripts/qa-agent.sh --test-only",
     "qa:build": "bash scripts/qa-agent.sh --build-only",
     "qa:security": "bash scripts/qa-agent.sh --security-only",
     "qa:docs": "bash scripts/qa-agent.sh --docs-only",
+    "docs:update": "node scripts/update-docs.js",
     "dev": "npm run qa && npm run dev:frontend",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:blockchain": "cd blockchain && npm run dev",
     "build": "npm run qa:build && npm run build:all",
-    "build:all": "cd frontend && npm run build && cd ../blockchain && npx hardhat compile",
+    "build:all": "cd frontend && npm run build && cd ../blockchain && forge build",
     "test": "npm run qa:test",
     "test:all": "bash scripts/run_all_tests.sh",
     "lint": "npm run qa:lint",
@@ -26,28 +26,29 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/curvegrid/multibaas-sample-app.git"
+    "url": "git+https://github.com/Talent-Index/Echain.git"
   },
   "keywords": [
-    "Curvegrid",
-    "MultiBaas",
-    "Vote",
-    "Sample",
-    "EVM"
+    "Web3",
+    "Blockchain",
+    "Events",
+    "NFT",
+    "POAP",
+    "Base",
+    "Ethereum"
   ],
-  "author": "Curvegrid Inc.",
+  "author": "Echain Team",
   "license": "MIT",
   "private": true,
   "bugs": {
-    "url": "https://github.com/curvegrid/multibaas-sample-app/issues"
+    "url": "https://github.com/Talent-Index/Echain/issues"
   },
-  "homepage": "https://github.com/curvegrid/multibaas-sample-app#readme",
+  "homepage": "https://github.com/Talent-Index/Echain#readme",
   "workspaces": [
     "blockchain",
     "frontend"
   ],
   "dependencies": {
-    "@curvegrid/multibaas-sdk": "^1.0.12",
     "@vercel/analytics": "^1.5.0",
     "polkadot-api": "^1.19.2"
   },

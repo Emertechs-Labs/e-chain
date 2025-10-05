@@ -1,36 +1,7 @@
 "use client";
 import React, { useState } from 'react';
+import { writeContract } from '../lib/contract-wrapper';
 import styles from './SignAndSendUnsignedTx.module.css';
-
-type UnsignedTx = {
-  kind: string;
-  tx: {
-    from: string;
-    to: string;
-    value?: string;
-    gas?: number | string;
-    gasFeeCap?: string;
-    gasTipCap?: string;
-    data?: string;
-    nonce?: number | string;
-    type?: number | string;
-  };
-  submitted?: boolean;
-};
-
-const toHex = (v?: string | number) => {
-  if (v === undefined || v === null) return undefined;
-  try {
-    // Accept either numeric or decimal-string inputs
-    const n = BigInt(String(v));
-    return '0x' + n.toString(16);
-  } catch (e) {
-    // If it's already hex, pass through
-    const s = String(v);
-    if (s.startsWith('0x')) return s;
-    return undefined;
-  }
-};
 
 export default function SignAndSendUnsignedTx({
   payload,
@@ -58,84 +29,23 @@ export default function SignAndSendUnsignedTx({
     setResult(null);
     setError(null);
     try {
-      const res = await fetch('/api/multibaas/unsigned', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      const { address, contractLabel, method, args, from, value } = payload;
 
-      const body = await res.json();
-      if (!res.ok) {
-        setError(JSON.stringify(body));
-        setBusy(false);
-        return;
-      }
+      // Use direct contract write
+      const txHash = await writeContract(
+        address || contractLabel, // Use address if provided, otherwise contractLabel
+        method,
+        args || [],
+        {
+          account: from as `0x${string}`,
+          value: value ? BigInt(value) : undefined,
+          waitForConfirmation: false, // Don't wait here, just return hash
+        }
+      );
 
-      const unsigned: UnsignedTx = body as UnsignedTx;
-      if (!unsigned || unsigned.kind !== 'TransactionToSignResponse' || !unsigned.tx) {
-        setError('Invalid unsigned tx response');
-        setBusy(false);
-        return;
-      }
-
-      const tx = unsigned.tx;
-
-      const txParams: any = {
-        from: tx.from,
-        to: tx.to,
-      };
-
-      if (tx.data) txParams.data = tx.data;
-      if (tx.value) txParams.value = toHex(tx.value);
-      if (tx.gas) txParams.gas = toHex(tx.gas);
-      if (tx.gasFeeCap) txParams.maxFeePerGas = toHex(tx.gasFeeCap);
-      if (tx.gasTipCap) txParams.maxPriorityFeePerGas = toHex(tx.gasTipCap);
-      if (tx.nonce !== undefined) txParams.nonce = toHex(tx.nonce);
-      if (tx.type !== undefined) txParams.type = toHex(tx.type);
-
-      if (!(window as any).ethereum) {
-        setError('No window.ethereum available. Connect a wallet (MetaMask/Rainbow).');
-        setBusy(false);
-        return;
-      }
-
-      // Request the wallet to send the transaction. This will open the wallet UI for signing.
-      const eth = (window as any).ethereum;
-      // Ensure from matches selected account — wallets typically ignore a different 'from'
-      const accounts: string[] = await eth.request({ method: 'eth_accounts' });
-      if (!accounts || accounts.length === 0) {
-        // Try requesting access
-        await eth.request({ method: 'eth_requestAccounts' });
-      }
-
-      // Check if wallet is on the correct network (Base Sepolia)
-      const chainId = await eth.request({ method: 'eth_chainId' });
-      console.log('[SignAndSendUnsignedTx] Current chain ID:', chainId);
-      if (chainId !== '0x14a34') { // Base Sepolia chain ID in hex
-        setError(`Wrong network! Please switch to Base Sepolia (Chain ID: 84532). Current chain: ${chainId}`);
-        setBusy(false);
-        return;
-      }
-
-      // Check balance to ensure sufficient funds
-      const balance = await eth.request({ method: 'eth_getBalance', params: [tx.from, 'latest'] });
-      const balanceWei = BigInt(balance);
-      const gasCost = BigInt(tx.gas || 21000) * BigInt(tx.gasFeeCap || '2000000000'); // Rough estimate
-      console.log('[SignAndSendUnsignedTx] Balance:', balanceWei.toString(), 'Gas cost estimate:', gasCost.toString());
-      
-      if (balanceWei < gasCost) {
-        setError(`Insufficient funds! Balance: ${Number(balanceWei) / 1e18} ETH, Estimated gas cost: ${Number(gasCost) / 1e18} ETH`);
-        setBusy(false);
-        return;
-      }
-
-      // Send the transaction via the wallet
-      console.log('[SignAndSendUnsignedTx] Sending transaction with params:', txParams);
-      const txHash = await eth.request({ method: 'eth_sendTransaction', params: [txParams] });
-      const txHashStr = String(txHash);
-      console.log('[SignAndSendUnsignedTx] Transaction submitted:', txHashStr);
-      setResult(txHashStr);
-      if (onSubmitted) onSubmitted(txHashStr);
+      console.log('[SignAndSendUnsignedTx] Transaction submitted:', txHash);
+      setResult(txHash);
+      if (onSubmitted) onSubmitted(txHash);
     } catch (e: any) {
       setError(String(e?.message ?? e));
     } finally {

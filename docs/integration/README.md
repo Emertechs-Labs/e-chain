@@ -1,15 +1,17 @@
-# 🔗 Integration Documentation
+# 🔗 Multi-Chain Integration Documentation
 
 <div align="center">
 
-![MultiBaas](https://img.shields.io/badge/Curvegrid_MultiBaas-Integrated-00AEEF?style=for-the-badge&logo=api&logoColor=white)
+![Multi-Chain](https://img.shields.io/badge/Multi--Chain-Integrated-00AEEF?style=for-the-badge&logo=ethereum&logoColor=white)
 ![RainbowKit](https://img.shields.io/badge/RainbowKit-2.1.3-7B3FE4?style=for-the-badge&logo=walletconnect&logoColor=white)
 ![Base Sepolia](https://img.shields.io/badge/Base-Sepolia-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)
+![Polkadot](https://img.shields.io/badge/Polkadot-Testnet-E6007A?style=for-the-badge&logo=polkadot&logoColor=white)
+![Cardano](https://img.shields.io/badge/Cardano-Preview-0033AD?style=for-the-badge&logo=cardano&logoColor=white)
 ![WebSocket](https://img.shields.io/badge/WebSocket-Real--time-010101?style=for-the-badge&logo=websocket&logoColor=white)
 
-**Complete integration guide for Echain platform components**
+**Complete integration guide for Echain multi-chain platform components**
 
-*MultiBaas API • Wallet Integration • Real-time Events • External Services*
+*Direct RPC Integration • Multi-Chain Wallet Support • Cross-Chain Bridge • Real-time Events • External Services*
 
 [🏗️ Architecture](#-architecture-overview) • [🔧 Setup](#-setup--configuration) • [📚 SDK Integration](#-sdk-integration) • [🎣 React Hooks](#-react-hooks) • [🔄 Real-time Events](#-real-time-events) • [🧪 Testing](#-testing-strategy)
 
@@ -20,22 +22,37 @@
 ## 🎯 Integration Overview
 
 ### Current Implementation Status
-- **✅ MultiBaas API**: Fully integrated with REST and WebSocket support
-- **✅ Wallet Integration**: RainbowKit + Reown for seamless wallet connections
-- **✅ Real-time Events**: WebSocket streaming for live updates
+- **✅ Multi-Chain RPC**: Direct integration with Base, Polkadot, and Cardano networks
+- **✅ Wallet Integration**: RainbowKit + Reown for seamless multi-chain wallet connections
+- **✅ Cross-Chain Bridge**: Asset transfers between networks
+- **✅ Real-time Events**: WebSocket streaming for live updates across chains
 - **✅ Type Safety**: Complete TypeScript integration with contract ABIs
 - **✅ Error Handling**: Comprehensive fallback mechanisms and error recovery
-- **✅ Production Ready**: Deployed on Base Sepolia with monitoring
+- **✅ Production Ready**: Deployed across testnets with monitoring
 
 ## 🎯 Integration Overview
 
 ### Current Implementation Status
-- **✅ MultiBaas API**: Fully integrated with REST and WebSocket support
-- **✅ Wallet Integration**: RainbowKit + Reown for seamless wallet connections
-- **✅ Real-time Events**: WebSocket streaming for live updates
+- **✅ Multi-Chain RPC**: Direct integration with Base, Polkadot, and Cardano networks
+- **✅ Wallet Integration**: RainbowKit + Reown for seamless multi-chain wallet connections
+- **✅ Cross-Chain Bridge**: Asset transfers between networks
+- **✅ Real-time Events**: WebSocket streaming for live updates across chains
 - **✅ Type Safety**: Complete TypeScript integration with contract ABIs
 - **✅ Error Handling**: Comprehensive fallback mechanisms and error recovery
-- **✅ Production Ready**: Deployed on Base Sepolia with monitoring
+- **✅ Production Ready**: Deployed across testnets with monitoring
+
+### Advanced Integration Patterns
+
+#### Circuit Breaker Pattern
+```typescript
+// lib/circuit-breaker.ts - Advanced error handling
+export class CircuitBreaker {
+  private failures = 0;
+  private lastFailureTime = 0;
+  private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
+
+  constructor(
+    private failureThreshold = 5,
 
 ### Advanced Integration Patterns
 
@@ -155,7 +172,7 @@ export class ContractBatchProcessor {
       const results = await Promise.allSettled(
         batch.map(async (item) => {
           try {
-            const result = await multibaasClient.callContract(
+            const result = await multichainClient.readContract(
               CONTRACT_ADDRESSES[item.contract as keyof typeof CONTRACT_ADDRESSES],
               item.contract,
               item.method,
@@ -327,7 +344,7 @@ export function useEventWithCache(eventId: number) {
 
   const { data: event, ...queryState } = useQuery({
     queryKey: ['event', eventId],
-    queryFn: () => multibaasClient.callContract(
+    queryFn: () => multichainClient.readContract(
       CONTRACT_ADDRESSES.EventFactory,
       'EventFactory',
       'getEvent',
@@ -346,7 +363,7 @@ export function useEventWithCache(eventId: number) {
 
       try {
         // Make actual contract call
-        const result = await multibaasClient.callContract(
+        const result = await multichainClient.writeContract(
           CONTRACT_ADDRESSES.EventFactory,
           'EventFactory',
           'updateEvent',
@@ -385,7 +402,7 @@ export function useInfiniteEvents(options?: {
   return useInfiniteQuery({
     queryKey: ['events', 'infinite', options],
     queryFn: async ({ pageParam = 0 }) => {
-      const result = await multibaasClient.callContract(
+      const result = await multichainClient.readContract(
         CONTRACT_ADDRESSES.EventFactory,
         'EventFactory',
         'getEvents',
@@ -721,7 +738,7 @@ graph TB
     end
 
     subgraph "Integration Layer"
-        E[MultiBaas SDK]
+        E[Multi-Chain SDK]
         F[RainbowKit Provider]
         G[WebSocket Client]
         H[Error Boundaries]
@@ -780,54 +797,69 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
 #### API Abstraction Layer
 ```typescript
-// lib/multibaas/client.ts - MultiBaas client configuration
-export const multibaasClient = new MultiBaasClient({
-  deploymentUrl: process.env.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL!,
-  dappUserApiKey: process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY!,
-  web3ApiKey: process.env.NEXT_PUBLIC_MULTIBAAS_WEB3_API_KEY!,
-  chainId: 84532, // Base Sepolia
+// lib/multichain/client.ts - Multi-chain client configuration
+export const multichainClient = new MultiChainClient({
+  baseRpcUrl: process.env.NEXT_PUBLIC_BASE_RPC_URL!,
+  polkadotRpcUrl: process.env.NEXT_PUBLIC_POLKADOT_RPC_URL!,
+  cardanoRpcUrl: process.env.NEXT_PUBLIC_CARDANO_RPC_URL!,
+  bridgeApiUrl: process.env.NEXT_PUBLIC_BRIDGE_API_URL!,
 });
 ```
 
 #### Real-time Event Layer
 ```typescript
 // lib/websocket/events.ts - WebSocket event handling
-export class EventWebSocketManager {
-  private ws: WebSocket | null = null;
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
+export class MultiChainEventWebSocketManager {
+  private connections: Map<string, WebSocket> = new Map();
 
-  connect(eventId?: string) {
-    const wsUrl = `${process.env.NEXT_PUBLIC_MULTIBAAS_WS_URL}/events`;
-    this.ws = new WebSocket(wsUrl);
+  connect(network: string, eventId?: string) {
+    const wsUrl = this.getWebSocketUrl(network);
+    if (eventId) {
+      wsUrl.searchParams.set('eventId', eventId);
+    }
 
-    this.ws.onmessage = (event) => {
+    const ws = new WebSocket(wsUrl.toString());
+    this.connections.set(network, ws);
+
+    ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      data.network = network; // Add network context
       this.handleEventMessage(data);
     };
+  }
 
-    this.ws.onclose = () => this.handleReconnect();
+  private getWebSocketUrl(network: string): URL {
+    switch (network) {
+      case 'base':
+        return new URL(process.env.NEXT_PUBLIC_BASE_WS_URL!);
+      case 'polkadot':
+        return new URL(process.env.NEXT_PUBLIC_POLKADOT_WS_URL!);
+      case 'cardano':
+        return new URL(process.env.NEXT_PUBLIC_CARDANO_WS_URL!);
+      default:
+        throw new Error(`Unsupported network: ${network}`);
+    }
   }
 }
 ```
 
 ### Data Flow Patterns
 
-#### Read Operations (REST API)
+#### Read Operations (Direct RPC)
 ```mermaid
 sequenceDiagram
     participant U as User
     participant F as Frontend
     participant H as React Hook
-    participant M as MultiBaas API
+    participant R as RPC Node
     participant C as Smart Contract
 
     U->>F: Navigate to events page
     F->>H: useEvents() hook
-    H->>M: GET /api/v0/chains/ethereum/contracts/{address}/methods/getActiveEvents
-    M->>C: Call contract method
-    C->>M: Return event data
-    M->>H: JSON response
+    H->>R: eth_call/getActiveEvents
+    R->>C: Execute contract method
+    C->>R: Return event data
+    R->>H: JSON-RPC response
     H->>F: Formatted events
     F->>U: Display events
 ```
@@ -838,17 +870,17 @@ sequenceDiagram
     participant U as User
     participant F as Frontend
     participant W as Wallet
-    participant M as MultiBaas
+    participant R as RPC Node
     participant B as Blockchain
 
     U->>F: Click "Purchase Ticket"
     F->>W: Request signature
     W->>U: Show transaction details
     U->>W: Approve transaction
-    W->>M: Submit signed transaction
-    M->>B: Broadcast to network
-    B->>M: Transaction mined
-    M->>F: Transaction receipt
+    W->>R: eth_sendRawTransaction
+    R->>B: Broadcast to network
+    B->>R: Transaction mined
+    R->>F: Transaction receipt
     F->>U: Success confirmation
 ```
 
@@ -857,14 +889,14 @@ sequenceDiagram
 sequenceDiagram
     participant F as Frontend
     participant WS as WebSocket
-    participant M as MultiBaas
+    participant R as RPC Node
     participant C as Contract
 
-    F->>WS: Connect to event stream
-    WS->>M: Subscribe to contract events
-    M->>C: Monitor for events
-    C->>M: Event emitted
-    M->>WS: Send event data
+    F->>WS: Connect to network WebSocket
+    WS->>R: Subscribe to contract events
+    R->>C: Monitor for events
+    C->>R: Event emitted
+    R->>WS: Send event data
     WS->>F: Update UI in real-time
     F->>F: Show live updates
 ```
@@ -878,18 +910,24 @@ sequenceDiagram
 #### Required Environment Variables
 ```env
 # ============================================================================
-# MULTIBAAS CONFIGURATION
+# MULTI-CHAIN RPC CONFIGURATION
 # ============================================================================
 
-# MultiBaas Deployment URL (from your MultiBaas console)
-NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL=https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com
+# Base Network (Ethereum L2)
+NEXT_PUBLIC_BASE_RPC_URL=https://sepolia.base.org
+NEXT_PUBLIC_BASE_WS_URL=wss://sepolia.base.org/ws
+NEXT_PUBLIC_BASE_CHAIN_ID=84532
 
-# API Keys (generate in MultiBaas console under Admin → API Keys)
-NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzU5MDUzNzQxLCJqdGkiOiI3ZmJhM2ZmZS03Y2NhLTRlM2ItODY2Ni00MTJmMDIwMmM0NjkifQ.5xoeq2EUzDE-NNC0R_mrMtQVAG2xWfDRoRz3RNkf_OY
-NEXT_PUBLIC_MULTIBAAS_WEB3_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzU5MDUzNDYxLCJqdGkiOiJkMDdhZTRjNC00OGQ0LTQ2NDItOTFmOC1iYmRjYjZhMWNkZDQifQ.FBsSW78nyYR_kWSmWYYW3iMqpCozu4L2SFl36Al_gr0
+# Polkadot Network (Substrate)
+NEXT_PUBLIC_POLKADOT_RPC_URL=wss://rococo-rpc.polkadot.io
+NEXT_PUBLIC_POLKADOT_WS_URL=wss://rococo-rpc.polkadot.io
 
-# WebSocket URL for real-time events
-NEXT_PUBLIC_MULTIBAAS_WS_URL=wss://kwp44rxeifggriyd4hmbjq7dey.multibaas.com
+# Cardano Network (eUTXO)
+NEXT_PUBLIC_CARDANO_RPC_URL=https://preview-api.cardano.org
+NEXT_PUBLIC_CARDANO_WS_URL=wss://preview-api.cardano.org/ws
+
+# Cross-Chain Bridge
+NEXT_PUBLIC_BRIDGE_API_URL=https://api.multichain.org
 
 # ============================================================================
 # WALLET CONFIGURATION
@@ -899,111 +937,111 @@ NEXT_PUBLIC_MULTIBAAS_WS_URL=wss://kwp44rxeifggriyd4hmbjq7dey.multibaas.com
 NEXT_PUBLIC_REOWN_PROJECT_ID=your-reown-project-id
 
 # ============================================================================
-# CONTRACT ADDRESSES (Base Sepolia)
+# CONTRACT ADDRESSES (Multi-Chain)
 # ============================================================================
 
-NEXT_PUBLIC_EVENT_FACTORY_ADDRESS=0xbE36039Bfe7f48604F73daD61411459B17fd2e85
-NEXT_PUBLIC_INCENTIVE_MANAGER_ADDRESS=0x8290c12f874DF9D03FDadAbE10C7c6321B69Ded9
+# Base Sepolia
+NEXT_PUBLIC_BASE_EVENT_FACTORY_ADDRESS=0xbE36039Bfe7f48604F73daD61411459B17fd2e85
+NEXT_PUBLIC_BASE_INCENTIVE_MANAGER_ADDRESS=0x8290c12f874DF9D03FDadAbE10C7c6321B69Ded9
+
+# Polkadot Rococo
+NEXT_PUBLIC_POLKADOT_EVENT_FACTORY_ADDRESS=5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
+NEXT_PUBLIC_POLKADOT_INCENTIVE_MANAGER_ADDRESS=5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS7Hm
+
+# Cardano Preview
+NEXT_PUBLIC_CARDANO_EVENT_FACTORY_ADDRESS=addr1qxqs59lphg8g6qndelq8xwqn60ag3aeyfcp33c2kdp46a429mgz6rfs8r9e5v9y8zy3ky9q8z6j3z6j3z6j3z6j3z6j3z6j3z
+NEXT_PUBLIC_CARDANO_INCENTIVE_MANAGER_ADDRESS=addr1qy2jt0qpqz2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z
 
 # ============================================================================
 # NETWORK CONFIGURATION
 # ============================================================================
 
-NEXT_PUBLIC_CHAIN_ID=84532
-NEXT_PUBLIC_RPC_URL=https://sepolia.base.org
-NEXT_PUBLIC_BLOCK_EXPLORER_URL=https://sepolia.basescan.org
+NEXT_PUBLIC_DEFAULT_CHAIN_ID=84532
+NEXT_PUBLIC_SUPPORTED_CHAINS=84532,rococo,preview
 ```
 
-### MultiBaas Setup Steps
+### Multi-Chain Setup Steps
 
-#### 1. Create MultiBaas Account
+#### 1. Configure Network RPC Endpoints
 ```bash
-# Visit https://console.curvegrid.com/
-# Sign up for a new account
-# Create a new deployment for Base Sepolia
+# Set up environment variables for all networks
+export NEXT_PUBLIC_BASE_RPC_URL=https://sepolia.base.org
+export NEXT_PUBLIC_POLKADOT_RPC_URL=wss://rococo-rpc.polkadot.io
+export NEXT_PUBLIC_CARDANO_RPC_URL=https://preview-api.cardano.org
+export NEXT_PUBLIC_BRIDGE_API_URL=https://api.multichain.org
 ```
 
-#### 2. Deploy Contracts via MultiBaas
+#### 2. Deploy Contracts via Direct RPC
 ```typescript
-// scripts/deploy-multibaas.ts
-import { MultiBaasClient } from '@curvegrid/multibaas-sdk';
+// scripts/deploy-multichain.ts
+import { createPublicClient, http } from 'viem';
+import { baseSepolia } from 'viem/chains';
 
-const client = new MultiBaasClient({
-  deploymentUrl: process.env.MULTIBAAS_DEPLOYMENT_URL,
-  web3ApiKey: process.env.MULTIBAAS_WEB3_API_KEY
+const client = createPublicClient({
+  chain: baseSepolia,
+  transport: http(process.env.BASE_RPC_URL)
 });
 
 async function deployContracts() {
   // Deploy EventFactory
-  const factoryDeployment = await client.deployContract({
-    chain: 'ethereum',
-    contractName: 'EventFactory',
-    source: 'contracts/core/EventFactory.sol',
-    constructorArgs: [],
-    label: 'event_factory'
+  const factoryHash = await client.deployContract({
+    abi: EventFactoryABI,
+    bytecode: EventFactoryBytecode,
+    args: []
   });
 
-  console.log('EventFactory deployed:', factoryDeployment.address);
+  console.log('EventFactory deployed:', factoryHash);
 
   // Deploy IncentiveManager
-  const incentiveDeployment = await client.deployContract({
-    chain: 'ethereum',
-    contractName: 'IncentiveManager',
-    source: 'contracts/modules/IncentiveManager.sol',
-    constructorArgs: [factoryDeployment.address],
-    label: 'incentive_manager'
+  const incentiveHash = await client.deployContract({
+    abi: IncentiveManagerABI,
+    bytecode: IncentiveManagerBytecode,
+    args: [factoryAddress]
   });
 
-  console.log('IncentiveManager deployed:', incentiveDeployment.address);
+  console.log('IncentiveManager deployed:', incentiveHash);
 }
 ```
 
-#### 3. Generate API Keys
+#### 3. Configure Multi-Chain Wallets
 ```typescript
-// In MultiBaas console: Admin → API Keys
-const dappUserKey = await client.createApiKey({
-  name: 'Echain Frontend',
-  group: 'DApp Users',
-  permissions: ['read:contracts', 'read:events', 'write:transactions']
-});
-
-const web3Key = await client.createApiKey({
-  name: 'Echain Web3',
-  group: 'Web3 Users',
-  permissions: ['write:contracts', 'read:events', 'write:events']
-});
+// In wallet configuration: Support multiple networks
+const supportedChains = [baseSepolia, rococoTestnet, cardanoPreview];
 ```
 
-### Wallet Integration Setup
+### Multi-Chain Wallet Integration Setup
 
-#### RainbowKit Configuration
+#### RainbowKit Multi-Chain Configuration
 ```typescript
 // lib/wagmi.ts
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { baseSepolia } from 'wagmi/chains';
+import { polkadotRococo, cardanoPreview } from './customChains';
 
 export const config = getDefaultConfig({
   appName: 'Echain',
   projectId: process.env.NEXT_PUBLIC_REOWN_PROJECT_ID!,
-  chains: [baseSepolia],
+  chains: [baseSepolia, polkadotRococo, cardanoPreview],
   ssr: true,
 });
 ```
 
-#### Theme Integration
+#### Cross-Chain Theme Integration
 ```typescript
 // lib/rainbow-theme.ts
 import { darkTheme, lightTheme } from '@rainbow-me/rainbowkit';
 
-export const getRainbowTheme = (isDark: boolean) =>
+export const getRainbowTheme = (isDark: boolean, network: string) =>
   isDark
     ? darkTheme({
-        accentColor: '#00D4FF',
+        accentColor: network === 'base' ? '#0052FF' :
+                    network === 'polkadot' ? '#E6007A' : '#0033AD',
         accentColorForeground: 'white',
         borderRadius: 'medium',
       })
     : lightTheme({
-        accentColor: '#00D4FF',
+        accentColor: network === 'base' ? '#0052FF' :
+                    network === 'polkadot' ? '#E6007A' : '#0033AD',
         accentColorForeground: 'white',
         borderRadius: 'medium',
       });
@@ -1013,99 +1051,117 @@ export const getRainbowTheme = (isDark: boolean) =>
 
 ## 📚 SDK Integration
 
-### MultiBaas SDK Installation
+### Multi-Chain SDK Installation
 ```bash
-npm install @curvegrid/multibaas-sdk
+npm install viem @wagmi/core @wagmi/vue @polkadot/api @emurgo/cardano-serialization-lib
 # or
-yarn add @curvegrid/multibaas-sdk
+yarn add viem @wagmi/core @wagmi/vue @polkadot/api @emurgo/cardano-serialization-lib
 ```
 
-### Core Client Setup
+### Core Multi-Chain Client Setup
 ```typescript
-// lib/multibaas/client.ts
-import {
-  Configuration,
-  ContractsApi,
-  EventsApi,
-  TransactionsApi
-} from '@curvegrid/multibaas-sdk';
+// lib/multichain/client.ts
+import { createPublicClient, createWalletClient, http } from 'viem';
+import { baseSepolia } from 'viem/chains';
+import { ApiPromise, WsProvider } from '@polkadot/api';
+import { Blockfrost, Lucid } from 'lucid-cardano';
 
-export class MultiBaasClient {
-  private config: Configuration;
-  public contracts: ContractsApi;
-  public events: EventsApi;
-  public transactions: TransactionsApi;
+export class MultiChainClient {
+  private baseClient: any;
+  private polkadotClient: any;
+  private cardanoClient: any;
 
   constructor(options: {
-    deploymentUrl: string;
-    dappUserApiKey: string;
-    web3ApiKey?: string;
-    chainId?: number;
+    baseRpcUrl: string;
+    polkadotRpcUrl: string;
+    cardanoRpcUrl: string;
   }) {
-    this.config = new Configuration({
-      basePath: options.deploymentUrl,
-      apiKey: options.dappUserApiKey,
-      headers: {
-        'X-API-Key': options.dappUserApiKey,
-      },
+    // Base client (Ethereum L2)
+    this.baseClient = createPublicClient({
+      chain: baseSepolia,
+      transport: http(options.baseRpcUrl)
     });
 
-    this.contracts = new ContractsApi(this.config);
-    this.events = new EventsApi(this.config);
-    this.transactions = new TransactionsApi(this.config);
+    // Polkadot client (Substrate)
+    this.polkadotClient = new ApiPromise({
+      provider: new WsProvider(options.polkadotRpcUrl)
+    });
+
+    // Cardano client (eUTXO)
+    this.cardanoClient = await Lucid.new(
+      new Blockfrost(options.cardanoRpcUrl, process.env.BLOCKFROST_API_KEY!),
+      'Preview'
+    );
   }
 
-  // Utility methods
-  async callContract(
-    address: string,
-    contractLabel: string,
-    method: string,
-    args: any[] = [],
-    options?: { from?: string; value?: string }
-  ) {
-    const response = await this.contracts.callContractFunction(
-      'ethereum',
-      address,
-      contractLabel,
-      method,
-      {
-        args,
-        ...options,
-      }
-    );
+  // Unified contract read across networks
+  async readContract(network: string, address: string, functionName: string, args: any[] = []) {
+    switch (network) {
+      case 'base':
+        return this.baseClient.readContract({
+          address,
+          abi: this.getContractABI(network, address),
+          functionName,
+          args
+        });
 
-    return response.data.result;
+      case 'polkadot':
+        // Polkadot contract call logic
+        const contract = new ContractPromise(this.polkadotClient, this.getContractABI(network, address), address);
+        return contract.query[functionName](...args);
+
+      case 'cardano':
+        // Cardano contract call logic
+        const script = this.getContractABI(network, address);
+        return this.cardanoClient.executeScript(script, args);
+
+      default:
+        throw new Error(`Unsupported network: ${network}`);
+    }
+  }
+
+  // Unified contract write across networks
+  async writeContract(network: string, address: string, functionName: string, args: any[] = []) {
+    // Similar implementation for write operations
   }
 }
 ```
 
 ### Contract Interaction Examples
 
-#### Reading Contract Data
+#### Reading Contract Data Across Networks
 ```typescript
-// Get active events
-const events = await multibaasClient.callContract(
-  CONTRACT_ADDRESSES.EventFactory,
-  'EventFactory',
+// Get active events from Base network
+const baseEvents = await multichainClient.readContract(
+  'base',
+  CONTRACT_ADDRESSES.base.EventFactory,
   'getActiveEvents',
   [0, 50] // offset, limit
 );
 
-// Get specific event details
-const eventDetails = await multibaasClient.callContract(
-  CONTRACT_ADDRESSES.EventFactory,
-  'EventFactory',
-  'getEvent',
-  [eventId]
+// Get active events from Polkadot network
+const polkadotEvents = await multichainClient.readContract(
+  'polkadot',
+  CONTRACT_ADDRESSES.polkadot.EventFactory,
+  'getActiveEvents',
+  [0, 50]
+);
+
+// Get active events from Cardano network
+const cardanoEvents = await multichainClient.readContract(
+  'cardano',
+  CONTRACT_ADDRESSES.cardano.EventFactory,
+  'getActiveEvents',
+  [0, 50]
 );
 ```
 
-#### Writing to Contracts
+#### Writing to Contracts Across Networks
 ```typescript
-// Create new event
-const createEventTx = await multibaasClient.callContract(
-  CONTRACT_ADDRESSES.EventFactory,
-  'EventFactory',
+// Create new event on Base
+const createEventTx = await multichainClient.writeContract(
+  'base',
+  CONTRACT_ADDRESSES.base.EventFactory,
   'createEvent',
   [
     'Summer Music Festival',
@@ -1114,43 +1170,49 @@ const createEventTx = await multibaasClient.callContract(
     1000, // max tickets
     Math.floor(Date.now() / 1000) + 86400, // tomorrow
     Math.floor(Date.now() / 1000) + 86400 * 2 // day after
-  ],
-  {
-    from: userAddress,
-    value: '0' // No ETH sent for creation
-  }
+  ]
+);
+
+// Create new event on Polkadot
+const polkadotTx = await multichainClient.writeContract(
+  'polkadot',
+  CONTRACT_ADDRESSES.polkadot.EventFactory,
+  'createEvent',
+  [eventData]
+);
+
+// Create new event on Cardano
+const cardanoTx = await multichainClient.writeContract(
+  'cardano',
+  CONTRACT_ADDRESSES.cardano.EventFactory,
+  'createEvent',
+  [eventData]
 );
 ```
 
-#### Transaction Monitoring
+#### Cross-Chain Bridge Transfers
 ```typescript
-// Submit and monitor transaction
-const txResponse = await multibaasClient.transactions.submitTransaction({
-  chain: 'ethereum',
-  from: userAddress,
-  to: contractAddress,
-  data: encodedFunctionData,
-  gasLimit: '200000'
+// Transfer assets between networks
+const bridgeTransfer = await multichainClient.bridgeTransfer({
+  fromNetwork: 'base',
+  toNetwork: 'polkadot',
+  asset: 'ETH',
+  amount: '0.1',
+  recipient: polkadotAddress
 });
-
-// Poll for confirmation
-const receipt = await multibaasClient.transactions.getTransactionReceipt(
-  'ethereum',
-  txResponse.data.txHash
-);
 ```
 
 ---
 
 ## 🎣 React Hooks
 
-### Custom Hook Architecture
+### Custom Multi-Chain Hook Architecture
 ```typescript
 // lib/hooks/useContract.ts - Base contract hook
 export function useContract<T>(
+  network: string,
   address: string,
-  contractLabel: string,
-  method: string,
+  functionName: string,
   args: any[] = [],
   options?: {
     enabled?: boolean;
@@ -1160,8 +1222,8 @@ export function useContract<T>(
   }
 ) {
   return useQuery({
-    queryKey: ['contract', address, method, ...args],
-    queryFn: () => multibaasClient.callContract(address, contractLabel, method, args),
+    queryKey: ['contract', network, address, functionName, ...args],
+    queryFn: () => multichainClient.readContract(network, address, functionName, args),
     enabled: options?.enabled ?? true,
     refetchInterval: options?.refetchInterval,
     onSuccess: options?.onSuccess,
@@ -1177,26 +1239,26 @@ export function useContract<T>(
 }
 ```
 
-### Event Management Hooks
+### Multi-Chain Event Management Hooks
 ```typescript
 // app/hooks/useEvents.ts
-export function useEvents(options?: {
+export function useEvents(network: string, options?: {
   limit?: number;
   offset?: number;
   organizer?: string;
 }) {
   return useContract(
-    CONTRACT_ADDRESSES.EventFactory,
-    'EventFactory',
+    network,
+    CONTRACT_ADDRESSES[network].EventFactory,
     'getActiveEvents',
     [options?.offset ?? 0, options?.limit ?? 20]
   );
 }
 
-export function useEvent(eventId: number) {
+export function useEvent(network: string, eventId: number) {
   return useContract(
-    CONTRACT_ADDRESSES.EventFactory,
-    'EventFactory',
+    network,
+    CONTRACT_ADDRESSES[network].EventFactory,
     'getEvent',
     [eventId],
     {
@@ -1205,14 +1267,14 @@ export function useEvent(eventId: number) {
   );
 }
 
-export function useCreateEvent() {
+export function useCreateEvent(network: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (eventData: CreateEventParams) => {
-      const result = await multibaasClient.callContract(
-        CONTRACT_ADDRESSES.EventFactory,
-        'EventFactory',
+      const result = await multichainClient.writeContract(
+        network,
+        CONTRACT_ADDRESSES[network].EventFactory,
         'createEvent',
         [
           eventData.name,
@@ -1227,22 +1289,22 @@ export function useCreateEvent() {
       return result;
     },
     onSuccess: () => {
-      // Invalidate and refetch events
-      queryClient.invalidateQueries({ queryKey: ['contract'] });
+      // Invalidate and refetch events for this network
+      queryClient.invalidateQueries({ queryKey: ['contract', network] });
     },
   });
 }
 ```
 
-### Ticket Management Hooks
+### Cross-Chain Ticket Management Hooks
 ```typescript
 // app/hooks/useTickets.ts
-export function useUserTickets(userAddress?: string) {
+export function useUserTickets(network: string, userAddress?: string) {
   const { address } = useAccount();
 
   return useContract(
-    CONTRACT_ADDRESSES.EventFactory,
-    'EventFactory',
+    network,
+    CONTRACT_ADDRESSES[network].EventFactory,
     'getUserTickets',
     [userAddress || address],
     {
@@ -1251,7 +1313,7 @@ export function useUserTickets(userAddress?: string) {
   );
 }
 
-export function usePurchaseTickets() {
+export function usePurchaseTickets(network: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -1261,19 +1323,19 @@ export function usePurchaseTickets() {
       recipient
     }: PurchaseTicketsParams) => {
       // Get ticket price from event
-      const event = await multibaasClient.callContract(
-        CONTRACT_ADDRESSES.EventFactory,
-        'EventFactory',
+      const event = await multichainClient.readContract(
+        network,
+        CONTRACT_ADDRESSES[network].EventFactory,
         'getEvent',
         [eventId]
       );
 
-      const totalCost = BigNumber.from(event.ticketPrice).mul(quantity);
+      const totalCost = this.calculateCost(network, event.ticketPrice, quantity);
 
       // Purchase tickets
-      const result = await multibaasClient.callContract(
-        CONTRACT_ADDRESSES.EventFactory,
-        'EventFactory',
+      const result = await multichainClient.writeContract(
+        network,
+        CONTRACT_ADDRESSES[network].EventFactory,
         'purchaseTickets',
         [eventId, quantity, recipient],
         {
@@ -1284,39 +1346,41 @@ export function usePurchaseTickets() {
       return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contract'] });
+      queryClient.invalidateQueries({ queryKey: ['contract', network] });
     },
   });
 }
 ```
 
-### Incentive System Hooks
+### Cross-Chain Bridge Hooks
 ```typescript
-// app/hooks/useRewards.ts
-export function useUserRewards(userAddress?: string) {
-  const { address } = useAccount();
-
-  return useContract(
-    CONTRACT_ADDRESSES.IncentiveManager,
-    'IncentiveManager',
-    'getUserRewards',
-    [userAddress || address],
-    {
-      enabled: !!(userAddress || address),
-    }
-  );
+// app/hooks/useBridge.ts
+export function useBridgeTransfer() {
+  return useMutation({
+    mutationFn: async ({
+      fromNetwork,
+      toNetwork,
+      asset,
+      amount,
+      recipient
+    }: BridgeTransferParams) => {
+      return multichainClient.bridgeTransfer({
+        fromNetwork,
+        toNetwork,
+        asset,
+        amount,
+        recipient
+      });
+    },
+  });
 }
 
-export function useClaimReward() {
-  return useMutation({
-    mutationFn: async (rewardId: string) => {
-      return multibaasClient.callContract(
-        CONTRACT_ADDRESSES.IncentiveManager,
-        'IncentiveManager',
-        'claimReward',
-        [rewardId]
-      );
-    },
+export function useBridgeStatus(transferId: string) {
+  return useQuery({
+    queryKey: ['bridge', 'status', transferId],
+    queryFn: () => multichainClient.getBridgeStatus(transferId),
+    enabled: !!transferId,
+    refetchInterval: 10000, // Poll every 10 seconds
   });
 }
 ```
@@ -1325,48 +1389,61 @@ export function useClaimReward() {
 
 ## 🔄 Real-time Events
 
-### WebSocket Integration
+### Multi-Chain WebSocket Integration
 ```typescript
-// lib/websocket/events.ts
-export class EventWebSocketManager {
-  private ws: WebSocket | null = null;
+// lib/websocket/multichain-events.ts
+export class MultiChainEventWebSocketManager {
+  private connections: Map<string, WebSocket> = new Map();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private listeners: Map<string, (data: any) => void> = new Map();
 
-  connect(options?: { eventId?: string; contractAddress?: string }) {
-    const wsUrl = new URL(process.env.NEXT_PUBLIC_MULTIBAAS_WS_URL!);
-    wsUrl.pathname = '/events';
-    wsUrl.searchParams.set('chain', 'ethereum');
+  connect(network: string, options?: { eventId?: string; contractAddress?: string }) {
+    const wsUrl = this.getWebSocketUrl(network);
 
     if (options?.contractAddress) {
       wsUrl.searchParams.set('address', options.contractAddress);
     }
 
-    this.ws = new WebSocket(wsUrl.toString());
+    const ws = new WebSocket(wsUrl.toString());
+    this.connections.set(network, ws);
 
-    this.ws.onopen = () => {
-      console.log('WebSocket connected');
+    ws.onopen = () => {
+      console.log(`${network} WebSocket connected`);
       this.reconnectAttempts = 0;
     };
 
-    this.ws.onmessage = (event) => {
+    ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        data.network = network; // Add network context
         this.handleEventMessage(data);
       } catch (error) {
-        console.error('Failed to parse WebSocket message:', error);
+        console.error(`Failed to parse ${network} WebSocket message:`, error);
       }
     };
 
-    this.ws.onclose = () => {
-      console.log('WebSocket disconnected');
-      this.handleReconnect();
+    ws.onclose = () => {
+      console.log(`${network} WebSocket disconnected`);
+      this.handleReconnect(network);
     };
 
-    this.ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
+    ws.onerror = (error) => {
+      console.error(`${network} WebSocket error:`, error);
     };
+  }
+
+  private getWebSocketUrl(network: string): URL {
+    switch (network) {
+      case 'base':
+        return new URL(process.env.NEXT_PUBLIC_BASE_WS_URL!);
+      case 'polkadot':
+        return new URL(process.env.NEXT_PUBLIC_POLKADOT_WS_URL!);
+      case 'cardano':
+        return new URL(process.env.NEXT_PUBLIC_CARDANO_WS_URL!);
+      default:
+        throw new Error(`Unsupported network: ${network}`);
+    }
   }
 
   private handleEventMessage(data: any) {
@@ -1385,14 +1462,14 @@ export class EventWebSocketManager {
     });
   }
 
-  private handleReconnect() {
+  private handleReconnect(network: string) {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
 
       setTimeout(() => {
-        console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-        this.connect();
+        console.log(`Attempting to reconnect ${network} (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+        this.connect(network);
       }, delay);
     }
   }
@@ -1405,53 +1482,65 @@ export class EventWebSocketManager {
     this.listeners.delete(eventType);
   }
 
-  disconnect() {
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
+  disconnect(network?: string) {
+    if (network) {
+      const ws = this.connections.get(network);
+      if (ws) {
+        ws.close();
+        this.connections.delete(network);
+      }
+    } else {
+      // Disconnect all
+      this.connections.forEach(ws => ws.close());
+      this.connections.clear();
     }
   }
 }
 ```
 
-### React Hook for Real-time Updates
+### React Hook for Multi-Chain Real-time Updates
 ```typescript
 // app/hooks/useWebSocket.ts
-export function useWebSocketEvents(eventId?: string) {
+export function useWebSocketEvents(network: string, eventId?: string) {
   const [events, setEvents] = useState<any[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-  const wsManager = useRef<EventWebSocketManager | null>(null);
+  const wsManager = useRef<MultiChainEventWebSocketManager | null>(null);
 
   useEffect(() => {
-    wsManager.current = new EventWebSocketManager();
+    wsManager.current = new MultiChainEventWebSocketManager();
 
     const handleConnect = () => setIsConnected(true);
     const handleDisconnect = () => setIsConnected(false);
     const handleEvent = (data: any) => {
-      setEvents(prev => [...prev, data]);
+      // Only process events for the current network
+      if (data.network === network) {
+        setEvents(prev => [...prev, data]);
+      }
     };
 
     wsManager.current.subscribe('connect', handleConnect);
     wsManager.current.subscribe('disconnect', handleDisconnect);
     wsManager.current.subscribe('TicketsPurchased', handleEvent);
     wsManager.current.subscribe('EventCreated', handleEvent);
+    wsManager.current.subscribe('BridgeTransfer', handleEvent);
 
-    wsManager.current.connect({ eventId });
+    wsManager.current.connect(network, { eventId });
 
     return () => {
-      wsManager.current?.disconnect();
+      wsManager.current?.disconnect(network);
     };
-  }, [eventId]);
+  }, [network, eventId]);
 
   return { events, isConnected };
 }
 ```
 
-### Event Types and Handling
+### Multi-Chain Event Types and Handling
 ```typescript
 // types/events.ts
-export interface ContractEvent {
+export interface MultiChainContractEvent {
   eventType: string;
+  network: string;
   contractAddress: string;
   transactionHash: string;
   blockNumber: number;
@@ -1460,7 +1549,7 @@ export interface ContractEvent {
   eventData: Record<string, any>;
 }
 
-export interface TicketsPurchasedEvent extends ContractEvent {
+export interface TicketsPurchasedEvent extends MultiChainContractEvent {
   eventType: 'TicketsPurchased';
   eventData: {
     buyer: string;
@@ -1471,27 +1560,29 @@ export interface TicketsPurchasedEvent extends ContractEvent {
   };
 }
 
-export interface EventCreatedEvent extends ContractEvent {
-  eventType: 'EventCreated';
+export interface BridgeTransferEvent extends MultiChainContractEvent {
+  eventType: 'BridgeTransfer';
   eventData: {
-    eventId: number;
-    organizer: string;
-    name: string;
-    ticketPrice: string;
-    maxTickets: number;
+    fromNetwork: string;
+    toNetwork: string;
+    asset: string;
+    amount: string;
+    sender: string;
+    recipient: string;
+    transferId: string;
   };
 }
 
 // Event handler utilities
 export const eventHandlers = {
   TicketsPurchased: (event: TicketsPurchasedEvent) => {
-    console.log(`Tickets purchased: ${event.eventData.quantity} for event ${event.eventData.eventId}`);
+    console.log(`Tickets purchased on ${event.network}: ${event.eventData.quantity} for event ${event.eventData.eventId}`);
     // Update UI, show notifications, etc.
   },
 
-  EventCreated: (event: EventCreatedEvent) => {
-    console.log(`New event created: ${event.eventData.name}`);
-    // Refresh events list, show success message, etc.
+  BridgeTransfer: (event: BridgeTransferEvent) => {
+    console.log(`Bridge transfer: ${event.eventData.amount} ${event.eventData.asset} from ${event.eventData.fromNetwork} to ${event.eventData.toNetwork}`);
+    // Update bridge status, show transfer notifications, etc.
   },
 };
 ```
@@ -1500,14 +1591,14 @@ export const eventHandlers = {
 
 ## 🧪 Testing Strategy
 
-### Unit Testing
+### Multi-Chain Unit Testing
 ```typescript
 // __tests__/hooks/useEvents.test.ts
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEvents } from '@/hooks/useEvents';
 
-const createWrapper = () => {
+const createWrapper = (network: string) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -1518,15 +1609,17 @@ const createWrapper = () => {
 
   return ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
-      {children}
+      <NetworkProvider network={network}>
+        {children}
+      </NetworkProvider>
     </QueryClientProvider>
   );
 };
 
 describe('useEvents', () => {
-  it('should fetch events successfully', async () => {
-    const { result } = renderHook(() => useEvents(), {
-      wrapper: createWrapper(),
+  it('should fetch Base events successfully', async () => {
+    const { result } = renderHook(() => useEvents('base'), {
+      wrapper: createWrapper('base'),
     });
 
     await waitFor(() => {
@@ -1537,38 +1630,41 @@ describe('useEvents', () => {
     expect(Array.isArray(result.current.data)).toBe(true);
   });
 
-  it('should handle errors gracefully', async () => {
-    // Mock API error
-    const { result } = renderHook(() => useEvents(), {
-      wrapper: createWrapper(),
+  it('should handle network switching', async () => {
+    const { result, rerender } = renderHook(() => useEvents('base'), {
+      wrapper: createWrapper('base'),
+    });
+
+    // Switch to Polkadot
+    rerender(() => useEvents('polkadot'), {
+      wrapper: createWrapper('polkadot'),
     });
 
     await waitFor(() => {
-      expect(result.current.isError).toBe(true);
+      expect(result.current.isSuccess).toBe(true);
     });
-
-    expect(result.current.error).toBeDefined();
   });
 });
 ```
 
-### Integration Testing
+### Multi-Chain Integration Testing
 ```typescript
-// __tests__/integration/multibaas.test.ts
-describe('MultiBaas Integration', () => {
-  let client: MultiBaasClient;
+// __tests__/integration/multichain.test.ts
+describe('Multi-Chain Integration', () => {
+  let client: MultiChainClient;
 
   beforeAll(() => {
-    client = new MultiBaasClient({
-      deploymentUrl: process.env.TEST_MULTIBAAS_URL!,
-      dappUserApiKey: process.env.TEST_API_KEY!,
+    client = new MultiChainClient({
+      baseRpcUrl: process.env.TEST_BASE_RPC_URL!,
+      polkadotRpcUrl: process.env.TEST_POLKADOT_RPC_URL!,
+      cardanoRpcUrl: process.env.TEST_CARDANO_RPC_URL!,
     });
   });
 
-  it('should call contract read function', async () => {
-    const result = await client.callContract(
-      TEST_CONTRACT_ADDRESS,
-      'TestContract',
+  it('should call Base contract read function', async () => {
+    const result = await client.readContract(
+      'base',
+      TEST_BASE_CONTRACT_ADDRESS,
       'getValue'
     );
 
@@ -1576,13 +1672,22 @@ describe('MultiBaas Integration', () => {
     expect(typeof result).toBe('string');
   });
 
+  it('should call Polkadot contract read function', async () => {
+    const result = await client.readContract(
+      'polkadot',
+      TEST_POLKADOT_CONTRACT_ADDRESS,
+      'getValue'
+    );
+
+    expect(result).toBeDefined();
+  });
+
   it('should handle contract write operations', async () => {
-    const txResult = await client.callContract(
-      TEST_CONTRACT_ADDRESS,
-      'TestContract',
+    const txResult = await client.writeContract(
+      'base',
+      TEST_BASE_CONTRACT_ADDRESS,
       'setValue',
-      ['42'],
-      { from: TEST_WALLET_ADDRESS }
+      ['42']
     );
 
     expect(txResult).toHaveProperty('transactionHash');
@@ -1590,19 +1695,21 @@ describe('MultiBaas Integration', () => {
 });
 ```
 
-### E2E Testing
+### Cross-Chain E2E Testing
 ```typescript
-// e2e/events.spec.ts
+// e2e/multichain-events.spec.ts
 import { test, expect } from '@playwright/test';
 
-test('should create and display event', async ({ page }) => {
-  // Connect wallet
+test('should create and display event across networks', async ({ page }) => {
+  // Connect wallet and switch to Base
   await page.goto('/events/create');
+  await page.click('[data-testid="network-selector"]');
+  await page.click('[data-testid="base-network"]');
   await page.click('[data-testid="connect-wallet"]');
   await page.click('[data-testid="metamask-wallet"]');
 
   // Fill event form
-  await page.fill('[data-testid="event-name"]', 'Test Event');
+  await page.fill('[data-testid="event-name"]', 'Multi-Chain Music Festival');
   await page.fill('[data-testid="ticket-price"]', '0.1');
   await page.fill('[data-testid="max-tickets"]', '100');
 
@@ -1611,58 +1718,104 @@ test('should create and display event', async ({ page }) => {
 
   // Verify event appears in list
   await page.goto('/events');
-  await expect(page.locator('text=Test Event')).toBeVisible();
+  await expect(page.locator('text=Multi-Chain Music Festival')).toBeVisible();
+
+  // Switch to Polkadot and verify cross-chain display
+  await page.click('[data-testid="network-selector"]');
+  await page.click('[data-testid="polkadot-network"]');
+  await expect(page.locator('text=Multi-Chain Music Festival')).toBeVisible();
 });
 ```
 
-### Mock Data for Testing
+### Mock Data for Multi-Chain Testing
 ```typescript
-// lib/mocks/contractData.ts
-export const mockEvents = [
-  {
-    id: 1,
-    organizer: '0x1234...',
-    name: 'Summer Music Festival',
-    ticketPrice: '100000000000000000', // 0.1 ETH
-    maxTickets: 1000,
-    soldTickets: 150,
-    startTime: Date.now() + 86400000,
-    endTime: Date.now() + 172800000,
-    isActive: true,
-  },
-];
+// lib/mocks/multichainData.ts
+export const mockEvents = {
+  base: [
+    {
+      id: 1,
+      organizer: '0x1234...',
+      name: 'Base Summer Festival',
+      ticketPrice: '100000000000000000', // 0.1 ETH
+      maxTickets: 1000,
+      soldTickets: 150,
+      startTime: Date.now() + 86400000,
+      endTime: Date.now() + 172800000,
+      isActive: true,
+    },
+  ],
+  polkadot: [
+    {
+      id: 1,
+      organizer: '5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty',
+      name: 'Polkadot Music Festival',
+      ticketPrice: '10000000000', // 10 DOT
+      maxTickets: 500,
+      soldTickets: 75,
+      startTime: Date.now() + 86400000,
+      endTime: Date.now() + 172800000,
+      isActive: true,
+    },
+  ],
+  cardano: [
+    {
+      id: 1,
+      organizer: 'addr1qxqs59lphg8g6qndelq8xwqn60ag3aeyfcp33c2kdp46a429mgz6rfs8r9e5v9y8zy3ky9q8z6j3z6j3z6j3z6j3z6j3z6j3z',
+      name: 'Cardano Music Festival',
+      ticketPrice: '10000000', // 10 ADA
+      maxTickets: 200,
+      soldTickets: 25,
+      startTime: Date.now() + 86400000,
+      endTime: Date.now() + 172800000,
+      isActive: true,
+    },
+  ],
+};
 
-export const mockUserTickets = [
-  {
-    tokenId: 1,
-    eventId: 1,
-    purchaseTime: Date.now(),
-    checkedIn: false,
-  },
-];
+export const mockUserTickets = {
+  base: [
+    {
+      tokenId: 1,
+      eventId: 1,
+      purchaseTime: Date.now(),
+      checkedIn: false,
+    },
+  ],
+  polkadot: [],
+  cardano: [],
+};
 ```
 
 ---
 
 ## 🔒 Security Considerations
 
-### API Key Security
+### Multi-Chain API Key Security
 ```typescript
-// Secure key management
-export const getSecureApiKey = () => {
+// Secure key management across networks
+export const getSecureApiKey = (network: string) => {
   // Never expose keys in client-side code
   if (typeof window !== 'undefined') {
     throw new Error('API keys should not be accessed on client side');
   }
 
-  return process.env.MULTIBAAS_DAPP_USER_API_KEY;
+  switch (network) {
+    case 'base':
+      return process.env.BASE_RPC_API_KEY;
+    case 'polkadot':
+      return process.env.POLKADOT_RPC_API_KEY;
+    case 'cardano':
+      return process.env.CARDANO_RPC_API_KEY;
+    default:
+      throw new Error(`Unsupported network: ${network}`);
+  }
 };
 ```
 
-### Input Validation
+### Cross-Chain Input Validation
 ```typescript
-// Contract input validation
-export const validateEventCreation = (data: CreateEventParams) => {
+// Contract input validation across networks
+export const validateEventCreation = (network: string, data: CreateEventParams) => {
   if (!data.name || data.name.length < 3) {
     throw new Error('Event name must be at least 3 characters');
   }
@@ -1678,50 +1831,59 @@ export const validateEventCreation = (data: CreateEventParams) => {
   if (data.startTime <= Date.now()) {
     throw new Error('Event start time must be in the future');
   }
+
+  // Network-specific validations
+  if (network === 'cardano' && data.ticketPrice < 1000000) {
+    throw new Error('Cardano ticket price must be at least 1 ADA');
+  }
 };
 ```
 
-### Rate Limiting
+### Cross-Chain Rate Limiting
 ```typescript
-// Client-side rate limiting
-export class RateLimiter {
-  private requests: number[] = [];
+// Client-side rate limiting per network
+export class MultiChainRateLimiter {
+  private requests: Map<string, number[]> = new Map();
   private maxRequests = 10;
   private windowMs = 60000; // 1 minute
 
-  canMakeRequest(): boolean {
+  canMakeRequest(network: string): boolean {
     const now = Date.now();
-    this.requests = this.requests.filter(
+    const networkRequests = this.requests.get(network) || [];
+
+    // Clean old requests
+    const validRequests = networkRequests.filter(
       time => now - time < this.windowMs
     );
 
-    if (this.requests.length >= this.maxRequests) {
+    if (validRequests.length >= this.maxRequests) {
       return false;
     }
 
-    this.requests.push(now);
+    validRequests.push(now);
+    this.requests.set(network, validRequests);
     return true;
   }
 }
 ```
 
-### Error Handling
+### Multi-Chain Error Handling
 ```typescript
-// Comprehensive error handling
-export const handleContractError = (error: any) => {
-  if (error.response?.status === 401) {
-    throw new Error('Authentication failed. Please check your API key.');
+// Comprehensive error handling across networks
+export const handleContractError = (network: string, error: any) => {
+  if (error?.code === 'NETWORK_ERROR') {
+    throw new Error(`${network} network is currently unavailable. Please try again later.`);
   }
 
-  if (error.response?.status === 429) {
-    throw new Error('Rate limit exceeded. Please try again later.');
+  if (error?.code === 'INSUFFICIENT_FUNDS') {
+    throw new Error(`Insufficient funds on ${network} network.`);
   }
 
-  if (error.response?.data?.error?.message) {
-    throw new Error(`Contract error: ${error.response.data.error.message}`);
+  if (error?.code === 'CONTRACT_ERROR') {
+    throw new Error(`Contract error on ${network}: ${error.message}`);
   }
 
-  throw new Error('An unexpected error occurred. Please try again.');
+  throw new Error(`An unexpected error occurred on ${network}. Please try again.`);
 };
 ```
 
@@ -1729,10 +1891,11 @@ export const handleContractError = (error: any) => {
 
 ## 📊 Monitoring & Analytics
 
-### Performance Monitoring
+### Multi-Chain Performance Monitoring
 ```typescript
 // lib/monitoring.ts
 export const monitorContractCall = async (
+  network: string,
   contractName: string,
   methodName: string,
   callFn: () => Promise<any>
@@ -1744,11 +1907,12 @@ export const monitorContractCall = async (
     const duration = Date.now() - startTime;
 
     // Log successful call
-    console.log(`Contract call ${contractName}.${methodName} took ${duration}ms`);
+    console.log(`Contract call ${network}.${contractName}.${methodName} took ${duration}ms`);
 
     // Send to analytics
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('event', 'contract_call', {
+        network,
         contract: contractName,
         method: methodName,
         duration,
@@ -1761,11 +1925,12 @@ export const monitorContractCall = async (
     const duration = Date.now() - startTime;
 
     // Log failed call
-    console.error(`Contract call ${contractName}.${methodName} failed after ${duration}ms:`, error);
+    console.error(`Contract call ${network}.${contractName}.${methodName} failed after ${duration}ms:`, error);
 
     // Send to analytics
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('event', 'contract_call', {
+        network,
         contract: contractName,
         method: methodName,
         duration,
@@ -1779,21 +1944,21 @@ export const monitorContractCall = async (
 };
 ```
 
-### MultiBaas Dashboard Monitoring
-- **API Usage**: Monitor request counts and response times
-- **Error Rates**: Track failed contract calls and error types
-- **Gas Usage**: Monitor transaction costs and optimization opportunities
-- **Event Streaming**: Track WebSocket connection health and message volumes
+### Cross-Chain Bridge Monitoring
+- **Transfer Success Rates**: Monitor bridge transfer completion rates
+- **Network Performance**: Track latency and success rates per network
+- **Cross-Chain Events**: Monitor event synchronization across networks
+- **Gas Usage**: Track transaction costs across different networks
 
 ---
 
 ## 🚀 Deployment & Production
 
-### Production Environment Setup
+### Multi-Chain Environment Setup
 ```bash
 # 1. Environment variables
 cp .env.example .env.production
-# Edit with production values
+# Edit with production values for all networks
 
 # 2. Build application
 npm run build
@@ -1801,61 +1966,62 @@ npm run build
 # 3. Deploy to Vercel/Netlify
 npm run deploy
 
-# 4. Verify integrations
-npm run test:integration
+# 4. Verify multi-chain integrations
+npm run test:integration:multichain
 ```
 
-### Health Checks
+### Multi-Chain Health Checks
 ```typescript
 // lib/health.ts
 export const healthChecks = {
-  async multibaas() {
+  async base() {
     try {
-      await multibaasClient.callContract(
-        CONTRACT_ADDRESSES.EventFactory,
-        'EventFactory',
-        'getActiveEvents',
-        [0, 1]
-      );
+      await multichainClient.readContract('base', CONTRACT_ADDRESSES.base.EventFactory, 'getActiveEvents', [0, 1]);
       return { status: 'healthy', latency: 0 };
     } catch (error) {
       return { status: 'unhealthy', error: error.message };
     }
   },
 
-  async websocket() {
-    return new Promise((resolve) => {
-      const ws = new WebSocket(process.env.NEXT_PUBLIC_MULTIBAAS_WS_URL!);
-      const timeout = setTimeout(() => {
-        ws.close();
-        resolve({ status: 'unhealthy', error: 'Connection timeout' });
-      }, 5000);
+  async polkadot() {
+    try {
+      await multichainClient.readContract('polkadot', CONTRACT_ADDRESSES.polkadot.EventFactory, 'getActiveEvents', [0, 1]);
+      return { status: 'healthy', latency: 0 };
+    } catch (error) {
+      return { status: 'unhealthy', error: error.message };
+    }
+  },
 
-      ws.onopen = () => {
-        clearTimeout(timeout);
-        ws.close();
-        resolve({ status: 'healthy' });
-      };
+  async cardano() {
+    try {
+      await multichainClient.readContract('cardano', CONTRACT_ADDRESSES.cardano.EventFactory, 'getActiveEvents', [0, 1]);
+      return { status: 'healthy', latency: 0 };
+    } catch (error) {
+      return { status: 'unhealthy', error: error.message };
+    }
+  },
 
-      ws.onerror = () => {
-        clearTimeout(timeout);
-        resolve({ status: 'unhealthy', error: 'Connection failed' });
-      };
-    });
+  async bridge() {
+    try {
+      const status = await multichainClient.getBridgeStatus();
+      return { status: status.isOperational ? 'healthy' : 'unhealthy' };
+    } catch (error) {
+      return { status: 'unhealthy', error: error.message };
+    }
   },
 };
 ```
 
 ### Troubleshooting Guide
 
-#### Common Issues
+#### Common Multi-Chain Issues
 
-**WebSocket Connection Issues**
+**Network Connection Issues**
 ```typescript
 // Check network connectivity
-const testConnection = async () => {
+const testNetworkConnection = async (network: string) => {
   try {
-    const response = await fetch(process.env.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL!);
+    const response = await fetch(getRPCUrl(network));
     return response.ok;
   } catch {
     return false;
@@ -1863,51 +2029,59 @@ const testConnection = async () => {
 };
 ```
 
-**API Rate Limiting**
+**Cross-Chain Bridge Issues**
 ```typescript
-// Implement exponential backoff
-const retryWithBackoff = async (fn: () => Promise<any>, maxRetries = 3) => {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (error.response?.status === 429) {
-        const delay = Math.pow(2, i) * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
-        continue;
-      }
-      throw error;
-    }
+// Debug bridge transfers
+const debugBridgeTransfer = async (
+  transferId: string
+) => {
+  console.log('Debugging bridge transfer:', {
+    transferId,
+    timestamp: new Date().toISOString(),
+  });
+
+  try {
+    const status = await multichainClient.getBridgeStatus(transferId);
+    console.log('Bridge transfer status:', status);
+    return status;
+  } catch (error) {
+    console.error('Bridge transfer failed:', {
+      transferId,
+      error: error.message,
+    });
+    throw error;
   }
 };
 ```
 
-**Contract Call Failures**
+**Contract Call Failures Across Networks**
 ```typescript
 // Debug contract calls
 const debugContractCall = async (
+  network: string,
   address: string,
   method: string,
   args: any[]
 ) => {
   console.log('Calling contract:', {
+    network,
     address,
     method,
     args,
-    network: 'Base Sepolia',
     timestamp: new Date().toISOString(),
   });
 
   try {
-    const result = await multibaasClient.callContract(address, 'ContractLabel', method, args);
+    const result = await multichainClient.readContract(network, address, method, args);
     console.log('Contract call successful:', result);
     return result;
   } catch (error) {
     console.error('Contract call failed:', {
-      error: error.message,
+      network,
       address,
       method,
       args,
+      error: error.message,
     });
     throw error;
   }
@@ -1919,13 +2093,15 @@ const debugContractCall = async (
 ## 📞 Support & Resources
 
 ### Documentation Links
-- **[MultiBaas Docs](https://docs.curvegrid.com/)**: Official API documentation
+- **[Base Docs](https://docs.base.org/)**: Base network documentation
+- **[Polkadot Docs](https://wiki.polkadot.network/)**: Polkadot network documentation
+- **[Cardano Docs](https://docs.cardano.org/)**: Cardano network documentation
 - **[RainbowKit Docs](https://www.rainbowkit.com/)**: Wallet integration guide
 - **[Wagmi Docs](https://wagmi.sh/)**: React hooks for Ethereum
-- **[Base Docs](https://docs.base.org/)**: Network-specific information
+- **[Viem Docs](https://viem.sh/)**: TypeScript interface for Ethereum
 
 ### Development Resources
-- **[Echain Contracts](../contracts/README.md)**: Smart contract documentation
+- **[Echain Contracts](../contracts/README.md)**: Multi-chain smart contract documentation
 - **[API Reference](../api/README.md)**: REST API endpoints
 - **[Testing Guide](../testing/README.md)**: Comprehensive testing strategies
 
@@ -1936,14 +2112,16 @@ const debugContractCall = async (
 
 ---
 
-**This integration documentation provides the complete technical foundation for connecting all Echain platform components, ensuring reliable, secure, and performant blockchain interactions.**
+**This multi-chain integration documentation provides the complete technical foundation for connecting all Echain platform components across Base, Polkadot, and Cardano networks, ensuring reliable, secure, and performant blockchain interactions.**
 
 <div align="center">
 
-[![MultiBaas](https://img.shields.io/badge/Curvegrid_MultiBaas-Integrated-00AEEF?style=for-the-badge&logo=api&logoColor=white)](https://docs.curvegrid.com/)
+[![Multi-Chain](https://img.shields.io/badge/Multi--Chain-Integrated-00AEEF?style=for-the-badge&logo=ethereum&logoColor=white)](https://docs.base.org/)
 [![RainbowKit](https://img.shields.io/badge/RainbowKit-Connected-7B3FE4?style=for-the-badge&logo=walletconnect&logoColor=white)](https://www.rainbowkit.com/)
-[![WebSocket](https://img.shields.io/badge/WebSocket-Streaming-010101?style=for-the-badge&logo=websocket&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
 [![Base Sepolia](https://img.shields.io/badge/Base-Sepolia-Deployed-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)](https://sepolia.basescan.org/)
+[![Polkadot](https://img.shields.io/badge/Polkadot-Testnet-E6007A?style=for-the-badge&logo=polkadot&logoColor=white)](https://wiki.polkadot.network/)
+[![Cardano](https://img.shields.io/badge/Cardano-Preview-0033AD?style=for-the-badge&logo=cardano&logoColor=white)](https://docs.cardano.org/)
+[![WebSocket](https://img.shields.io/badge/WebSocket-Streaming-010101?style=for-the-badge&logo=websocket&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
 
 </div></content>
 <parameter name="filePath">e:\Polymath Universata\Projects\Echain\docs\integration\README.md

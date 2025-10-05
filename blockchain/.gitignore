@@ -3,11 +3,11 @@ node_modules
 .env.local
 .env.*.local
 
-# Hardhat files
+# Foundry files
+/out
 /cache
-/artifacts
 
-# TypeChain files
+# TypeChain files (if still used)
 /typechain
 /typechain-types
 

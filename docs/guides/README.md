@@ -27,9 +27,9 @@
 - **My Tickets**: View your NFT collection with real data
 
 ### 🔧 **Technical Foundation**
-- **Network**: Base Sepolia testnet (ready for mainnet)
-- **Integration**: Curvegrid MultiBaas for seamless blockchain access
-- **Wallets**: RainbowKit with Reown (WalletConnect) v2
+- **Networks**: Base Sepolia, Polkadot Rococo, Cardano Preview testnets
+- **Integration**: Direct RPC connections across multiple blockchains
+- **Wallets**: RainbowKit with Reown (WalletConnect) v2 supporting multi-chain
 - **Security**: OpenZeppelin contracts with comprehensive audits
 
 ---
@@ -234,9 +234,10 @@ cd frontend
 cp .env.template .env.development
 
 # Edit .env.development
-NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=demo-project-id-for-development
-NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL=https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com
-NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY=your_api_key_here
+NEXT_PUBLIC_REOWN_PROJECT_ID=demo-project-id-for-development
+NEXT_PUBLIC_BASE_RPC_URL=https://sepolia.base.org
+NEXT_PUBLIC_POLKADOT_RPC_URL=wss://rococo-rpc.polkadot.io
+NEXT_PUBLIC_CARDANO_RPC_URL=https://preview-api.cardano.org
 ```
 
 #### Start Development
@@ -245,20 +246,37 @@ npm run dev
 # Visit http://localhost:3000
 ```
 
-### 🔗 Blockchain Integration
+### 🔗 Multi-Chain Integration
 
-#### MultiBaas API Usage
+#### Direct RPC Usage
 ```typescript
-// Connect to MultiBaas
-import { MultiBaas } from '@curvegrid/multibaas-sdk';
+// Connect to multiple networks
+import { createPublicClient, http } from 'viem';
+import { baseSepolia } from 'viem/chains';
+import { ApiPromise, WsProvider } from '@polkadot/api';
 
-const client = new MultiBaas({
-  baseURL: process.env.NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL,
-  apiKey: process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY
+// Base network client
+const baseClient = createPublicClient({
+  chain: baseSepolia,
+  transport: http(process.env.NEXT_PUBLIC_BASE_RPC_URL)
 });
 
-// Query contract state
-const events = await client.contracts.eventFactory.query('getEvents');
+// Polkadot network client
+const polkadotClient = new ApiPromise({
+  provider: new WsProvider(process.env.NEXT_PUBLIC_POLKADOT_RPC_URL)
+});
+
+// Query contract state across networks
+const baseEvents = await baseClient.readContract({
+  address: CONTRACT_ADDRESSES.base.EventFactory,
+  abi: EventFactoryABI,
+  functionName: 'getActiveEvents',
+  args: [0, 20]
+});
+
+const polkadotEvents = await polkadotClient.query.contracts.getActiveEvents(
+  CONTRACT_ADDRESSES.polkadot.EventFactory
+);
 ```
 
 #### React Hooks for Blockchain Data
@@ -286,13 +304,13 @@ function EventList() {
 cd blockchain
 
 # Compile contracts
-npx hardhat compile
+forge build
 
 # Run tests
-npx hardhat test
+forge test
 
 # Deploy to testnet
-npx hardhat run scripts/deploy.ts --network baseSepolia
+forge script scripts/DeployEventFactory.s.sol --rpc-url https://sepolia.base.org --broadcast --verify
 ```
 
 ### 🎨 Frontend Development
@@ -458,10 +476,11 @@ npm run test:e2e
 - **MetaMask**: Primary wallet for testing and development
 - **Base Sepolia Faucet**: Get free test ETH
 - **BaseScan**: Block explorer for transaction monitoring
-- **MultiBaas Console**: Contract management and API testing
+- **Polkadot.js**: Wallet and explorer for Polkadot testing
+- **Cardano Wallet**: Daedalus or Yoroi for Cardano testing
 
 ### Development Resources
-- **Hardhat**: Smart contract development framework
+- **Foundry**: Smart contract development toolkit (Forge, Cast, Anvil)
 - **OpenZeppelin**: Security-focused contract library
 - **The Graph**: Decentralized data indexing
 - **IPFS**: Decentralized file storage
@@ -573,7 +592,7 @@ npm run test:e2e
 3. Check "Status" and error messages
 
 # Verify contract state
-1. Use MultiBaas dashboard
+1. Use BaseScan explorer
 2. Check contract variables
 3. Verify event status and ticket availability
 ```
@@ -584,16 +603,17 @@ npm run test:e2e
 **Solutions**:
 ```bash
 # Check API status
-curl -H "Authorization: Bearer YOUR_API_KEY" \
-  https://your-deployment.multibaas.com/api/v0/status
+curl -X POST -H "Content-Type: application/json" \
+  --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+  https://sepolia.base.org
 
 # Verify API keys
-1. Check MultiBaas dashboard → API Keys
-2. Ensure correct permissions
-3. Verify CORS settings include your domain
+1. Check RPC endpoint URLs
+2. Ensure correct network configuration
+3. Verify wallet connection to correct network
 
 # Network connectivity
-1. Test basic connectivity: ping multibaas.com
+1. Test basic connectivity: ping base.org
 2. Check firewall settings
 3. Try different network connection
 ```
@@ -604,9 +624,9 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
 **Solutions**:
 ```bash
 # Verify contract deployment
-1. Check MultiBaas dashboard → Contracts
-2. Ensure contract is deployed and labeled
-3. Verify function signatures match
+1. Check BaseScan for contract addresses
+2. Ensure contracts are deployed and verified
+3. Verify function signatures match ABI
 
 # Update contract addresses
 1. Check latest deployment addresses
@@ -667,7 +687,7 @@ contract.on('TicketsPurchased', (buyer, eventId, quantity) => {
 });
 
 // Check event logs on BaseScan
-// Use MultiBaas event streaming
+// Use direct WebSocket connections
 // Monitor real-time updates
 ```
 

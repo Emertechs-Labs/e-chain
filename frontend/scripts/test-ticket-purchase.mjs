@@ -12,10 +12,7 @@ async function testTicketPurchaseFlow() {
   try {
     // Test 1: Check if we can read event details
     console.log('Test 1: Reading event details...');
-    const eventCount = await readContract('EventFactory', 'eventCount', [], {
-      useMultiBaas: false,
-      skipFallback: false
-    });
+    const eventCount = await readContract('EventFactory', 'eventCount', []);
     console.log(`✅ Event count: ${eventCount}`);
 
     if (Number(eventCount) === 0) {
@@ -24,10 +21,7 @@ async function testTicketPurchaseFlow() {
     }
 
     // Get first event details
-    const eventDetails = await readContract('EventFactory', 'events', [1n], {
-      useMultiBaas: false,
-      skipFallback: false
-    });
+    const eventDetails = await readContract('EventFactory', 'events', [1n]);
     console.log(`✅ Event details:`, {
       id: eventDetails.id,
       name: eventDetails.name,
@@ -37,10 +31,7 @@ async function testTicketPurchaseFlow() {
 
     // Test 2: Check ticket contract balance (should be 0 initially)
     console.log('Test 2: Checking ticket contract...');
-    const ticketBalance = await readContract('EventTicket', 'balanceOf', ['0x742d35Cc6634C0532925a3b844Bc454e4438f44e'], {
-      useMultiBaas: false,
-      skipFallback: false
-    });
+    const ticketBalance = await readContract('EventTicket', 'balanceOf', ['0x742d35Cc6634C0532925a3b844Bc454e4438f44e']);
     console.log(`✅ Ticket balance for test address: ${ticketBalance}`);
 
     console.log('🎉 Ticket purchase flow test completed successfully!');

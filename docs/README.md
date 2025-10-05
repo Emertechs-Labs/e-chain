@@ -4,11 +4,12 @@
 
 ![Echain Logo](https://img.shields.io/badge/Echain-Blockchain_Events_Platform-00D4FF?style=for-the-badge&logo=ethereum&logoColor=white)
 ![Base Network](https://img.shields.io/badge/Base-Ethereum_L2-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)
-![MultiBaas](https://img.shields.io/badge/Curvegrid_MultiBaas-API_Platform-00AEEF?style=for-the-badge&logo=api&logoColor=white)
+![Polkadot](https://img.shields.io/badge/Polkadot-Multi--Chain-FF4081?style=for-the-badge&logo=polkadot&logoColor=white)
+![Cardano](https://img.shields.io/badge/Cardano-Proof--of--Stake-0033AD?style=for-the-badge&logo=cardano&logoColor=white)
 
-**A Web3-native event management platform built on Base using Curvegrid MultiBaas**
+**A Multi-Chain Web3 Event Management Platform with Parallel Development on Base, Polkadot, and Cardano**
 
-*Transform traditional events into blockchain-powered experiences with NFT tickets, POAP certificates, and gamified participation.*
+*Transform traditional events into blockchain-powered experiences with NFT tickets, POAP certificates, and gamified participation across multiple blockchains.*
 
 [🚀 Quick Start](#-quick-start) • [📚 Documentation](#-documentation-structure) • [🔗 Live Demo](https://echain-eight.vercel.app)
 
@@ -18,18 +19,18 @@
 
 ## 🎯 Platform Overview
 
-Echain is a comprehensive blockchain-based event management platform featuring:
+Echain is a comprehensive multi-chain blockchain-based event management platform featuring:
 
 - **🎟️ NFT Ticketing**: Secure, verifiable, transferable event tickets with creator royalties
 - **🏆 POAP Certificates**: Soulbound attendance tokens for reputation building
 - **💰 Gamified Incentives**: Rewards and loyalty systems for engagement
-- **🔄 MultiBaas Integration**: Seamless blockchain API abstraction
+- **🔄 Multi-Chain Support**: Parallel development on Base, Polkadot, and Cardano networks
 - **⚡ Real-time Updates**: WebSocket streaming for live event data
 - **🛡️ Enterprise Security**: OpenZeppelin audited contracts with circuit breakers
 
-**Current Status**: ✅ Production-ready on Base Sepolia testnet
+**Current Status**: 🚧 Enhanced MVP in Development - Beta Testing on Testnet
 
-### 📋 Deployed Contract Addresses
+### 📋 Deployed Contract Addresses (Base Testnet)
 
 | Contract | Address | Purpose |
 | -------- | ------- | ------- |
@@ -39,7 +40,13 @@ Echain is a comprehensive blockchain-based event management platform featuring:
 | **IncentiveManager** | `0x1cfDae689817B954b72512bC82f23F35B997617D` | Gamified rewards and loyalty system |
 | **Marketplace** | `0xD061393A54784da5Fea48CC845163aBc2B11537A` | Secondary ticket trading platform |
 
----
+### 🔄 Multi-Chain Development Roadmap
+
+| Network | Status | Target Completion | Features |
+| ------- | ------ | ----------------- | -------- |
+| **Base** | ✅ MVP Core | Q4 2025 | Full feature set, production-ready |
+| **Polkadot** | 🚧 In Development | Q1 2026 | Substrate-based implementation |
+| **Cardano** | 🚧 In Development | Q1 2026 | Plutus smart contracts |
 
 ## 🚀 Quick Start
 
@@ -50,7 +57,7 @@ Echain is a comprehensive blockchain-based event management platform featuring:
 
 ### For Developers
 1. **[Smart Contracts](./contracts/README.md)**: Understand the blockchain architecture
-2. **[MultiBaas Integration](./integration/README.md)**: Connect to blockchain APIs
+2. **[Multi-Chain Integration](./integration/README.md)**: Connect to Base, Polkadot, and Cardano networks
 3. **[API Reference](./api/README.md)**: Build integrations and extensions
 
 ### For Attendees
@@ -72,17 +79,17 @@ Complete smart contract architecture and deployment guide for:
 - OpenZeppelin security patterns and upgradeability
 - Gas optimization and testing strategies
 
-### 🔗 [MultiBaas Integration](./integration/README.md)
-Comprehensive CurveGrid MultiBaas integration covering:
-- **API Setup**: Deployment configuration and API keys
-- **React Hooks**: Custom hooks for blockchain data fetching
-- **Real-time Streaming**: WebSocket implementation for live updates
-- **Error Handling**: Circuit breaker patterns and fallbacks
-- **Security Best Practices**: API key management and rate limiting
+### 🔗 [Multi-Chain Integration](./integration/README.md)
+Comprehensive multi-chain integration covering:
+- **Base Network**: Ethereum L2 deployment and OnchainKit integration
+- **Polkadot**: Substrate-based smart contracts and parachain deployment
+- **Cardano**: Plutus smart contracts and eUTXO model implementation
+- **Cross-Chain Communication**: Interoperability between networks
+- **Wallet Integration**: Multi-chain wallet support and abstraction
 
 ### 🚀 [Deployment](./deployment/README.md)
 Step-by-step deployment instructions for:
-- **Local Development**: Hardhat setup and contract testing
+- **Local Development**: Foundry setup and contract testing
 - **Base Sepolia Testnet**: Testnet deployment and verification
 - **Production Deployment**: Base mainnet deployment strategies
 - **Environment Configuration**: API keys and network settings
@@ -112,10 +119,10 @@ Security documentation including:
 
 ### 📡 [API Reference](./api/README.md)
 Complete API documentation:
-- **REST Endpoints**: MultiBaas API integration points
-- **WebSocket Events**: Real-time event streaming
-- **Contract ABIs**: Smart contract interfaces
-- **TypeScript Types**: Type definitions for integration
+- **Direct RPC Endpoints**: Multi-chain blockchain RPC integration
+- **WebSocket Events**: Real-time event streaming across networks
+- **Contract ABIs**: Smart contract interfaces for all chains
+- **TypeScript Types**: Type definitions for multi-chain integration
 
 ### 🏛️ [Architecture](./architecture/README.md)
 System architecture documentation:
@@ -129,9 +136,9 @@ System architecture documentation:
 ## 🛠️ Technology Stack
 
 ### **Blockchain Layer**
-- **Network**: Base Ethereum L2 (Low-cost, fast transactions)
-- **Smart Contracts**: Solidity ^0.8.19 with OpenZeppelin v5.0
-- **API Platform**: CurveGrid MultiBaas (REST + WebSocket)
+- **Networks**: Base (Ethereum L2), Polkadot (Substrate), Cardano (Plutus)
+- **Smart Contracts**: Solidity ^0.8.19, Ink! (Polkadot), Plutus (Cardano)
+- **API Platforms**: OnchainKit (Base), Polkadot.js, Cardano SDK
 - **Security**: Comprehensive audit reports and monitoring
 
 ### **Frontend Layer**
@@ -149,7 +156,7 @@ System architecture documentation:
 - **CDN**: Vercel Edge Network for global performance
 
 ### **Development Tools**
-- **Testing**: Jest, React Testing Library, Hardhat
+- **Testing**: Jest, React Testing Library, Foundry (Forge/Anvil)
 - **Code Quality**: ESLint, Prettier, TypeScript strict mode
 - **CI/CD**: GitHub Actions with automated testing
 - **Documentation**: Markdown with automated deployment
@@ -187,7 +194,7 @@ System architecture documentation:
 - **Access Control**: Role-based permissions and restrictions
 
 ### ⚡ **Real-Time Experience**
-- **WebSocket Streaming**: MultiBaas WebSocket API integration
+- **WebSocket Streaming**: Direct WebSocket connections to blockchain nodes
 - **Chain Watcher**: Automatic cache invalidation on new blocks
 - **Live Event Feed**: Real-time event creation and updates
 - **Push Notifications**: Browser notifications for important events
@@ -199,24 +206,23 @@ System architecture documentation:
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   MultiBaas     │    │   Smart         │
-│   (Next.js)     │◄──►│   API Gateway   │◄──►│   Contracts     │
-│                 │    │                 │    │   (Solidity)    │
+│   Frontend      │    │   Multi-Chain   │    │   Smart         │
+│   (Next.js)     │◄──►│   Abstraction   │◄──►│   Contracts     │
+│                 │    │   Layer         │    │   (Multi-VM)   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Wallet        │    │   WebSocket     │    │   Base          │
-│   Integration   │    │   Streaming     │    │   Network       │
-│   (RainbowKit)  │    │                 │    │                 │
+│   Base          │    │   Polkadot      │    │   Cardano       │
+│   (OnchainKit)  │    │   (Polkadot.js) │    │   (Cardano SDK) │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-### Data Flow
-1. **Event Creation**: Frontend → MultiBaas → EventFactory contract
-2. **Ticket Purchase**: Wallet → MultiBaas → EventTicket contract
-3. **Real-time Updates**: Contract events → MultiBaas → WebSocket → Frontend
-4. **POAP Minting**: Check-in verification → MultiBaas → POAP contract
+### Multi-Chain Data Flow
+1. **Event Creation**: Frontend → Chain Abstraction → Network-specific contracts
+2. **Ticket Purchase**: Wallet → Chain Abstraction → Network-specific minting
+3. **Cross-Chain Events**: Contract events → Abstraction layer → Unified frontend
+4. **POAP Minting**: Check-in verification → Network-specific soulbound tokens
 
 ---
 
@@ -224,7 +230,7 @@ System architecture documentation:
 
 - **Transaction Speed**: <3 seconds on Base L2
 - **Gas Efficiency**: Optimized contracts with <200k gas/ticket
-- **API Response**: <100ms average with MultiBaas caching
+- **API Response**: <100ms average with direct RPC optimization
 - **Real-time Latency**: <50ms WebSocket event delivery
 - **Uptime**: 99.9%+ with Vercel infrastructure
 
@@ -249,8 +255,9 @@ graph TD
 ### **Official Channels**
 - **[GitHub Repository](https://github.com/Talent-Index/Echain)**: Source code and issue tracking
 - **[Live Demo](https://echain-eight.vercel.app)**: Production application
-- **[MultiBaas Console](https://console.curvegrid.com/)**: Blockchain API management
 - **[Base Explorer](https://sepolia.basescan.org/)**: Contract verification and transactions
+- **[Polkadot Explorer](https://polkadot.js.org/apps/)**: Polkadot network interactions
+- **[Cardano Explorer](https://cardanoscan.io/)**: Cardano blockchain explorer
 
 ### **Community**
 - **[Discord Server](https://discord.gg/echain)**: Community support and discussions
@@ -295,8 +302,8 @@ npm run dev
 
 **Ready to revolutionize event management with blockchain?**
 
-[🏗️ Smart Contracts](./contracts/README.md) • [🔗 MultiBaas Integration](./integration/README.md) • [🚀 Deploy to Base](./deployment/README.md) • [📚 User Guides](./guides/README.md)
+[🏗️ Smart Contracts](./contracts/README.md) • [🔗 Multi-Chain Integration](./integration/README.md) • [🚀 Deploy to Networks](./deployment/README.md) • [📚 User Guides](./guides/README.md)
 
-*Built with ❤️ for the Web3 community*
+*Built with ❤️ for the Web3 community across multiple blockchains*
 
 </div>

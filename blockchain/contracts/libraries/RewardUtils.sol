@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.26;
 
 /**
  * @title RewardUtils
@@ -40,6 +40,11 @@ library RewardUtils {
         address user,
         uint256 nonce
     ) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(user, nonce));
+        assembly {
+            mstore(0x00, user)
+            mstore(0x20, nonce)
+            let hash := keccak256(0x00, 0x40)
+            return(0x00, 0x20)
+        }
     }
 }

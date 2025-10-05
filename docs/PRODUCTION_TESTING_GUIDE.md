@@ -1,35 +1,51 @@
-# Production Testing Guide for Echain DApp
+# Multi-Chain Production Testing Guide for Echain DApp
 
-This guide provides step-by-step instructions for testing your Echain DApp with the production MultiBaas URL to ensure everything is working correctly before final deployment.
+This guide provides step-by-step instructions for testing your Echain DApp across multiple blockchain networks (Base, Polkadot, Cardano) to ensure everything is working correctly before final deployment.
 
 ## Prerequisites
 
 - Node.js 18+ installed
-- Valid MultiBaas deployment and API keys
-- Contract addresses for your deployed smart contracts
-- MetaMask or compatible wallet with Base Sepolia testnet configured
+- Network-specific API keys and RPC endpoints configured
+- Contract addresses for deployed smart contracts on each network
+- Multi-chain wallet support (MetaMask, Polkadot extension, Cardano wallets)
+- Testnet tokens for each supported network
 
-## Step 1: Configure Environment Variables
+## Step 1: Configure Multi-Chain Environment Variables
 
-Create or update your `.env.local` file in the `frontend` directory with the production values:
+Create or update your `.env.local` file in the `frontend` directory with production values for all networks:
 
 ```bash
-# MultiBaas Configuration
-NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL=https://your-production-deployment.multibaas.com
-NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY=your_production_dapp_user_api_key
-NEXT_PUBLIC_MULTIBAAS_WEB3_API_KEY=your_production_web3_api_key
-NEXT_PUBLIC_MULTIBAAS_CHAIN_ID=84532
+# Base Network Configuration
+NEXT_PUBLIC_BASE_RPC_URL=https://mainnet.base.org
+NEXT_PUBLIC_ONCHAINKIT_API_KEY=your_base_api_key
+NEXT_PUBLIC_BASE_EVENT_FACTORY=0xYourBaseEventFactoryAddress
+NEXT_PUBLIC_BASE_EVENT_TICKET=0xYourBaseEventTicketAddress
+NEXT_PUBLIC_BASE_POAP=0xYourBasePoapAddress
+NEXT_PUBLIC_BASE_INCENTIVE=0xYourBaseIncentiveAddress
 
-# Contract Addresses (Base Sepolia production deployment)
-NEXT_PUBLIC_EVENT_FACTORY_ADDRESS=0xYourProductionEventFactoryAddress
-NEXT_PUBLIC_EVENT_TICKET_ADDRESS=0xYourProductionEventTicketAddress
-NEXT_PUBLIC_POAP_ADDRESS=0xYourProductionPoapAddress
-NEXT_PUBLIC_INCENTIVE_ADDRESS=0xYourProductionIncentiveAddress
+# Polkadot Network Configuration
+NEXT_PUBLIC_POLKADOT_RPC_URL=wss://rpc.polkadot.io
+NEXT_PUBLIC_POLKADOT_EVENT_FACTORY=YourPolkadotContractAddress
+NEXT_PUBLIC_POLKADOT_EVENT_TICKET=YourPolkadotTicketAddress
+NEXT_PUBLIC_POLKADOT_POAP=YourPolkadotPoapAddress
+NEXT_PUBLIC_POLKADOT_INCENTIVE=YourPolkadotIncentiveAddress
+
+# Cardano Network Configuration
+NEXT_PUBLIC_CARDANO_RPC_URL=https://cardano-mainnet.blockfrost.io/api/v0
+NEXT_PUBLIC_CARDANO_PROJECT_ID=your_blockfrost_project_id
+NEXT_PUBLIC_CARDANO_EVENT_FACTORY=YourCardanoScriptAddress
+NEXT_PUBLIC_CARDANO_EVENT_TICKET=YourCardanoTicketScript
+NEXT_PUBLIC_CARDANO_POAP=YourCardanoPoapScript
+NEXT_PUBLIC_CARDANO_INCENTIVE=YourCardanoIncentiveScript
+
+# Cross-Chain Configuration
+NEXT_PUBLIC_BRIDGE_API_KEY=your_bridge_api_key
+NEXT_PUBLIC_DEFAULT_NETWORK=base
 ```
 
-## Step 2: Run Automated Tests
+## Step 2: Run Multi-Chain Automated Tests
 
-We've provided a script to automatically test your MultiBaas production integration:
+We've provided comprehensive testing scripts for all supported networks:
 
 ```bash
 # Navigate to the frontend directory
@@ -38,116 +54,160 @@ cd frontend
 # Install dependencies if needed
 npm install
 
-# Run the production MultiBaas test
-node scripts/test-production-multibaas.js
+# Run multi-chain integration tests
+npm run test:multi-chain
+
+# Run network-specific tests
+npm run test:base        # Test Base network integration
+npm run test:polkadot    # Test Polkadot network integration
+npm run test:cardano     # Test Cardano network integration
 ```
 
-This script will:
-1. Test the direct connection to MultiBaas
-2. Read contract data from EventFactory
-3. Generate an unsigned transaction
-4. Test the local API proxy (requires running dev server)
+These scripts will:
+1. Test connections to all blockchain networks
+2. Validate contract deployments and interactions
+3. Test cross-chain bridge functionality
+4. Verify wallet integrations across networks
+5. Run comprehensive end-to-end test suites
 
-## Step 3: Test with Development Server
+## Step 3: Test with Multi-Chain Development Server
 
-Start your Next.js development server with the production MultiBaas URL:
+Start your Next.js development server with multi-chain support:
 
 ```bash
 # Start the development server
 npm run dev
 ```
 
-Once the server is running, visit http://localhost:3000 and test the following features:
+Once the server is running, visit http://localhost:3000 and test features across all networks:
 
-### Testing Checklist:
+### Multi-Chain Testing Checklist:
 
-1. **Wallet Connection**
-   - [ ] Connect wallet using MetaMask
-   - [ ] Ensure wallet connects successfully to Base Sepolia
-   - [ ] Verify account address shows correctly in UI
+1. **Network Selection & Switching**
+   - [ ] Switch between Base, Polkadot, and Cardano networks
+   - [ ] Verify network-specific UI updates (logos, colors, features)
+   - [ ] Test wallet reconnection when switching networks
 
-2. **Read Operations**
-   - [ ] Load the events list page - should display existing events
-   - [ ] Check event details page - should load event data
-   - [ ] View ticket information - should display correct data
+2. **Wallet Connections**
+   - [ ] Connect MetaMask for Base network
+   - [ ] Connect Polkadot extension for Polkadot network
+   - [ ] Connect Cardano wallet for Cardano network
+   - [ ] Verify multi-chain wallet address display
 
-3. **Write Operations**
-   - [ ] Create a new event (if you have organizer status)
-   - [ ] Purchase a ticket for an existing event
-   - [ ] Claim a POAP if available for an event you attended
+3. **Read Operations (All Networks)**
+   - [ ] Load events list - should display events from selected network
+   - [ ] Check event details - should load network-specific data
+   - [ ] View ticket information - should display correct network data
 
-4. **API Proxy**
-   - [ ] Test the API proxy directly: `node scripts/test-multibaas-proxy.js`
-   - [ ] Verify unsigned transaction route: http://localhost:3000/api/debug/unsigned-tx
+4. **Write Operations (Network-Specific)**
+   - [ ] Create events on Base (OnchainKit integration)
+   - [ ] Create events on Polkadot (Substrate contracts)
+   - [ ] Create events on Cardano (Plutus contracts)
+   - [ ] Purchase tickets on each network
+   - [ ] Claim POAPs on each network
 
-## Step 4: Test MultiBaas Dashboard Integration
+5. **Cross-Chain Features**
+   - [ ] Test asset bridging between networks
+   - [ ] Verify cross-chain referral system
+   - [ ] Test unified rewards dashboard
 
-1. Log in to your MultiBaas dashboard at your production URL
-2. Check that contract aliases are correctly set up:
-   - EventFactory should be linked to the correct address
-   - EventTicket should be linked to the correct address
-   - POAPAttendance should be linked to the correct address
-   - IncentiveManager should be linked to the correct address
+## Step 4: Test Network-Specific Explorers
 
-3. Verify event syncing is enabled for all contracts
+1. **Base Network**: Verify contracts on [BaseScan](https://basescan.org/)
+2. **Polkadot Network**: Verify contracts on [Polkadot Explorer](https://polkadot.js.org/apps/)
+3. **Cardano Network**: Verify scripts on [Cardano Explorer](https://cardanoscan.io/)
 
-## Step 5: Verify Contract Events and Transactions
+## Step 5: Verify Cross-Chain Bridge Integration
 
-1. Create a test event via your DApp UI
-2. Verify the transaction appears in MultiBaas Transaction Explorer
-3. Check that event data was properly captured in the Events tab
+1. Test asset transfers between networks using the bridge interface
+2. Verify bridge transaction status and confirmations
+3. Test cross-chain event attendance verification
+4. Validate unified reward claiming across networks
 
-## Step 6: Perform a Full End-to-End Test
+## Step 6: Perform Full Multi-Chain End-to-End Tests
 
-Complete an entire user journey to ensure all components work together:
+Complete user journeys on each network:
 
-1. Connect wallet
-2. Create an event (as organizer)
-3. Visit the event details page
-4. Purchase a ticket for the event
-5. Verify ticket ownership in your profile
-6. Check for the event in the MultiBaas dashboard
+### Base Network Journey:
+1. Connect MetaMask wallet
+2. Create an event using OnchainKit
+3. Purchase ticket with ETH
+4. Claim POAP using MiniKit
+5. Bridge assets to Polkadot
+
+### Polkadot Network Journey:
+1. Connect Polkadot extension
+2. Create parachain event
+3. Purchase ticket with DOT
+4. Claim substrate-based POAP
+5. Participate in staking rewards
+
+### Cardano Network Journey:
+1. Connect Cardano wallet
+2. Create Plutus-based event
+3. Purchase ticket with ADA
+4. Claim eUTXO-based POAP
+5. Use Hydra for fast transactions
 
 ## Troubleshooting
 
-### Common Issues:
+### Network-Specific Issues:
 
-1. **Connection Errors**
-   - Check MultiBaas API keys and permissions
-   - Verify CORS settings in MultiBaas dashboard
-   - Check network connectivity to MultiBaas endpoint
+1. **Base Network Errors**
+   - Check OnchainKit API key and permissions
+   - Verify Base RPC endpoint connectivity
+   - Check MiniKit configuration and Farcaster setup
 
-2. **Contract Interaction Failures**
-   - Ensure contract addresses are correct
-   - Verify contract aliases in MultiBaas match your frontend
-   - Check that your wallet has sufficient Base Sepolia ETH
+2. **Polkadot Network Errors**
+   - Verify Polkadot.js extension installation
+   - Check parachain RPC endpoint
+   - Validate substrate contract deployments
 
-3. **Transaction Failures**
-   - Review the transaction in MetaMask for error messages
-   - Check browser console for JavaScript errors
-   - Verify gas limits and parameters in the transaction
+3. **Cardano Network Errors**
+   - Verify Cardano wallet connection
+   - Check Blockfrost API key and rate limits
+   - Validate Plutus script deployments
+
+4. **Cross-Chain Bridge Issues**
+   - Check bridge API key and endpoints
+   - Verify bridge contract deployments
+   - Test bridge transaction monitoring
 
 ### Debug Tools:
 
-- Use the Network tab in browser DevTools to inspect API calls
-- Check the console for detailed error messages
-- Run `node scripts/direct-multibaas-call.js` to test direct API calls
-- Verify transaction details in the MultiBaas dashboard
+- Use browser DevTools Network tab for API calls
+- Check console for network-specific error messages
+- Run individual network test scripts for isolation
+- Use network explorers to verify transaction status
+- Test bridge APIs directly for connectivity
 
-## Final Checklist
+## Final Multi-Chain Checklist
 
 Before production release, verify:
 
-- [ ] All automated tests pass
-- [ ] Manual UI testing is successful
-- [ ] Contract interactions work (read and write)
-- [ ] Events are being correctly synced in MultiBaas
-- [ ] API proxy routes function properly
-- [ ] Error handling works as expected
+- [ ] All multi-chain automated tests pass
+- [ ] Manual UI testing successful on all networks
+- [ ] Contract interactions work on each network
+- [ ] Cross-chain bridge functionality verified
+- [ ] Wallet integrations working across all networks
+- [ ] Network switching seamless and error-free
+- [ ] Unified user experience maintained
+
+## Multi-Chain Performance Benchmarks
+
+- **Base Network**: <3 seconds transaction time
+- **Polkadot Network**: <12 seconds parachain transaction
+- **Cardano Network**: <5 minutes eUTXO transaction
+- **Cross-Chain Bridge**: <10 minutes asset transfer
+- **Network Switching**: <2 seconds UI update
 
 ## Support
 
 If you encounter issues, please:
-1. Check the documentation in `docs/curvegridDocs/`
-2. Review error messages carefully
-3. Consult the MultiBaas documentation: https://docs.curvegrid.com/multibaas/
+1. Check network-specific documentation in `docs/base-docs/`, `docs/polkadot/`, `docs/cardano/`
+2. Review error messages and network explorer details
+3. Test individual networks in isolation
+4. Consult network-specific documentation:
+   - Base: https://docs.base.org/
+   - Polkadot: https://docs.substrate.io/
+   - Cardano: https://docs.cardano.org/

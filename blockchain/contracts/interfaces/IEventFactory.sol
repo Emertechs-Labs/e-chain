@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.26;
 
 /**
  * @title IEventFactory
@@ -16,7 +16,7 @@ interface IEventFactory {
         address poapContract; // Address of POAPAttendance contract
         address incentiveContract; // Optional IncentiveManager
         string name; // Event name
-        string metadataURI; // IPFS/Arweave JSON with description, image, date, location
+        string metadataUri; // IPFS/Arweave JSON with description, image, date, location
         uint256 ticketPrice; // Base price (in wei or USDC if using ERC20)
         uint256 maxTickets; // Ticket cap
         uint256 startTime; // Start timestamp
@@ -39,7 +39,7 @@ interface IEventFactory {
     event EventUpdated(
         uint256 indexed eventId,
         string name,
-        string metadataURI
+        string metadataUri
     );
 
     event EventStatusChanged(uint256 indexed eventId, bool isActive);
@@ -51,8 +51,8 @@ interface IEventFactory {
 
     /**
      * @notice Creates a new event and deploys its ticketing contract
-     * @param name Event name
-     * @param metadataURI IPFS URI containing event metadata
+    * @param name Event name
+    * @param metadataUri IPFS URI containing event metadata
      * @param ticketPrice Price per ticket in wei
      * @param maxTickets Maximum number of tickets
      * @param startTime Event start timestamp
@@ -61,7 +61,7 @@ interface IEventFactory {
      */
     function createEvent(
         string calldata name,
-        string calldata metadataURI,
+        string calldata metadataUri,
         uint256 ticketPrice,
         uint256 maxTickets,
         uint256 startTime,

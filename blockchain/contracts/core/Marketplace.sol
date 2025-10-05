@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.26;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
-import "../interfaces/IEventTicket.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+import {IEventTicket} from "../interfaces/IEventTicket.sol";
 
 /**
  * @title Marketplace
@@ -14,7 +14,7 @@ import "../interfaces/IEventTicket.sol";
  * @notice Allows ticket holders to resell their tickets with platform fees
  * @author Echain Team
  */
-contract Marketplace is Ownable, ReentrancyGuard, Pausable, IERC721Receiver {
+contract Marketplace is Ownable, ReentrancyGuard, Pausable, ERC721Holder {
     // ============ Structs ============
 
     struct Listing {
@@ -227,30 +227,22 @@ contract Marketplace is Ownable, ReentrancyGuard, Pausable, IERC721Receiver {
 
     /**
      * @notice Get active listings for a specific ticket contract
-     * @param ticketContract Address of the EventTicket contract
-     * @param offset Starting index for pagination
-     * @param limit Maximum number of results
+     * @dev This is a simplified implementation - in production, consider using an indexing solution
      * @return listingIds Array of active listing IDs
      * @return hasMore Whether there are more listings
      */
     function getActiveListings(
-        address ticketContract,
-        uint256 offset,
-        uint256 limit
-    ) external view returns (bytes32[] memory listingIds, bool hasMore) {
-        require(limit > 0 && limit <= 100, "Invalid limit");
-
+        address /* ticketContract */,
+        uint256 /* offset */,
+        uint256 /* limit */
+    ) external pure returns (bytes32[] memory listingIds, bool hasMore) {
         // This is a simplified implementation - in production, consider using an indexing solution
         // for better performance with large datasets
-
-        bytes32[] memory tempIds = new bytes32[](limit);
-        uint256 found = 0;
-        uint256 skipped = 0;
 
         // Note: This would need optimization for production use
         // Consider implementing proper indexing for listings
 
-        listingIds = new bytes32[](found);
+        listingIds = new bytes32[](0);
         hasMore = false; // Simplified for this implementation
     }
 
@@ -337,14 +329,4 @@ contract Marketplace is Ownable, ReentrancyGuard, Pausable, IERC721Receiver {
         emit ListingCancelled(listingId, listing.seller);
     }
 
-    // ============ IERC721Receiver Implementation ============
-
-    function onERC721Received(
-        address operator,
-        address from,
-        uint256 tokenId,
-        bytes calldata data
-    ) external pure override returns (bytes4) {
-        return IERC721Receiver.onERC721Received.selector;
-    }
 }

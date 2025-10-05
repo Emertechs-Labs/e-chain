@@ -147,22 +147,22 @@ totalCost.toString() // Correct total calculation
 npm test
 
 # Check contract compilation
-npx hardhat compile
+forge build
 
 # Verify network configuration
-npx hardhat run scripts/verify-config.ts
+cast chain-id --rpc-url "$BASE_TESTNET_RPC_URL"
 ```
 
 ### 2. **Deployment Process**
 ```bash
 # Deploy to testnet first
-npx hardhat run scripts/deploy-base-testnet.ts --network base-testnet
+npm run deploy:events:testnet
 
 # Verify contracts
-npx hardhat verify --network base-testnet <contract-address>
+forge verify-contract --chain base-sepolia <contract-address> <contract-path> --watch
 
 # Test functionality
-npx hardhat run scripts/test-deployment.ts --network base-testnet
+forge test
 ```
 
 ### 3. **Post-deployment Verification**
@@ -240,7 +240,7 @@ npx hardhat run scripts/test-deployment.ts --network base-testnet
 - [Solidity Security Considerations](https://docs.soliditylang.org/en/latest/security-considerations.html)
 
 ### Tools Used
-- **Hardhat**: Development framework
+- **Foundry**: Development toolkit (Forge, Cast, Anvil)
 - **OpenZeppelin**: Security-audited contracts
 - **TypeChain**: Type-safe contract interactions
 - **Ethers.js**: Ethereum interaction library

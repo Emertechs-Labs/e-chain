@@ -1,7 +1,7 @@
 {
-  "name": "multibaas-sample-hardhat-project",
+  "name": "echain-blockchain",
   "version": "1.0.0",
-  "description": "MultiBaas Sample Hardhat Project",
+  "description": "Echain Smart Contract Development Environment",
   "main": "index.js",
   "scripts": {
     "prepare": "cd .. && husky blockchain/.husky",
@@ -10,45 +10,41 @@
     "fix:solhint": "solhint --fix --noPrompt 'contracts/**/*.sol'",
     "fix:sol": "npm run fix:prettier && npm run fix:solhint",
     "fix:all": "npm run fix:eslint && npm run fix:sol",
-    "test": "npx hardhat test",
-    "deploy:voting:dev": "HARDHAT_NETWORK=development npx hardhat run scripts/deploy-mb.ts",
-    "deploy:voting:testing": "HARDHAT_NETWORK=testing npx hardhat run scripts/deploy-mb.ts",
-    "deploy:events:dev": "HARDHAT_NETWORK=development npx hardhat run scripts/deploy-event-factory.ts",
-    "register:multibaas": "npx hardhat run scripts/register-contracts-multibaas.ts"
+    "compile": "forge build",
+    "test": "forge test",
+    "test:gas": "forge test --gas-report",
+    "deploy:events:dev": "forge script scripts/DeployEventFactory.s.sol --rpc-url $BASE_TESTNET_RPC_URL --private-key $DEPLOYER_PRIVATE_KEY --broadcast",
+    "deploy:events:testnet": "forge script scripts/DeployEventFactory.s.sol --rpc-url https://sepolia.base.org --private-key $DEPLOYER_PRIVATE_KEY --broadcast --verify",
+    "deploy:voting:dev": "forge script scripts/DeployVoting.s.sol --rpc-url $BASE_TESTNET_RPC_URL --private-key $DEPLOYER_PRIVATE_KEY --broadcast",
+    "deploy:voting:testnet": "forge script scripts/DeployVoting.s.sol --rpc-url https://sepolia.base.org --private-key $DEPLOYER_PRIVATE_KEY --broadcast --verify"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://curvegrid/multibaas-sample-hardhat-project.git"
+    "url": "git+https://github.com/echain/echain-blockchain.git"
   },
-  "author": "Curvegrid Inc.",
+  "author": "Echain Team",
   "license": "MIT",
   "private": true,
   "bugs": {
-    "url": "https://github.com/curvegrid/multibaas-sample-hardhat-project/issues"
+    "url": "https://github.com/echain/echain-blockchain/issues"
   },
-  "homepage": "https://github.com/curvegrid/multibaas-sample-hardhat-project#readme",
+  "homepage": "https://github.com/echain/echain-blockchain#readme",
   "lint-staged": {
     "*.{js,ts}": "eslint --fix",
     "*.json": "prettier --write",
     "*.sol": "npm run fix:sol"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "@typechain/ethers-v6": "^0.5.1",
-    "@typechain/hardhat": "^9.1.0",
     "@types/minimatch": "^6.0.0",
     "dotenv": "^17.2.3",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
-    "hardhat": "^2.22.18",
-    "hardhat-multibaas-plugin": "^1.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.3.0",
     "prettier": "^3.4.2",
     "prettier-plugin-solidity": "^1.4.2",
     "solhint": "^5.0.4",
-    "typechain": "^8.3.2",
     "typescript-eslint": "^8.20.0"
   },
   "dependencies": {

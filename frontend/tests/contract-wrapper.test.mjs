@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import assert from 'assert';
-import { readContract, writeContract, isMultiBaasAvailable, getFallbackMode } from '../lib/contract-wrapper.js';
+import { readContract, writeContract } from '../lib/contract-wrapper.js';
 
 async function testReadFallback() {
-  console.log('Test: readContract fallback behavior');
+  console.log('Test: readContract direct behavior');
   // Call a read function that should be available
   try {
-    const count = await readContract('EventFactory', 'eventCount', [], { useMultiBaas: false, skipFallback: false });
+    const count = await readContract('EventFactory', 'eventCount', []);
     console.log('eventCount:', String(count));
     assert(typeof count !== 'undefined');
   } catch (err) {
@@ -15,12 +15,12 @@ async function testReadFallback() {
 }
 
 async function testWriteFallback() {
-  console.log('Test: writeContract fallback behavior (dry)');
+  console.log('Test: writeContract direct behavior (dry)');
   try {
     // We will not actually send a transaction in CI; instead assert the wrapper rejects missing wallet
     let threw = false;
     try {
-      await writeContract('EventFactory', 'createEvent', ['Test', 'ipfs://cid', 0n, 1n], { useMultiBaas: false, skipFallback: false, account: '0x0000000000000000000000000000000000000000' });
+      await writeContract('EventFactory', 'createEvent', ['Test', 'ipfs://cid', 0n, 1n], { account: '0x0000000000000000000000000000000000000000' });
     } catch (e) {
       threw = true;
       console.log('Expected write failure (no wallet):', e.message || e);

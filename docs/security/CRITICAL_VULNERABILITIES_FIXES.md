@@ -212,8 +212,8 @@ After implementing these critical fixes:
 - Gas optimization techniques
 
 ### Development Tools
-- Hardhat testing framework
-- Foundry for fuzzing
+- Foundry testing toolkit (Forge, Cast, Anvil)
+- Foundry fuzzing suites
 - Slither for static analysis
 - MythX for security scanning
 

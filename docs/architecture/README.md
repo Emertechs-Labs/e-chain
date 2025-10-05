@@ -4,11 +4,12 @@
 
 ![Echain Architecture](https://img.shields.io/badge/Echain-Architecture-00D4FF?style=for-the-badge&logo=ethereum&logoColor=white)
 ![Base Network](https://img.shields.io/badge/Base-Ethereum_L2-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)
-![MultiBaas](https://img.shields.io/badge/Curvegrid_MultiBaas-API_Platform-00AEEF?style=for-the-badge&logo=api&logoColor=white)
+![Polkadot](https://img.shields.io/badge/Polkadot-Substrate-E6007A?style=for-the-badge&logo=polkadot&logoColor=white)
+![Cardano](https://img.shields.io/badge/Cardano-Plutus-0033AD?style=for-the-badge&logo=cardano&logoColor=white)
 
-**Complete system architecture for the blockchain events platform**
+**Complete system architecture for the multi-chain blockchain events platform**
 
-*Built on Base Sepolia with MultiBaas integration for seamless Web3 experiences*
+*Built across Base, Polkadot, and Cardano networks with direct RPC integration*
 
 [📱 Frontend](#-frontend-architecture) • [🔗 API Layer](#-api--integration-layer) • [⛓️ Blockchain](#-blockchain-architecture) • [💾 Data Flow](#-data-architecture) • [🔐 Security](#-security-architecture)
 
@@ -46,7 +47,7 @@ graph TB
     end
 
     subgraph "🔌 Integration Layer"
-        E[MultiBaas API<br/>Blockchain Abstraction]
+        E[Direct RPC Integration<br/>Multi-Chain Abstraction]
         F[WalletConnect/Reown<br/>Multi-Wallet Support]
         G[WebSocket Gateway<br/>Real-time Events]
         H[IPFS Gateway<br/>Decentralized Storage]
@@ -155,7 +156,7 @@ Build & Dev Tools:
 │   ├── useWallet.ts             # Wallet state management
 │   └── useTheme.ts              # Theme switching
 ├── /lib                          # Utility libraries
-│   ├── /multibaas.ts            # API client
+│   ├── /rpc.ts                  # Multi-chain RPC client
 │   ├── /contracts.ts            # Contract ABIs and addresses
 │   ├── /utils.ts                # Helper functions
 │   └── /theme-provider.tsx      # Theme context
@@ -170,7 +171,7 @@ Build & Dev Tools:
 #### Event Discovery Flow
 ```mermaid
 graph TD
-    A[Homepage Load] --> B[Fetch Events from MultiBaas]
+    A[Homepage Load] --> B[Fetch Events from RPC]
     B --> C[Display Event Grid]
     C --> D[User Clicks Event]
     D --> E[Load Event Details]
@@ -187,7 +188,7 @@ export function useEvents() {
   return useQuery({
     queryKey: ['events'],
     queryFn: async () => {
-      const response = await multibaasClient.get('/events');
+      const response = await rpcClient.get('/events');
       return response.data;
     },
     refetchInterval: 30000, // Refresh every 30 seconds
@@ -220,17 +221,24 @@ useEffect(() => {
 
 ## 🔗 API & Integration Layer
 
-### MultiBaas Integration Architecture
+### Multi-Chain RPC Integration Architecture
 
 #### Configuration & Setup
 ```typescript
-// MultiBaas client configuration
-const multibaasConfig = {
-  baseURL: 'https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com',
-  timeout: 10000,
-  headers: {
-    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY}`,
-    'Content-Type': 'application/json'
+// Multi-chain RPC client configuration
+const rpcConfig = {
+  base: {
+    url: 'https://sepolia.base.org',
+    chainId: 84532,
+    timeout: 10000
+  },
+  polkadot: {
+    url: 'wss://rococo-contracts-rpc.polkadot.io',
+    timeout: 10000
+  },
+  cardano: {
+    url: 'https://preview-api.cardano.moonsonglabs.com',
+    timeout: 10000
   }
 };
 
@@ -238,46 +246,46 @@ const multibaasConfig = {
 const contractMappings = {
   eventFactory: {
     address: '0x1234567890123456789012345678901234567890',
-    label: 'event_factory',
-    version: '1.0.0'
+    abi: eventFactoryABI,
+    network: 'base'
   },
   eventTicket: {
-    label: 'event_ticket_{eventId}',
-    abi: eventTicketABI
+    abi: eventTicketABI,
+    network: 'base'
   },
   poap: {
     address: '0x0987654321098765432109876543210987654321',
-    label: 'poap_contract',
-    version: '1.0.0'
+    abi: poapABI,
+    network: 'base'
   }
 };
 ```
 
 #### API Endpoint Architecture
 ```typescript
-// RESTful API endpoints
+// Direct RPC endpoints
 const apiEndpoints = {
   // Event Management
   events: {
-    list: 'GET /api/v0/contracts/{label}/query?function=getEvents',
-    create: 'POST /api/v0/contracts/{label}/call',
-    update: 'POST /api/v0/contracts/{label}/call',
-    details: 'GET /api/v0/contracts/{label}/query?function=getEvent'
+    list: 'eth_call to eventFactory.getActiveEvents()',
+    create: 'eth_sendTransaction to eventFactory.createEvent()',
+    update: 'eth_sendTransaction to eventFactory.updateEvent()',
+    details: 'eth_call to eventFactory.getEvent()'
   },
 
   // Ticket Operations
   tickets: {
-    purchase: 'POST /api/v0/contracts/{label}/call',
-    transfer: 'POST /api/v0/contracts/{label}/call',
-    verify: 'GET /api/v0/contracts/{label}/query?function=verifyTicket',
-    balance: 'GET /api/v0/contracts/{label}/query?function=balanceOf'
+    purchase: 'eth_sendTransaction to ticketContract.purchaseTickets()',
+    transfer: 'eth_sendTransaction to ticketContract.transferFrom()',
+    verify: 'eth_call to ticketContract.verifyTicket()',
+    balance: 'eth_call to ticketContract.balanceOf()'
   },
 
   // POAP & Rewards
   poap: {
-    mint: 'POST /api/v0/contracts/{label}/call',
-    check: 'GET /api/v0/contracts/{label}/query?function=hasPOAP',
-    collection: 'GET /api/v0/contracts/{label}/query?function=getUserPOAPs'
+    mint: 'eth_sendTransaction to poapContract.checkInAttendee()',
+    check: 'eth_call to poapContract.hasPOAP()',
+    collection: 'eth_call to poapContract.getUserPOAPs()'
   }
 };
 ```
@@ -493,21 +501,27 @@ const purchaseTicket = async (
   return tx.hash;
 };
 
-// MultiBaas abstracted calls
-const purchaseViaMultiBaas = async (
+// Multi-chain RPC abstracted calls
+const purchaseViaRPC = async (
   eventId: string,
   quantity: number
 ) => {
-  const response = await multibaasClient.post(
-    `/contracts/event_ticket_${eventId}/call`,
-    {
-      function: 'purchaseTickets',
-      inputs: [userAddress, quantity],
-      value: ticketPrice.mul(quantity).toString()
-    }
+  const provider = new ethers.providers.JsonRpcProvider(rpcConfig.base.url);
+  const signer = provider.getSigner(userAddress);
+
+  const contract = new ethers.Contract(
+    ticketContractAddress,
+    eventTicketABI,
+    signer
   );
 
-  return response.data;
+  const tx = await contract.purchaseTickets(
+    userAddress,
+    quantity,
+    { value: ticketPrice.mul(quantity) }
+  );
+
+  return await tx.wait();
 };
 ```
 
@@ -570,23 +584,24 @@ Indexing Strategy:
 sequenceDiagram
     participant U as User
     participant F as Frontend
-    participant M as MultiBaas
+    participant R as RPC Provider
     participant C as Smart Contract
     participant I as The Graph
     participant P as IPFS
 
     U->>F: Select tickets & pay
     F->>F: Validate wallet connection
-    F->>M: Get ticket availability
-    M->>C: Query remaining supply
-    C->>M: Return availability data
-    M->>F: Display purchase options
+    F->>R: Get ticket availability
+    R->>C: Query remaining supply
+    C->>R: Return availability data
+    R->>F: Display purchase options
 
     U->>F: Confirm purchase
-    F->>M: Create unsigned transaction
-    M->>U: Request wallet signature
-    U->>M: Sign & submit transaction
-    M->>C: Execute purchaseTickets()
+    F->>R: Create signed transaction
+    F->>U: Request wallet signature
+    U->>F: Sign transaction
+    F->>R: Submit transaction
+    R->>C: Execute purchaseTickets()
     C->>C: Mint NFT tickets
     C->>U: Transfer ownership
     C->>I: Emit events for indexing
@@ -604,8 +619,8 @@ const purchaseTickets = async (eventId: string, quantity: number) => {
   setTickets(prev => [...prev, ...optimisticTickets]);
 
   try {
-    // 2. Blockchain transaction
-    const txHash = await multibaasClient.purchaseTickets({
+    // 2. Blockchain transaction via RPC
+    const txHash = await rpcClient.purchaseTickets({
       eventId,
       quantity,
       userAddress
@@ -711,7 +726,9 @@ const cspDirectives = {
   'img-src': ["'self'", "data:", "https:", "ipfs:"],
   'connect-src': [
     "'self'",
-    "https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com",
+    "https://sepolia.base.org",
+    "wss://rococo-contracts-rpc.polkadot.io",
+    "https://preview-api.cardano.moonsonglabs.com",
     "wss://api.echain.com"
   ]
 };
@@ -798,17 +815,19 @@ services:
     ports: ["3000:3000"]
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_MULTIBAAS_URL=https://kwp44rxeifggriyd4hmbjq7dey.multibaas.com
+      - NEXT_PUBLIC_BASE_RPC_URL=https://sepolia.base.org
+      - NEXT_PUBLIC_POLKADOT_RPC_URL=wss://rococo-contracts-rpc.polkadot.io
+      - NEXT_PUBLIC_CARDANO_RPC_URL=https://preview-api.cardano.moonsonglabs.com
     volumes:
       - ./frontend:/app
       - /app/node_modules
     depends_on:
-      - hardhat
+      - anvil
 
-  hardhat:
+  anvil:
     build: ./blockchain
     ports: ["8545:8545"]
-    command: npx hardhat node --hostname 0.0.0.0
+    command: anvil --host 0.0.0.0
     environment:
       - CHAIN_ID=31337
 
@@ -843,7 +862,7 @@ Frontend:
 
 Blockchain:
   - Network: Base Sepolia (upgradeable to mainnet)
-  - Deployment: MultiBaas managed
+  - Deployment: Direct RPC integration
   - Monitoring: Contract event tracking
   - Backup: Multi-node redundancy
 
@@ -885,7 +904,7 @@ graph TD
 vercel --prod --yes
 
 # Contract deployment
-npx hardhat run scripts/deploy.ts --network baseSepolia
+forge script scripts/DeployEventFactory.s.sol --rpc-url "$BASE_TESTNET_RPC_URL" --private-key "$DEPLOYER_PRIVATE_KEY" --broadcast
 
 # Database migrations
 npm run db:migrate
@@ -988,7 +1007,7 @@ const metricsCollector = {
 sequenceDiagram
     participant U as User
     participant F as Frontend
-    participant M as MultiBaas
+    participant R as RPC Provider
     participant C as EventTicket Contract
     participant I as IncentiveManager
     participant G as The Graph
@@ -996,16 +1015,17 @@ sequenceDiagram
 
     U->>F: Browse events & select tickets
     F->>F: Validate wallet connection
-    F->>M: Get ticket availability
-    M->>C: Query remaining supply
-    C->>M: Return availability data
-    M->>F: Display purchase options
+    F->>R: Get ticket availability
+    R->>C: Query remaining supply
+    C->>R: Return availability data
+    R->>F: Display purchase options
 
     U->>F: Confirm purchase
-    F->>M: Create unsigned transaction
-    M->>U: Request wallet signature
-    U->>M: Sign & submit transaction
-    M->>C: Execute purchaseTickets()
+    F->>R: Create signed transaction
+    F->>U: Request wallet signature
+    U->>F: Sign transaction
+    F->>R: Submit transaction
+    R->>C: Execute purchaseTickets()
     C->>C: Mint NFT tickets
     C->>U: Transfer ownership
     C->>I: Check early bird eligibility
@@ -1025,24 +1045,24 @@ sequenceDiagram
     participant A as Attendee
     participant O as Organizer
     participant F as Frontend
-    participant M as MultiBaas
+    participant R as RPC Provider
     participant P as POAP Contract
     participant N as Notification Service
 
     A->>O: Present ticket QR code
     O->>F: Scan QR code via camera
     F->>F: Decode ticket data
-    F->>M: Verify ticket ownership
-    M->>P: Query ticket validity
-    P->>M: Confirm ownership
-    M->>F: Return verification result
+    F->>R: Verify ticket ownership
+    R->>P: Query ticket validity
+    P->>R: Confirm ownership
+    R->>F: Return verification result
 
-    F->>M: Initiate check-in transaction
-    M->>P: Call checkInAttendee()
+    F->>R: Initiate check-in transaction
+    R->>P: Call checkInAttendee()
     P->>P: Mark ticket as used
     P->>A: Mint POAP certificate
-    P->>M: Return success confirmation
-    M->>F: Update check-in status
+    P->>R: Return success confirmation
+    R->>F: Update check-in status
 
     F->>O: Display check-in success
     F->>A: Show POAP received
@@ -1163,7 +1183,7 @@ export const baseSepoliaConfig = {
 ## 📞 Support & Resources
 
 ### Architecture Decision Records
-- **[ADR-001: MultiBaas Integration](./adr/001-multibaas-integration.md)**
+- **[ADR-001: Direct RPC Integration](../integration/README.md#direct-rpc-integration)**
 - **[ADR-002: Contract Architecture](./adr/002-contract-architecture.md)**
 - **[ADR-003: State Management](./adr/003-state-management.md)**
 

@@ -4,7 +4,7 @@
 
 1. **Vercel Account**: Sign up at [vercel.com](https://vercel.com)
 2. **GitHub Integration**: Connect your GitHub account to Vercel
-3. **MultiBaas Setup**: Ensure your MultiBaas deployment is configured
+3. **Base RPC Access**: Ensure your Base Sepolia endpoint is reachable
 4. **Reown Project**: Create a project at [cloud.reown.com](https://cloud.reown.com)
 
 ## Environment Variables Setup
@@ -14,11 +14,9 @@
 Go to your project settings → Environment Variables and add:
 
 ```bash
-# MultiBaas Configuration
-NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL=https://your-deployment.multibaas.com
-NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY=your_dapp_user_api_key
-NEXT_PUBLIC_MULTIBAAS_WEB3_API_KEY=your_web3_api_key
-NEXT_PUBLIC_MULTIBAAS_CHAIN_ID=84532
+# Base RPC Configuration
+NEXT_PUBLIC_RPC_URL=https://sepolia.base.org
+NEXT_PUBLIC_CHAIN_ID=84532
 
 # Contract Addresses (Base Sepolia)
 NEXT_PUBLIC_EVENT_FACTORY_ADDRESS=0xbE36039Bfe7f48604F73daD61411459B17fd2e85
@@ -30,12 +28,12 @@ NEXT_PUBLIC_INCENTIVE_ADDRESS=0x8290c12f874DF9D03FDadAbE10C7c6321B69Ded9
 NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=your_reown_project_id
 
 # Webhook Security
-MULTIBAAS_WEBHOOK_SECRET=your_webhook_secret
+BASE_WEBHOOK_SECRET=your_webhook_secret
 ```
 
-### 2. MultiBaas Webhook Configuration
+### 2. Webhook Configuration (Optional)
 
-Configure webhooks in MultiBaas to point to your Vercel deployment:
+Configure your preferred webhook provider to point to your Vercel deployment:
 
 ```
 Webhook URL: https://your-app.vercel.app/api/events
@@ -79,9 +77,9 @@ cd frontend
 vercel link
 
 # Set environment variables
-vercel env add NEXT_PUBLIC_MULTIBAAS_DEPLOYMENT_URL
-vercel env add NEXT_PUBLIC_MULTIBAAS_DAPP_USER_API_KEY
-# ... add all other variables
+vercel env add NEXT_PUBLIC_RPC_URL
+vercel env add NEXT_PUBLIC_CHAIN_ID
+# ... add remaining variables
 
 # Deploy
 vercel --prod
@@ -89,9 +87,9 @@ vercel --prod
 
 ## Post-Deployment Configuration
 
-### 1. Update MultiBaas Webhooks
+### 1. Update Webhooks
 
-After deployment, update your webhook URLs to point to the production Vercel URLs:
+After deployment, update your webhook URLs (if configured) to point to the production Vercel URLs:
 
 ```bash
 Production URL: https://your-app.vercel.app/api/events
@@ -163,7 +161,7 @@ Sentry.init({
    - Verify TypeScript compilation
 
 2. **API Errors**:
-   - Check MultiBaas API keys are correct
+   - Check Base RPC URL and chain ID are correct
    - Verify webhook URLs are updated
    - Check Vercel function logs
 
@@ -233,7 +231,7 @@ const limiter = rateLimit({
 - [ ] Vercel account created and connected to GitHub
 - [ ] Repository imported with correct root directory (`frontend`)
 - [ ] All environment variables configured
-- [ ] MultiBaas webhooks updated with production URLs
+- [ ] Webhooks updated with production URLs
 - [ ] Domain configured (if using custom domain)
 - [ ] SSL certificate verified
 - [ ] Initial deployment successful

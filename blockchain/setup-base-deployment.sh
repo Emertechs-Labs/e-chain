@@ -4,7 +4,7 @@ echo "🔧 Echain Base Testnet Deployment Setup"
 echo "======================================="
 
 # Check if we're in the blockchain directory
-if [ ! -f "hardhat.config.ts" ]; then
+if [ ! -f "foundry.toml" ]; then
     echo "❌ Please run this script from the blockchain directory"
     exit 1
 fi
@@ -32,10 +32,7 @@ echo ""
 echo "3. 🔑 Environment Configuration:"
 echo "   Please ensure you have set the following environment variables:"
 echo ""
-echo "   Required for Curvegrid MultiBaas:"
-echo "   - MULTIBAAS_ENDPOINT=https://your-deployment.multibaas.com"
-echo "   - MULTIBAAS_WEB3_KEY=your_web3_api_key"
-echo "   - MULTIBAAS_ADMIN_KEY=your_admin_api_key"
+echo "   Required for Direct Base Sepolia Deployment:"
 echo "   - DEPLOYER_PRIVATE_KEY=0x..."
 echo ""
 echo "   Optional (will use Base Sepolia public RPC if not set):"
@@ -66,11 +63,8 @@ echo ""
 echo "🚀 Ready to Deploy!"
 echo ""
 echo "To deploy to Base testnet, run:"
-echo "   export HARDHAT_NETWORK=base-testnet"
-echo "   npx hardhat run scripts/deploy-base-testnet.ts --network base-testnet"
-echo ""
-echo "Or use the MultiBaas deployment command:"
-echo "   HARDHAT_NETWORK=base-testnet npx hardhat mb-deploy --network base-testnet"
+echo "   export PRIVATE_KEY=0x..."
+echo "   forge script scripts/DeployEventFactory.s.sol --rpc-url https://sepolia.base.org --private-key \$PRIVATE_KEY --broadcast --verify"
 echo ""
 
 # Optional: Check if we can connect to the network
@@ -94,5 +88,5 @@ echo ""
 echo "📚 Additional Resources:"
 echo "   - Base Sepolia Faucet: https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet"
 echo "   - Base Docs: https://docs.base.org/"
-echo "   - MultiBaas Docs: https://docs.curvegrid.com/"
+echo "   - Echain Deployment Guide: ../docs/deployment/DEPLOYMENT_CHECKLIST.md"
 echo ""

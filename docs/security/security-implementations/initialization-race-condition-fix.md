@@ -686,10 +686,14 @@ contract EventFactorySecurityTest is Test {
 1. **Deploy New Contracts**:
    ```bash
    # Deploy new EventTicket template
-   npx hardhat run scripts/deploy-ticket-template.js --network testnet
+     forge create contracts/core/EventTicket.sol:EventTicket \
+         --rpc-url "$BASE_TESTNET_RPC_URL" \
+         --private-key "$DEPLOYER_PRIVATE_KEY"
    
    # Deploy new EventFactory
-   npx hardhat run scripts/deploy-factory-secure.js --network testnet
+     forge create contracts/core/EventFactory.sol:EventFactory \
+         --rpc-url "$BASE_TESTNET_RPC_URL" \
+         --private-key "$DEPLOYER_PRIVATE_KEY"
    ```
 
 2. **Update Frontend Integration**:
@@ -708,7 +712,10 @@ contract EventFactorySecurityTest is Test {
 4. **Deploy to Mainnet**:
    ```bash
    # Deploy with multi-sig
-   npx hardhat run scripts/deploy-production.js --network mainnet
+    forge script scripts/DeployEventFactory.s.sol \
+      --rpc-url "$BASE_MAINNET_RPC_URL" \
+      --private-key "$MULTISIG_EXECUTOR_KEY" \
+      --broadcast
    ```
 
 ## Monitoring and Alerts

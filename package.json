@@ -53,6 +53,7 @@
     "polkadot-api": "^1.19.2"
   },
   "devDependencies": {
+    "echain-qa-agent": "^2.1.5",
     "lint-staged": "^16.2.2"
   }
 }

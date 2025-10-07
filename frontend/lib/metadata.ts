@@ -70,6 +70,24 @@ export async function fetchMetadataFromIPFS(
     return null;
   }
 
+  // Check localStorage cache first
+  const cacheKey = `metadata_${btoa(metadataURI)}`;
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) {
+    try {
+      const { data, timestamp } = JSON.parse(cached);
+      // Cache for 1 hour
+      if (Date.now() - timestamp < 60 * 60 * 1000) {
+        console.log(`[fetchMetadataFromIPFS] Using cached metadata for: ${metadataURI}`);
+        return data;
+      } else {
+        localStorage.removeItem(cacheKey);
+      }
+    } catch (e) {
+      localStorage.removeItem(cacheKey);
+    }
+  }
+
   console.log(`[fetchMetadataFromIPFS] Fetching metadata from URI: ${metadataURI}`);
 
   // Check if it's a blob storage URL (Vercel Blob)
@@ -91,6 +109,9 @@ export async function fetchMetadataFromIPFS(
 
       const metadata = await response.json();
       console.log(`[fetchMetadataFromIPFS] Successfully fetched metadata from blob storage:`, metadata);
+
+      // Cache the result
+      localStorage.setItem(cacheKey, JSON.stringify({ data: metadata, timestamp: Date.now() }));
 
       return metadata as EventMetadata;
     } catch (error) {
@@ -132,6 +153,9 @@ export async function fetchMetadataFromIPFS(
         console.warn(`[fetchMetadataFromIPFS] Invalid metadata format from gateway ${i + 1}`);
         continue;
       }
+
+      // Cache the result
+      localStorage.setItem(cacheKey, JSON.stringify({ data: metadata, timestamp: Date.now() }));
 
       return metadata as EventMetadata;
     } catch (error) {

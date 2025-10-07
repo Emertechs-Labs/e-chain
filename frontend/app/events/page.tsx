@@ -5,6 +5,9 @@ import { useEvents } from "../hooks/useEvents";
 import EventCard from "../components/events/EventCard";
 import { Event } from "../../types/event";
 
+// Prevent static rendering
+export const dynamic = 'force-dynamic';
+
 const EventsPage: React.FC = () => {
   const { data: events = [], isLoading: loading } = useEvents();
 

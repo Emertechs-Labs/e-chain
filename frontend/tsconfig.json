@@ -29,7 +29,7 @@
         "./*"
       ]
     },
-    "types": ["./types/declarations.d.ts"]
+    "types": ["./types/declarations.d.ts", "jest"]
   },
   "include": [
     "next-env.d.ts",

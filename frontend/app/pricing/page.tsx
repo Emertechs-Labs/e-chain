@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   description: 'Echain pricing plans for event organizers and attendees.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950">

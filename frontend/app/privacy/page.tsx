@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   description: 'Privacy policy for Echain - Blockchain Event Platform',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-white">

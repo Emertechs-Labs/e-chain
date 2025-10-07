@@ -109,8 +109,9 @@ export const useEvents = () => {
         return [];
       }
     },
-    // Set stale time to prevent excessive refetching
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    // Increased stale time to reduce refetching
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 60 * 60 * 1000, // 1 hour cache
   });
 };
 
@@ -177,7 +178,8 @@ export const useEventsByOrganizer = (organizer?: string) => {
       }
     },
     enabled: !!targetOrganizer,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 60 * 60 * 1000, // 1 hour cache
   });
 };
 
@@ -238,7 +240,8 @@ export const useEvent = (eventId: number) => {
       }
     },
     enabled: !!eventId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 60 * 60 * 1000, // 1 hour cache
   });
 };
 
@@ -331,6 +334,7 @@ export const useOrganizerMetrics = (organizer?: string) => {
       }
     },
     enabled: !!targetOrganizer,
-    staleTime: 2 * 60 * 1000, // 2 minutes - refresh more frequently for metrics
+    staleTime: 15 * 60 * 1000, // 15 minutes - refresh more frequently for metrics
+    gcTime: 60 * 60 * 1000, // 1 hour cache
   });
 };

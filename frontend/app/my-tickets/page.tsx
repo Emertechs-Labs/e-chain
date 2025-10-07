@@ -7,6 +7,9 @@ import Link from "next/link";
 import { RewardsDashboard } from "@/components/rewards/RewardsDashboard";
 import { getVerificationUrl } from "../../lib/ipfs";
 
+// Prevent static rendering
+export const dynamic = 'force-dynamic';
+
 const MyTicketsPage: React.FC = () => {
   const { isConnected, address } = useAccount();
   const { data: tickets = [], isLoading, error } = useUserTickets();

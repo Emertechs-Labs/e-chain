@@ -5,6 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { CheckCircle, XCircle, ExternalLink, Calendar, MapPin, User } from 'lucide-react';
 
+// Prevent static rendering
+export const dynamic = 'force-dynamic';
+
 interface VerificationData {
   eventId: number;
   eventName: string;

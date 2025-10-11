@@ -1,0 +1,46 @@
+# Auto-detect text files and perform LF normalization
+* text=auto
+
+# Source code
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.sol text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Shell scripts
+*.sh text eol=lf
+
+# Config files
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.editorconfig text eol=lf
+.npmrc text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mov binary
+*.mp4 binary
+*.mp3 binary
+*.zip binary
+*.gz binary
+
+# Exclude files from export
+.gitignore export-ignore
+.gitattributes export-ignore
+.github export-ignore
+tests/ export-ignore
+*.test.ts export-ignore
+*.test.js export-ignore
+
+# Linguist vendored paths
+blockchain/lib/** linguist-vendored
+**/node_modules/** linguist-vendored

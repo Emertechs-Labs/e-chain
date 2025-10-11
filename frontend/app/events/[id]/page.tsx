@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useAccount } from "wagmi";
+import { useWalletConnection } from '@echain/wallet';
 import { useEvent } from "../../hooks/useEvents";
 import { usePurchaseTicketDirect } from "../../hooks/useTransactionsDirect"; // Direct wallet transaction
 import { useClaimPOAP } from "../../hooks/useTransactions";
@@ -14,7 +14,7 @@ import Link from "next/link";
 export const dynamic = 'force-dynamic';
 import { useQuery } from "@tanstack/react-query";
 import { CONTRACT_ADDRESSES } from "../../../lib/contracts";
-import { EnhancedConnectButton } from "../../components/EnhancedConnectButton";
+import { UnifiedConnectButton } from '@echain/wallet/components';
 import Image from "next/image";
 import { readContract } from "../../../lib/contract-wrapper";
 import { useMiniKit } from '@coinbase/onchainkit/minikit';
@@ -23,7 +23,7 @@ const EventDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const eventId = parseInt(params.id as string);
-  const { isConnected, address } = useAccount();
+  const { isConnected, address } = useWalletConnection();
   const { data: event, isLoading } = useEvent(eventId);
   const purchaseTicketMutation = usePurchaseTicketDirect(); // ✅ Using direct wallet hook
   const claimPOAPMutation = useClaimPOAP();
@@ -423,7 +423,7 @@ const EventDetailPage: React.FC = () => {
                   ) : (
                     <div className="text-center">
                       <p className="text-muted-foreground mb-4 text-sm sm:text-base">Connect your wallet to purchase tickets</p>
-                      <EnhancedConnectButton />
+                      <UnifiedConnectButton />
                     </div>
                   )}
                 </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { UnifiedConnectModal } from '../components/UnifiedConnectModal';
+import { UnifiedConnectModal } from '@echain/wallet';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,12 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount, useDisconnect } from 'wagmi';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { EnhancedConnectButton } from '../EnhancedConnectButton';
-import { UnifiedConnectButton } from '../UnifiedConnectButton';
+import { UnifiedConnectButton } from '@echain/wallet/components';
+import { useWalletConnection } from '@echain/wallet';
 import { ThemeToggle } from '../ThemeToggle';
 import { usePendingTransactions } from '../TransactionStatus';
 import { SignInWithBaseButton } from '../SignInWithBaseButton';
@@ -14,8 +12,7 @@ import { Clock, Home, User, LogOut } from 'lucide-react';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isConnected, address } = useAccount();
-  const { disconnect } = useDisconnect();
+  const { isConnected, address, disconnectWallet } = useWalletConnection();
   const pathname = usePathname();
   const router = useRouter();
   const isHomePage = pathname === '/';
@@ -29,7 +26,7 @@ export default function Header() {
 
   // Handle wallet disconnection - redirect to home
   const handleDisconnect = () => {
-    disconnect();
+    disconnectWallet();
     router.push('/');
   };
 

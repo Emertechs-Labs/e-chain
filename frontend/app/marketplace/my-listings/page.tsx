@@ -24,7 +24,7 @@ import {
 import { toast } from "sonner";
 import { Loader2, AlertCircle, Check, RefreshCw, PlusCircle } from "lucide-react";
 import { useUserListings, useCancelMarketplaceListing } from "../../hooks/useMarketplace";
-import { useWalletHelpers } from "../../hooks/useWalletHelpers";
+import { useWalletHelpers } from "@echain/wallet/hooks";
 
 export const dynamic = 'force-dynamic';
 

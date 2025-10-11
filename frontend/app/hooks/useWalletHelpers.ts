@@ -1,6 +1,6 @@
 import { useConnect, useAccount, useDisconnect, useSwitchChain, useChainId } from 'wagmi';
 import { useState, useEffect } from 'react';
-import { config } from '../../lib/wagmi';
+import { config } from '@echain/wallet';
 
 export const useConnectWallet = () => {
   const { connect, connectors } = useConnect({

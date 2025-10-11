@@ -2,9 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
-import { useAccount } from "wagmi";
+import { useWalletConnection } from '@echain/wallet';
 import { formatEther } from "viem";
-import { EnhancedConnectButton } from "../components/EnhancedConnectButton";
+import { UnifiedConnectButton } from '@echain/wallet/components';
 import { useEventsByOrganizer, useOrganizerMetrics } from "../hooks/useEvents";
 import { readContract } from "../../lib/contract-wrapper";
 import { useQuery } from "@tanstack/react-query";
@@ -178,7 +178,7 @@ const EventCard: React.FC<{ event: any }> = ({ event }) => {
 };
 
 const MyEventsPage: React.FC = () => {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useWalletConnection();
   const { data: events = [], isLoading } = useEventsByOrganizer();
   const { data: metrics } = useOrganizerMetrics();
 
@@ -192,7 +192,7 @@ const MyEventsPage: React.FC = () => {
             Connect your wallet to view and manage your events.
           </p>
           <div className="flex justify-center">
-            <EnhancedConnectButton />
+            <UnifiedConnectButton />
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useAccount } from "wagmi";
 import { useMarketplaceListings, useBuyMarketplaceTicket, MarketplaceListing } from "../hooks/useMarketplace";
-import { useWalletHelpers } from "../hooks/useWalletHelpers";
+import { useWalletHelpers } from "@echain/wallet/hooks";
 import { toast } from "sonner";
 
 // Buy button component

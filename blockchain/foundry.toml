@@ -19,6 +19,8 @@ remappings = [
 [rpc_endpoints]
 localhost = "http://127.0.0.1:8545"
 base_sepolia = "https://sepolia.base.org"
+hedera_testnet = "https://testnet.hashio.io/api"
+hedera_mainnet = "https://mainnet.hashio.io/api"
 
 # Etherscan API keys
 [etherscan]

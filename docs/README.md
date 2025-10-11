@@ -4,10 +4,11 @@
 
 ![Echain Logo](https://img.shields.io/badge/Echain-Blockchain_Events_Platform-00D4FF?style=for-the-badge&logo=ethereum&logoColor=white)
 ![Base Network](https://img.shields.io/badge/Base-Ethereum_L2-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)
+![Hedera](https://img.shields.io/badge/Hedera-Hashgraph-FF4081?style=for-the-badge&logo=hashgraph&logoColor=white)
 ![Polkadot](https://img.shields.io/badge/Polkadot-Multi--Chain-FF4081?style=for-the-badge&logo=polkadot&logoColor=white)
 ![Cardano](https://img.shields.io/badge/Cardano-Proof--of--Stake-0033AD?style=for-the-badge&logo=cardano&logoColor=white)
 
-**A Multi-Chain Web3 Event Management Platform with Parallel Development on Base, Polkadot, and Cardano**
+**A Multi-Chain Web3 Event Management Platform with Real Wallet Integration**
 
 *Transform traditional events into blockchain-powered experiences with NFT tickets, POAP certificates, and gamified participation across multiple blockchains.*
 
@@ -24,14 +25,22 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 - **🎟️ NFT Ticketing**: Secure, verifiable, transferable event tickets with creator royalties
 - **🏆 POAP Certificates**: Soulbound attendance tokens for reputation building
 - **💰 Gamified Incentives**: Rewards and loyalty systems for engagement
-- **🔄 Multi-Chain Support**: Parallel development on Base, Polkadot, and Cardano networks
+- **🔄 Multi-Chain Support**: Parallel development on Base, Hedera, Polkadot, and Cardano networks
 - **⚡ Real-time Updates**: WebSocket streaming for live event data
 - **🛡️ Enterprise Security**: OpenZeppelin audited contracts with circuit breakers
 - **🔗 Farcaster Integration**: Social login, recovery, and cross-platform Frames support
+- **🔐 Real Wallet Integration**: Production-ready wallet connections for Ethereum and Hedera
 
-**Current Status**: ✅ **PRODUCTION READY** - Farcaster Integration Complete (October 2025)
+**Current Status**: ✅ **PRODUCTION READY** - Sprint 5 Complete: Real Wallet Integration (October 2025)
 
 ### 🌟 **Latest Features - Production Ready!**
+
+**Real Wallet Integration** 🔐
+- **Dual Wallet Support**: Full Ethereum/Base and Hedera wallet integration
+- **Production-Ready Components**: UnifiedConnectModal, BalanceDisplay, NetworkSwitcher
+- **Hedera Multisig Wallet**: Complete wallet infrastructure with HashPack, Blade, and Kabila connectors
+- **Real Account Data**: Replace placeholder data with actual user wallet connections
+- **Type-Safe Implementation**: Comprehensive TypeScript coverage with strict validation
 
 **Farcaster Social Login & Cross-Platform Availability** 🎉
 - **Hybrid Authentication**: Optional Farcaster login alongside traditional wallet connections
@@ -40,12 +49,13 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 - **Base App Optimization**: Gasless transactions and PWA support
 - **Enterprise Security**: Comprehensive audit with production-ready security measures
 
-**Multi-Chain Architecture**: Parallel development on Base, Polkadot, and Cardano
+**Multi-Chain Architecture**: Parallel development on Base, Hedera, Polkadot, and Cardano
 - **Base Network**: ✅ Production-ready with OnchainKit integration
+- **Hedera**: ✅ Wallet app with multisig functionality and real wallet connections
 - **Polkadot**: 🚧 In development with Substrate contracts
 - **Cardano**: 🚧 In development with Plutus contracts
 
-**Status**: ✅ All Core Features Complete - Ready for Production Deployment
+**Status**: ✅ All Core Features Complete - Real Wallet Integration Ready for Production Deployment
 
 ### 📋 Deployed Contract Addresses (Base Testnet)
 
@@ -62,8 +72,25 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 | Network | Status | Target Completion | Features |
 | ------- | ------ | ----------------- | -------- |
 | **Base** | ✅ **PRODUCTION READY** | **COMPLETED** | Full feature set, gasless transactions, PWA support |
+| **Hedera** | ✅ **PRODUCTION READY** | **COMPLETED** | Real wallet integration, multisig functionality, transaction management |
 | **Polkadot** | 🚧 In Development | Q1 2026 | Substrate-based implementation |
 | **Cardano** | 🚧 In Development | Q1 2026 | Plutus smart contracts |
+
+### 💰 **Hedera Multisig Wallet App**
+
+**Sprint 5: Real Wallet Integration** ✅ **COMPLETED**
+- Complete Hedera wallet connectors (HashPack, Blade, Kabila)
+- HederaWalletManager for centralized wallet state management
+- useHederaWallet React hook for wallet state management
+- Updated UI components for dual wallet support
+- TypeScript compilation fixes and test validation
+
+**Wallet Features:**
+- **Real Wallet Connections**: Production-ready Ethereum and Hedera wallet integration
+- **Multisig Security**: Configurable threshold signatures for transactions
+- **Dual Network Support**: Seamless switching between Ethereum/Base and Hedera networks
+- **Unified Components**: UnifiedConnectModal, BalanceDisplay, NetworkSwitcher
+- **Type-Safe Implementation**: Comprehensive TypeScript coverage with strict validation
 
 ## 🚀 Quick Start
 
@@ -85,6 +112,15 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 ---
 
 ## 📋 Documentation Structure
+
+### 🔐 [Wallet Package](./wallet-enhancement/README.md)
+Complete wallet package documentation for the `@polymathuniversata/echain-wallet` library:
+- **Real Wallet Integration**: Production-ready Ethereum and Hedera wallet connections
+- **Component Library**: UnifiedConnectModal, BalanceDisplay, NetworkSwitcher components
+- **Hedera Connectors**: HashPack, Blade, and Kabila wallet implementations
+- **React Hooks**: useHederaWallet, useWalletConnection, and utility hooks
+- **Type-Safe API**: Comprehensive TypeScript definitions and interfaces
+- **Testing Suite**: Complete unit and integration test coverage
 
 ### 🏗️ [Smart Contracts](./contracts/README.md)
 Complete smart contract architecture and deployment guide for:
@@ -155,10 +191,17 @@ System architecture documentation:
 ## 🛠️ Technology Stack
 
 ### **Blockchain Layer**
-- **Networks**: Base (Ethereum L2), Polkadot (Substrate), Cardano (Plutus)
+- **Networks**: Base (Ethereum L2), Hedera (Hashgraph), Polkadot (Substrate), Cardano (Plutus)
 - **Smart Contracts**: Solidity ^0.8.19, Ink! (Polkadot), Plutus (Cardano)
-- **API Platforms**: OnchainKit (Base), Polkadot.js, Cardano SDK
+- **API Platforms**: OnchainKit (Base), Hedera SDK, Polkadot.js, Cardano SDK
 - **Security**: Comprehensive audit reports and monitoring
+
+### **Wallet Package**
+- **@polymathuniversata/echain-wallet**: Modular wallet library with dual blockchain support
+- **Hedera SDK**: Official SDK for Hedera network integration
+- **Wagmi v2**: React hooks for Ethereum wallet interactions
+- **RainbowKit**: Beautiful wallet connection UI components
+- **TypeScript**: Strict type checking and comprehensive type definitions
 
 ### **Frontend Layer**
 - **Framework**: Next.js 15.5.4 with App Router and Turbopack
@@ -241,11 +284,11 @@ System architecture documentation:
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
          ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Base          │    │   Polkadot      │    │   Cardano       │
-│   (OnchainKit)  │    │   (Polkadot.js) │    │   (Cardano SDK) │
-│   ✅ PROD READY │    │   🚧 In Dev     │    │   🚧 In Dev     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Base          │    │   Hedera        │    │   Polkadot      │    │   Cardano       │
+│   (OnchainKit)  │    │   (Hedera SDK)  │    │   (Polkadot.js) │    │   (Cardano SDK) │
+│   ✅ PROD READY │    │   ✅ PROD READY │    │   🚧 In Dev     │    │   🚧 In Dev     │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
 ### Multi-Chain Data Flow
@@ -343,6 +386,6 @@ npm run dev
 
 *Built with ❤️ for the Web3 community across multiple blockchains*
 
-*Last Updated: October 7, 2025*
+*Last Updated: October 10, 2025*
 
 </div>

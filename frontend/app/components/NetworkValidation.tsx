@@ -1,6 +1,6 @@
 'use client';
 
-import { useChainId, useSwitchChain } from 'wagmi';
+import { useWalletHelpers } from '@echain/wallet';
 import { useState } from 'react';
 import { AlertTriangle, Wifi } from 'lucide-react';
 
@@ -12,8 +12,7 @@ interface NetworkValidationProps {
 }
 
 export function NetworkValidation({ onNetworkValid, children }: NetworkValidationProps) {
-  const chainId = useChainId();
-  const { switchChain, isPending } = useSwitchChain();
+  const { chainId, ensureBaseSepoliaNetwork } = useWalletHelpers();
   const [isValidating, setIsValidating] = useState(false);
 
   const isOnCorrectNetwork = chainId === BASE_SEPOLIA_CHAIN_ID;
@@ -21,8 +20,8 @@ export function NetworkValidation({ onNetworkValid, children }: NetworkValidatio
   const handleSwitchNetwork = async () => {
     try {
       setIsValidating(true);
-      await switchChain({ chainId: BASE_SEPOLIA_CHAIN_ID });
-      if (onNetworkValid) {
+      const success = await ensureBaseSepoliaNetwork();
+      if (success && onNetworkValid) {
         onNetworkValid();
       }
     } catch (error) {
@@ -55,11 +54,11 @@ export function NetworkValidation({ onNetworkValid, children }: NetworkValidatio
         
         <button
           onClick={handleSwitchNetwork}
-          disabled={isPending || isValidating}
+          disabled={isValidating}
           className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 mx-auto"
         >
           <Wifi className="w-4 h-4" />
-          {isPending || isValidating ? 'Switching...' : 'Switch to Base Sepolia'}
+          {isValidating ? 'Switching...' : 'Switch to Base Sepolia'}
         </button>
       </div>
       

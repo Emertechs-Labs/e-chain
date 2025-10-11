@@ -7,7 +7,7 @@ import Link from "next/link";
 import { parseEther } from "viem";
 import { useListTicketForSale } from "../../hooks/useMarketplace";
 import { useUserTickets, UserTicket } from "../../hooks/useTickets";
-import { useWalletHelpers } from "../../hooks/useWalletHelpers";
+import { useWalletHelpers } from "@echain/wallet/hooks";
 import { CONTRACT_ADDRESSES } from "../../../lib/contracts";
 
 // Prevent static rendering

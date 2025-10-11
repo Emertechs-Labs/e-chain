@@ -98,13 +98,38 @@ useEffect(() => {
 }, [soldTickets, event]);
 ```
 
-### 5. Image Display Improvements ✅ ENHANCED
-**Problem**: Event images not displaying properly, no fallback mechanism
+### 6. Accessibility Compliance - Form Labels ✅ FIXED
+**Problem**: Axe accessibility checker flagged form elements missing labels/title/placeholder attributes
+**Root Cause**: Weight and Threshold input fields in MultisigDashboard component lacked placeholder attributes
 **Solution**:
-- Enhanced `EventCard` component to support blob storage URLs
-- Added `unoptimized={true}` for external image URLs
-- Improved error handling for broken images
-- Added proper fallback to emoji placeholders
+- Added descriptive placeholder attributes to both input fields
+- Maintained existing label elements for proper accessibility compliance
+- Ensured screen reader compatibility
+
+**Code Changes** (`packages/wallet/src/components/MultisigDashboard.tsx`):
+```typescript
+// Weight input (line ~244)
+<input
+  type="number"
+  value={newSignerWeight}
+  onChange={(e) => setNewSignerWeight(parseInt(e.target.value))}
+  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+  placeholder="Enter signer weight (e.g., 1)"  // ← Added
+  min="1"
+  required
+/>
+
+// Threshold input (line ~266)
+<input
+  type="number"
+  value={newThreshold}
+  onChange={(e) => setNewThreshold(parseInt(e.target.value))}
+  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+  placeholder="Enter new threshold (e.g., 2)"  // ← Added
+  min="1"
+  required
+/>
+```
 
 ## Testing Instructions
 

@@ -46,10 +46,12 @@
   "homepage": "https://github.com/Talent-Index/Echain#readme",
   "workspaces": [
     "blockchain",
-    "frontend"
+    "frontend",
+    "packages/wallet"
   ],
   "dependencies": {
     "@vercel/analytics": "^1.5.0",
+    "dedot": "^0.18.2",
     "polkadot-api": "^1.19.2"
   },
   "devDependencies": {

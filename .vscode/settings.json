@@ -38,5 +38,8 @@
     { "pattern": "./packages/wallet" },
     { "pattern": "./wallet-app" }
   ],
-  "typescript.preferences.includePackageJsonAutoImports": "off"
+  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "files.watcherExclude": {
+    "**/node_modules/**": true
+  }
 }

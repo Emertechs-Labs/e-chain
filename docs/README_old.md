@@ -4,12 +4,13 @@
 
 ![Echain Logo](https://img.shields.io/badge/Echain-Blockchain_Events_Platform-00D4FF?style=for-the-badge&logo=ethereum&logoColor=white)
 ![Base Network](https://img.shields.io/badge/Base-Ethereum_L2-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)
-![Event-Driven](https://img.shields.io/badge/Architecture-Event--Driven-FF6B35?style=for-the-badge&logo=apachekafka&logoColor=white)
-![Real-Time](https://img.shields.io/badge/Real--Time-WebSockets-00FF88?style=for-the-badge&logo=socket.io&logoColor=white)
+![Hedera](https://img.shields.io/badge/Hedera-Hashgraph-FF4081?style=for-the-badge&logo=hashgraph&logoColor=white)
+![Polkadot](https://img.shields.io/badge/Polkadot-Multi--Chain-FF4081?style=for-the-badge&logo=polkadot&logoColor=white)
+![Cardano](https://img.shields.io/badge/Cardano-Proof--of--Stake-0033AD?style=for-the-badge&logo=cardano&logoColor=white)
 
-**Multi-Chain Web3 Event Management Platform with Event-Driven Architecture**
+**A Multi-Chain Web3 Event Management Platform with Real Wallet Integration**
 
-*Transform traditional events into blockchain-powered experiences with NFT tickets, POAP certificates, and real-time updates across multiple blockchains.*
+*Transform traditional events into blockchain-powered experiences with NFT tickets, POAP certificates, and gamified participation across multiple blockchains.*
 
 [🚀 Quick Start](#-quick-start) • [📚 Documentation](#-documentation-structure) • [🔗 Live Demo](https://echain-eight.vercel.app) • [📊 Implementation Status](./IMPLEMENTATION_STATUS.md)
 
@@ -25,22 +26,14 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 - **🏆 POAP Certificates**: Soulbound attendance tokens for reputation building
 - **💰 Gamified Incentives**: Rewards and loyalty systems for engagement
 - **🔄 Multi-Chain Support**: Parallel development on Base, Hedera, Polkadot, and Cardano networks
-- **⚡ Real-Time Updates**: WebSocket streaming and webhook-driven architecture
+- **⚡ Real-time Updates**: WebSocket streaming for live event data
 - **🛡️ Enterprise Security**: OpenZeppelin audited contracts with circuit breakers
 - **🔗 Farcaster Integration**: Social login, recovery, and cross-platform Frames support
 - **🔐 Real Wallet Integration**: Production-ready wallet connections for Ethereum and Hedera
 
-**Current Status**: ✅ **PRODUCTION READY** - Sprint 6 Complete: Event-Driven Architecture (October 2025)
+**Current Status**: ✅ **PRODUCTION READY** - Sprint 5 Complete: Real Wallet Integration (October 2025)
 
 ### 🌟 **Latest Features - Production Ready!**
-
-**Event-Driven Architecture** ⚡
-- **Webhook Integration**: Coinbase Developer Platform webhooks for transaction events
-- **WebSocket Streaming**: Real-time updates without polling or background loops
-- **Indexed Data Layer**: The Graph and Covalent integration replacing direct RPC calls
-- **Background Sync**: Efficient data synchronization with minimal frontend delays
-- **Chainstack/Alchemy Optimization**: High-performance node infrastructure
-- **Caching Strategy**: Redis-based caching for frequently accessed data
 
 **Real Wallet Integration** 🔐
 - **Dual Wallet Support**: Full Ethereum/Base and Hedera wallet integration
@@ -51,7 +44,7 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 
 **Farcaster Social Login & Cross-Platform Availability** 🎉
 - **Hybrid Authentication**: Optional Farcaster login alongside traditional wallet connections
-- **Social Recovery**: Account recovery via Farcaster verification
+- **Social Recovery**: Account recovery via Farcaster for enhanced security
 - **Farcaster Frames**: Interactive event embeds in Farcaster posts
 - **Base App Optimization**: Gasless transactions and PWA support
 - **Enterprise Security**: Comprehensive audit with production-ready security measures
@@ -62,7 +55,7 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 - **Polkadot**: 🚧 Planned for Q1 2026
 - **Cardano**: 🚧 Planned for Q1 2026
 
-**Status**: ✅ All Core Features Complete - Event-Driven Architecture Ready for Production Deployment
+**Status**: ✅ All Core Features Complete - Real Wallet Integration Ready for Production Deployment
 
 ### 📋 Deployed Contract Addresses (Base Testnet)
 
@@ -92,16 +85,8 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 - Updated UI components for dual wallet support
 - TypeScript compilation fixes and test validation
 
-**Sprint 6: Event-Driven Architecture** ✅ **COMPLETED**
-- Webhook integration with Coinbase Developer Platform
-- WebSocket streaming for real-time updates
-- The Graph indexing for efficient data queries
-- Redis caching layer for performance optimization
-- Chainstack/Alchemy node infrastructure
-- Background sync mechanisms
-
 **Wallet Features:**
-- **Real Wallet Connections**: Production-ready Ethereum and Hedera wallet connections
+- **Real Wallet Connections**: Production-ready Ethereum and Hedera wallet integration
 - **Multisig Security**: Configurable threshold signatures for transactions
 - **Dual Network Support**: Seamless switching between Ethereum/Base and Hedera networks
 - **Unified Components**: UnifiedConnectModal, BalanceDisplay, NetworkSwitcher
@@ -116,7 +101,7 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 
 ### For Developers
 1. **[Smart Contracts](./contracts/README.md)**: Understand the blockchain architecture
-2. **[Event-Driven Integration](./architecture/event-driven/README.md)**: Learn about webhooks and WebSocket architecture
+2. **[Multi-Chain Integration](./integration/README.md)**: Connect to Base, Polkadot, and Cardano networks
 3. **[API Reference](./api/README.md)**: Build integrations and extensions
 
 ### For Attendees
@@ -146,15 +131,6 @@ Complete smart contract architecture and deployment guide for:
 - **Marketplace**: Secondary trading with creator royalties
 - OpenZeppelin security patterns and upgradeability
 - Gas optimization and testing strategies
-
-### ⚡ [Event-Driven Architecture](./architecture/event-driven/README.md)
-Comprehensive event-driven architecture documentation:
-- **Webhook Integration**: Coinbase Developer Platform webhook configuration
-- **WebSocket Streaming**: Real-time data streaming without polling
-- **Data Indexing**: The Graph and Covalent integration for efficient queries
-- **Caching Strategy**: Redis-based caching for performance optimization
-- **Background Sync**: Efficient data synchronization mechanisms
-- **Chainstack/Alchemy**: High-performance node infrastructure setup
 
 ### 🔗 [Multi-Chain Integration](./integration/README.md)
 Comprehensive multi-chain integration covering:
@@ -197,17 +173,16 @@ Security documentation including:
 
 ### 📡 [API Reference](./api/README.md)
 Complete API documentation:
-- **Webhook Endpoints**: Event-driven webhook processing
+- **Direct RPC Endpoints**: Multi-chain blockchain RPC integration
 - **WebSocket Events**: Real-time event streaming across networks
-- **Indexed Data APIs**: The Graph and Covalent query interfaces
 - **Contract ABIs**: Smart contract interfaces for all chains
 - **TypeScript Types**: Type definitions for multi-chain integration
 
 ### 🏛️ [Architecture](./architecture/README.md)
 System architecture documentation:
-- **Event-Driven Design**: Webhook and WebSocket architecture patterns
-- **Data Layer**: Indexing services and caching strategies
-- **Performance Optimization**: Chainstack/Alchemy integration
+- **High-level Design**: Component relationships and data flow
+- **Database Schema**: Data models and relationships
+- **Integration Patterns**: Third-party service integrations
 - **Scalability Considerations**: Performance and scaling strategies
 
 ---
@@ -219,14 +194,6 @@ System architecture documentation:
 - **Smart Contracts**: Solidity ^0.8.19, Ink! (Polkadot - planned), Plutus (Cardano - planned)
 - **API Platforms**: OnchainKit (Base), Hedera SDK, Polkadot.js (planned), Cardano SDK (planned)
 - **Security**: OpenZeppelin security patterns and monitoring
-
-### **Event-Driven Infrastructure**
-- **Webhooks**: Coinbase Developer Platform for transaction events
-- **WebSockets**: Socket.io for real-time client updates
-- **Data Indexing**: The Graph, Covalent, SubQuery for efficient queries
-- **Caching**: Redis for high-performance data caching
-- **Node Providers**: Chainstack, Alchemy for optimized RPC access
-- **Background Processing**: Queue-based sync mechanisms
 
 ### **Wallet Package**
 - **@polymathuniversata/echain-wallet**: Modular wallet library with dual blockchain support
@@ -240,7 +207,6 @@ System architecture documentation:
 - **Language**: TypeScript with strict type checking
 - **Styling**: Tailwind CSS with custom design system
 - **State Management**: TanStack Query for server state caching
-- **Real-Time**: Socket.io client for WebSocket connections
 - **Wallet Integration**: RainbowKit + Reown (WalletConnect v2)
 - **Social Auth**: Farcaster Auth Kit with MiniKit integration
 
@@ -248,9 +214,6 @@ System architecture documentation:
 - **Hosting**: Vercel with edge functions and ISR
 - **Storage**: IPFS/Pinata for decentralized metadata
 - **Database**: PostgreSQL with Prisma ORM (planned)
-- **Caching**: Redis for high-performance data caching
-- **Webhooks**: Serverless webhook processing
-- **WebSockets**: Socket.io for real-time communication
 - **Monitoring**: Sentry for error tracking and performance
 - **CDN**: Vercel Edge Network for global performance
 
@@ -285,7 +248,7 @@ System architecture documentation:
 - **Prediction Markets**: Event success betting with payouts
 - **Staking Rewards**: Long-term engagement incentives
 
-### 🛡️ **Enterprise-Grade Security**
+### 🔐 **Enterprise-Grade Security**
 - **OpenZeppelin Audited**: Battle-tested contract libraries
 - **Multi-Signature**: Administrative controls with timelocks
 - **Circuit Breakers**: Emergency pause functionality
@@ -302,10 +265,9 @@ System architecture documentation:
 - **PWA Support**: Installable app experience on mobile devices
 
 ### ⚡ **Real-Time Experience**
-- **WebSocket Streaming**: Direct WebSocket connections for live updates
-- **Webhook Processing**: Event-driven updates without polling
-- **Indexed Queries**: Fast data retrieval via The Graph and Covalent
-- **Background Sync**: Efficient data synchronization
+- **WebSocket Streaming**: Direct WebSocket connections to blockchain nodes
+- **Chain Watcher**: Automatic cache invalidation on new blocks
+- **Live Event Feed**: Real-time event creation and updates
 - **Push Notifications**: Browser notifications for important events
 - **Optimistic Updates**: Immediate UI feedback with rollback on failure
 
@@ -315,39 +277,36 @@ System architecture documentation:
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Event-Driven  │    │   Smart         │
-│   (Next.js 15)  │◄──►│   Layer         │◄──►│   Contracts     │
-│                 │    │   (Webhooks)    │    │   (Multi-VM)   │
+│   Frontend      │    │   Multi-Chain   │    │   Smart         │
+│   (Next.js 15)  │◄──►│   Abstraction   │◄──►│   Contracts     │
+│                 │    │   Layer         │    │   (Multi-VM)   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   WebSocket     │    ┌─────────────────┐    │   The Graph     │    │   Chainstack    │
-│   Streaming     │    │   Redis Cache   │    │   Indexing      │    │   RPC Nodes     │
-│   (Real-time)   │    │   Layer         │    │   (Queries)      │    │   (Optimized)   │
+│   Base          │    │   Hedera        │    │   Polkadot      │    │   Cardano       │
+│   (OnchainKit)  │    │   (Hedera SDK)  │    │   (Planned)     │    │   (Planned)     │
+│   ✅ PROD READY │    │   ✅ PROD READY │    │   🚧 Q1 2026    │    │   🚧 Q1 2026    │
 └─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
 ### Multi-Chain Data Flow
-1. **Transaction Events**: Smart contract events trigger Coinbase webhooks
-2. **Webhook Processing**: Serverless functions process and index data
-3. **WebSocket Broadcasting**: Real-time updates sent to connected clients
-4. **Cache Invalidation**: Redis cache updated with fresh data
-5. **Indexed Queries**: The Graph provides efficient data access
-6. **Client Updates**: Frontend receives real-time updates without polling
+1. **Event Creation**: Frontend → Chain Abstraction → Network-specific contracts
+2. **Ticket Purchase**: Wallet → Chain Abstraction → Network-specific minting
+3. **Cross-Chain Events**: Contract events → Abstraction layer → Unified frontend
+4. **POAP Minting**: Check-in verification → Network-specific soulbound tokens
 
 ---
 
 ### 📈 Performance Metrics
 
 - **Transaction Speed**: <3 seconds on Base L2 (gasless transactions available)
-- **Real-Time Latency**: <100ms WebSocket event delivery
-- **Query Performance**: <50ms indexed data retrieval (vs 2-5s RPC calls)
-- **Cache Hit Rate**: >95% for frequently accessed data
-- **Webhook Processing**: <200ms end-to-end event processing
-- **Concurrent Connections**: 10,000+ WebSocket connections supported
-- **Data Freshness**: <5 seconds data synchronization
-- **API Response**: <50ms average with indexing and caching
+- **Gas Efficiency**: Optimized contracts with <200k gas/ticket
+- **API Response**: <100ms average with direct RPC optimization
+- **Real-time Latency**: <50ms WebSocket event delivery
+- **Uptime**: 99.9%+ with Vercel infrastructure
+- **Farcaster Integration**: <2s frame load times with MiniKit
+- **PWA Support**: Installable app with offline capabilities
 
 ---
 
@@ -356,20 +315,17 @@ System architecture documentation:
 ```mermaid
 graph TD
     A[Local Development] --> B[Contract Testing]
-    B --> C[Event-Driven Setup]
+    B --> C[Frontend Integration]
     C --> D[Testnet Deployment]
-    D --> E[Webhook Testing]
-    E --> F[WebSocket Integration]
-    F --> G[Indexing Setup]
-    G --> H[Performance Testing]
-    H --> I[Production Deployment]
-    I --> J[Multi-Chain Expansion]
-    J --> K[Polkadot Implementation]
-    K --> L[Cardano Implementation]
-    L --> M[Cross-Chain Features]
+    D --> E[Integration Testing]
+    E --> F[Production Deployment]
+    F --> G[Multi-Chain Expansion]
+    G --> H[Polkadot Implementation]
+    H --> I[Cardano Implementation]
+    I --> J[Cross-Chain Features]
 ```
 
-**Current Phase**: ✅ Production Deployment Complete - Event-Driven Architecture Implemented
+**Current Phase**: ✅ Production Deployment Complete - Multi-Chain Expansion Beginning
 
 ---
 
@@ -388,7 +344,6 @@ graph TD
 - **[Blog](https://blog.echain.events)**: Technical articles and tutorials
 
 ### **Developer Resources**
-- **[Event-Driven Architecture](./architecture/event-driven/README.md)**: Webhook and WebSocket implementation
 - **[API Documentation](./api/README.md)**: Complete integration guide
 - **[Code Examples](./examples/README.md)**: Sample implementations
 - **[Security Audits](./security/README.md)**: Audit reports and findings
@@ -426,10 +381,10 @@ npm run dev
 
 **🚀 Production Ready - Multi-Chain Web3 Event Platform**
 
-[🏗️ Smart Contracts](./contracts/README.md) • [⚡ Event-Driven Architecture](./architecture/event-driven/README.md) • [🚀 Production Deployment](./deployment/README.md) • [📚 User Guides](./guides/README.md)
+[🏗️ Smart Contracts](./contracts/README.md) • [🔗 Multi-Chain Integration](./integration/README.md) • [🚀 Production Deployment](./deployment/README.md) • [📚 User Guides](./guides/README.md)
 
 *Built with ❤️ for the Web3 community across multiple blockchains*
 
-*Last Updated: October 11, 2025*
+*Last Updated: October 10, 2025*
 
 </div>

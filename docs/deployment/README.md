@@ -21,24 +21,25 @@
 
 ### Current Deployment State
 - **✅ Base Sepolia Testnet**: Fully operational with live contracts
-- **✅ Polkadot Rococo Testnet**: Contracts deployed and integrated
-- **✅ Cardano Preview Testnet**: Smart contracts deployed
-- **✅ Multi-Chain RPC Integration**: Direct blockchain connections configured
+- **✅ Hedera Testnet**: Multisig wallet deployed and tested
 - **✅ Frontend Deployment**: Vercel-ready with optimized builds
 - **✅ CI/CD Pipeline**: Automated testing and deployment
-- **✅ Security Audited**: Contracts ready for mainnet deployment
+- **⏳ Base Mainnet**: Ready for deployment
+- **🚧 Polkadot/Cardano**: Planned for Q1 2026 (no implementation yet)
 
 ### Deployment Checklist Summary
 - [x] Smart contracts deployed to Base Sepolia
-- [x] Smart contracts deployed to Polkadot Rococo
-- [x] Smart contracts deployed to Cardano Preview
-- [x] Direct RPC integration configured for all networks
+- [ ] Smart contracts deployed to Polkadot Rococo (planned for Q1 2026)
+- [ ] Smart contracts deployed to Cardano Preview (planned for Q1 2026)
+- [x] Direct RPC integration configured for Base network
+- [ ] Direct RPC integration configured for Polkadot (planned for Q1 2026)
+- [ ] Direct RPC integration configured for Cardano (planned for Q1 2026)
 - [x] Frontend application deployed to Vercel
 - [x] Wallet connectivity tested with RainbowKit + Reown
-- [x] Real-time data synchronization working
-- [x] Cross-chain bridge integration tested
-- [x] Security audit completed
-- [ ] Mainnet deployment (ready for execution)
+- [ ] Real-time data synchronization working (Base only)
+- [ ] Cross-chain bridge integration tested (planned for Q1 2026)
+- [ ] Security audit completed (no audit artifacts found)
+- [ ] Mainnet deployment (ready for Base mainnet)
 
 ---
 
@@ -81,15 +82,17 @@ Base Sepolia Deployment:
   Status: Active with live contracts
   Explorer: https://sepolia.basescan.org
 
+Hedera Testnet Deployment:
+  Status: Multisig wallet deployed and tested
+  Explorer: https://hashscan.io/testnet
+
 Polkadot Rococo Deployment:
-  RPC URL: wss://rococo-rpc.polkadot.io
-  Status: Active with live contracts
-  Explorer: https://polkadot.js.org/apps
+  Status: Not yet implemented (planned for Q1 2026)
+  Note: No contracts deployed
 
 Cardano Preview Deployment:
-  RPC URL: https://preview-api.cardano.org
-  Status: Active with live contracts
-  Explorer: https://preview.cardanoscan.io
+  Status: Not yet implemented (planned for Q1 2026)
+  Note: No contracts deployed
 ```
 
 #### Network-Specific API Configuration
@@ -105,16 +108,26 @@ const baseConfig = {
   features: ['EIP-1559', 'EIP-2930']
 };
 
-// Polkadot network configuration (Substrate)
+// Hedera network configuration (DApp Services)
+const hederaConfig = {
+  network: 'testnet',
+  blockTime: 2000, // ~2 seconds
+  gasToken: 'HBAR',
+  features: ['Smart Contracts', 'Consensus Service']
+};
+
+// Polkadot network configuration (planned for Q1 2026)
 const polkadotConfig = {
+  status: 'planned',
   rpcUrl: 'wss://rococo-rpc.polkadot.io',
   blockTime: 6000, // ~6 seconds
   gasToken: 'DOT',
   features: ['WebSocket', 'Substrate_API']
 };
 
-// Cardano network configuration (eUTXO)
+// Cardano network configuration (planned for Q1 2026)
 const cardanoConfig = {
+  status: 'planned',
   rpcUrl: 'https://preview-api.cardano.org',
   blockTime: 20000, // ~20 seconds
   gasToken: 'ADA',
@@ -124,18 +137,15 @@ const cardanoConfig = {
 
 #### Cross-Chain Bridge Configuration
 ```typescript
-// Bridge integration for cross-chain transfers
+// Bridge integration (planned for Q1 2026)
 const bridgeConfig = {
+  status: 'planned',
   supportedRoutes: [
-    { from: 'base', to: 'polkadot', bridge: 'multichain.org' },
-    { from: 'polkadot', to: 'cardano', bridge: 'wormhole' },
-    { from: 'cardano', to: 'base', bridge: 'cardano-bridge' }
+    // { from: 'base', to: 'polkadot', bridge: 'multichain.org' },
+    // { from: 'polkadot', to: 'cardano', bridge: 'wormhole' },
+    // { from: 'cardano', to: 'base', bridge: 'cardano-bridge' }
   ],
-  feeStructure: {
-    base: { minFee: '0.001', maxFee: '0.01' },
-    polkadot: { minFee: '0.1', maxFee: '1.0' },
-    cardano: { minFee: '1', maxFee: '10' }
-  }
+  note: 'Cross-chain bridges will be implemented with multi-chain expansion in Q1 2026'
 };
 ```
 
@@ -146,17 +156,19 @@ const bridgeConfig = {
 Reown Project:
   Project ID: Configured in environment variables
   Name: "Echain Multi-Chain Events Platform"
-  Networks: ["Base Sepolia", "Base Mainnet", "Polkadot Rococo", "Polkadot Kusama", "Cardano Preview", "Cardano Mainnet"]
+  Networks: ["Base Sepolia", "Base Mainnet", "Hedera Testnet", "Hedera Mainnet"]
+  Note: Polkadot and Cardano support planned for Q1 2026
   Features: ["WalletConnect v2", "RainbowKit Integration", "Multi-Chain Support"]
 ```
 
 #### Multi-Chain Wallet Support
 ```typescript
-// Supported wallet types per network
+// Supported wallet types per network (current implementation)
 const walletSupport = {
   base: ['MetaMask', 'Rainbow', 'Trust Wallet', 'Coinbase Wallet'],
-  polkadot: ['Polkadot.js', 'Talisman', 'SubWallet', 'Nova Wallet'],
-  cardano: ['Eternl', 'Flint', 'GeroWallet', 'Nami']
+  hedera: ['HashPack', 'Blade Wallet'],
+  polkadot: [], // Planned for Q1 2026
+  cardano: [] // Planned for Q1 2026
 };
 ```
 
@@ -167,7 +179,7 @@ For development and testing, the application includes safe fallbacks:
 const developmentFallback = {
   projectId: 'demo-project-id-for-development',
   description: 'Development mode - works with local wallets',
-  supportedChains: [baseSepolia, rococoTestnet, cardanoPreview]
+  supportedChains: [baseSepolia, hederaTestnet]
 };
 ```
 
@@ -213,24 +225,22 @@ NEXT_PUBLIC_BASE_RPC_URL=https://sepolia.base.org
 NEXT_PUBLIC_BASE_WS_URL=wss://sepolia.base.org/ws
 NEXT_PUBLIC_BASE_CHAIN_ID=84532
 
-NEXT_PUBLIC_POLKADOT_RPC_URL=wss://rococo-rpc.polkadot.io
-NEXT_PUBLIC_POLKADOT_WS_URL=wss://rococo-rpc.polkadot.io
+# Hedera Configuration
+NEXT_PUBLIC_HEDERA_NETWORK=testnet
+NEXT_PUBLIC_HEDERA_CONSENSUS_NODE=0.0.3
 
-NEXT_PUBLIC_CARDANO_RPC_URL=https://preview-api.cardano.org
-NEXT_PUBLIC_CARDANO_WS_URL=wss://preview-api.cardano.org/ws
+# Cross-Chain Bridge (planned for Q1 2026)
+# NEXT_PUBLIC_BRIDGE_API_URL=https://api.multichain.org
 
-# Cross-Chain Bridge
-NEXT_PUBLIC_BRIDGE_API_URL=https://api.multichain.org
-
-# Contract Addresses (Multi-Chain)
+# Contract Addresses (Current Base Implementation)
 NEXT_PUBLIC_BASE_EVENT_FACTORY_ADDRESS=0xbE36039Bfe7f48604F73daD61411459B17fd2e85
 NEXT_PUBLIC_BASE_INCENTIVE_MANAGER_ADDRESS=0x8290c12f874DF9D03FDadAbE10C7c6321B69Ded9
 
-NEXT_PUBLIC_POLKADOT_EVENT_FACTORY_ADDRESS=5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
-NEXT_PUBLIC_POLKADOT_INCENTIVE_MANAGER_ADDRESS=5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS7Hm
-
-NEXT_PUBLIC_CARDANO_EVENT_FACTORY_ADDRESS=addr1qxqs59lphg8g6qndelq8xwqn60ag3aeyfcp33c2kdp46a429mgz6rfs8r9e5v9y8zy3ky9q8z6j3z6j3z6j3z6j3z6j3z6j3z
-NEXT_PUBLIC_CARDANO_INCENTIVE_MANAGER_ADDRESS=addr1qy2jt0qpqz2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z2z
+# Polkadot and Cardano addresses (planned for Q1 2026)
+# NEXT_PUBLIC_POLKADOT_EVENT_FACTORY_ADDRESS=planned
+# NEXT_PUBLIC_POLKADOT_INCENTIVE_MANAGER_ADDRESS=planned
+# NEXT_PUBLIC_CARDANO_EVENT_FACTORY_ADDRESS=planned
+# NEXT_PUBLIC_CARDANO_INCENTIVE_MANAGER_ADDRESS=planned
 
 # Optional Analytics
 NEXT_PUBLIC_POSTHOG_KEY=your_posthog_key
@@ -244,18 +254,19 @@ module.exports = {
   // Development wallet (never commit!)
   deployerPrivateKey: process.env.DEV_DEPLOYER_PRIVATE_KEY,
 
-  // Multi-chain RPC endpoints
+  // Current RPC endpoints (Base + Hedera)
   baseRpcUrl: "https://sepolia.base.org",
-  polkadotRpcUrl: "wss://rococo-rpc.polkadot.io",
-  cardanoRpcUrl: "https://preview-api.cardano.org",
+  hederaNetwork: "testnet",
 
   // Network settings
   baseChainID: 84532, // Base Sepolia
-  polkadotChainID: "rococo",
-  cardanoChainID: "preview",
 
-  // Bridge configuration
-  bridgeApiUrl: "https://api.multichain.org"
+  // Polkadot and Cardano (planned for Q1 2026)
+  // polkadotRpcUrl: "wss://rococo-rpc.polkadot.io",
+  // cardanoRpcUrl: "https://preview-api.cardano.org",
+
+  // Bridge configuration (planned)
+  // bridgeApiUrl: "https://api.multichain.org"
 };
 ```
 
@@ -310,8 +321,9 @@ npm run test:watch
 - **Frontend**: http://localhost:3000
 - **Anvil RPC**: http://127.0.0.1:8545
 - **Base Explorer**: https://sepolia.basescan.org/
-- **Polkadot Explorer**: https://polkadot.js.org/apps/?rpc=wss://rococo-rpc.polkadot.io
-- **Cardano Explorer**: https://preview.cardanoscan.io/
+- **Hedera Explorer**: https://hashscan.io/testnet
+- **Polkadot Explorer**: Planned for Q1 2026
+- **Cardano Explorer**: Planned for Q1 2026
 
 ---
 
@@ -331,34 +343,38 @@ npm run test:watch
 module.exports = {
   deployerPrivateKey: process.env.MAINNET_DEPLOYER_PRIVATE_KEY,
 
-  // Multi-chain RPC endpoints for mainnet
+  // Current RPC endpoints for mainnet
   baseRpcUrl: "https://mainnet.base.org",
-  polkadotRpcUrl: "wss://rpc.polkadot.io",
-  cardanoRpcUrl: "https://api.cardano.org",
+  hederaNetwork: "mainnet",
 
   // Network settings
   baseChainID: 8453, // Base Mainnet
-  polkadotChainID: "polkadot",
-  cardanoChainID: "mainnet",
 
-  // Bridge configuration
-  bridgeApiUrl: "https://api.multichain.org"
+  // Polkadot and Cardano (planned for Q1 2026)
+  // polkadotRpcUrl: "wss://rpc.polkadot.io",
+  // cardanoRpcUrl: "https://api.cardano.org",
+
+  // Bridge configuration (planned)
+  // bridgeApiUrl: "https://api.multichain.org"
 };
 ```
 
 #### 2. Pre-Deployment Checklist
 ```yaml
 Security Audit:
-  - [x] Smart contracts audited by professional firm
+  - [ ] Smart contracts audited by professional firm (no audit completed)
   - [x] All tests passing (unit, integration, security)
   - [x] Gas optimization completed
   - [x] Emergency pause mechanisms tested
 
 Infrastructure:
-  - [x] Multi-chain RPC endpoints configured
-  - [x] Bridge API access established
-  - [x] Wallet funded with sufficient ETH/DOT/ADA
-  - [x] Contract addresses verified across networks
+  - [x] Base RPC endpoints configured
+  - [x] Hedera network configured
+  - [ ] Polkadot RPC endpoints configured (planned for Q1 2026)
+  - [ ] Cardano RPC endpoints configured (planned for Q1 2026)
+  - [ ] Bridge API access established (planned for Q1 2026)
+  - [x] Wallet funded with sufficient ETH/HBAR
+  - [x] Contract addresses verified on Base
 
 Frontend:
   - [x] Environment variables configured
@@ -406,26 +422,24 @@ vercel --prod
 # Vercel Environment Variables
 NEXT_PUBLIC_REOWN_PROJECT_ID=your_production_reown_project_id
 
-# Multi-Chain RPC Configuration (Mainnet)
+# Base Network Configuration (Mainnet)
 NEXT_PUBLIC_BASE_RPC_URL=https://mainnet.base.org
 NEXT_PUBLIC_BASE_WS_URL=wss://mainnet.base.org/ws
 NEXT_PUBLIC_BASE_CHAIN_ID=8453
 
-NEXT_PUBLIC_POLKADOT_RPC_URL=wss://rpc.polkadot.io
-NEXT_PUBLIC_POLKADOT_WS_URL=wss://rpc.polkadot.io
+# Hedera Configuration (Mainnet)
+NEXT_PUBLIC_HEDERA_NETWORK=mainnet
+NEXT_PUBLIC_HEDERA_CONSENSUS_NODE=0.0.3
 
-NEXT_PUBLIC_CARDANO_RPC_URL=https://api.cardano.org
-NEXT_PUBLIC_CARDANO_WS_URL=wss://api.cardano.org/ws
-
-# Contract Addresses (Mainnet)
+# Contract Addresses (Mainnet - Base only currently)
 NEXT_PUBLIC_BASE_EVENT_FACTORY_ADDRESS=your_mainnet_event_factory_address
 NEXT_PUBLIC_BASE_INCENTIVE_MANAGER_ADDRESS=your_mainnet_incentive_manager_address
 
-NEXT_PUBLIC_POLKADOT_EVENT_FACTORY_ADDRESS=your_mainnet_polkadot_event_factory
-NEXT_PUBLIC_POLKADOT_INCENTIVE_MANAGER_ADDRESS=your_mainnet_polkadot_incentive_manager
-
-NEXT_PUBLIC_CARDANO_EVENT_FACTORY_ADDRESS=your_mainnet_cardano_event_factory
-NEXT_PUBLIC_CARDANO_INCENTIVE_MANAGER_ADDRESS=your_mainnet_cardano_incentive_manager
+# Polkadot and Cardano (planned for Q1 2026)
+# NEXT_PUBLIC_POLKADOT_RPC_URL=wss://rpc.polkadot.io
+# NEXT_PUBLIC_POLKADOT_EVENT_FACTORY_ADDRESS=planned
+# NEXT_PUBLIC_CARDANO_RPC_URL=https://api.cardano.org
+# NEXT_PUBLIC_CARDANO_EVENT_FACTORY_ADDRESS=planned
 ```
 
 #### Custom Domain Setup
@@ -586,9 +600,11 @@ contract SecurityControls {
 const healthChecks = {
   frontend: 'https://echain.app/api/health',
   baseRpc: 'https://sepolia.base.org',
-  polkadotRpc: 'wss://rococo-rpc.polkadot.io',
-  cardanoRpc: 'https://preview-api.cardano.org',
+  hederaApi: 'https://testnet.hashio.io/api',
   contracts: '/api/contracts/status'
+  // Polkadot and Cardano health checks planned for Q1 2026
+  // polkadotRpc: 'wss://rococo-rpc.polkadot.io',
+  // cardanoRpc: 'https://preview-api.cardano.org'
 };
 
 // Monitoring metrics
@@ -693,10 +709,13 @@ curl -X POST -H "Content-Type: application/json" \
   --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
   https://sepolia.base.org
 
-# Test Polkadot RPC connectivity
-curl -X POST -H "Content-Type: application/json" \
-  --data '{"jsonrpc":"2.0","method":"chain_getBlockHash","params":[0],"id":1}' \
-  https://rococo-rpc.polkadot.io
+# Test Hedera API connectivity
+curl -X GET "https://testnet.hashio.io/api/v1/transactions"
+
+# Polkadot and Cardano RPC tests planned for Q1 2026
+# curl -X POST -H "Content-Type: application/json" \
+#   --data '{"jsonrpc":"2.0","method":"chain_getBlockHash","params":[0],"id":1}' \
+#   https://rococo-rpc.polkadot.io
 
 # Check contract state via RPC
 curl -X POST -H "Content-Type: application/json" \
@@ -741,9 +760,9 @@ Query Optimization: The Graph for complex queries
 #### Infrastructure Scaling
 ```yaml
 Frontend: Vercel global CDN with auto-scaling
-API: Direct multi-chain RPC connections
-Storage: IPFS for decentralized assets
-Caching: Redis for frequently accessed data
+API: Direct Base and Hedera RPC connections
+Storage: IPFS for decentralized assets (planned)
+Caching: Redis for frequently accessed data (planned)
 ```
 
 ### Cost Optimization
@@ -764,10 +783,11 @@ const batchTransactions = async (operations: Operation[]) => {
 ```yaml
 RPC Providers: Pay-per-use API calls (Infura, Alchemy, etc.)
 Vercel: Generous free tier + usage-based pricing
-IPFS: Free tier with paid upgrades for high usage
+IPFS: Free tier with paid upgrades for high usage (planned)
 Base Network: Low gas fees compared to Ethereum mainnet
-Polkadot: Minimal transaction fees
-Cardano: Low transaction fees
+Hedera Network: Low transaction fees
+Polkadot: Minimal transaction fees (planned for Q1 2026)
+Cardano: Low transaction fees (planned for Q1 2026)
 ```
 
 ---
@@ -880,13 +900,14 @@ validator.addValidation(
   'contract-deployment',
   async () => {
     const baseCode = await rpcClient.readContract('base', CONTRACT_ADDRESSES.base.EventFactory, 'getActiveEvents', [0, 1]);
-    const polkadotCode = await rpcClient.readContract('polkadot', CONTRACT_ADDRESSES.polkadot.EventFactory, 'getActiveEvents', [0, 1]);
-    const cardanoCode = await rpcClient.readContract('cardano', CONTRACT_ADDRESSES.cardano.EventFactory, 'getActiveEvents', [0, 1]);
+    // Polkadot and Cardano validation planned for Q1 2026
+    // const polkadotCode = await rpcClient.readContract('polkadot', CONTRACT_ADDRESSES.polkadot.EventFactory, 'getActiveEvents', [0, 1]);
+    // const cardanoCode = await rpcClient.readContract('cardano', CONTRACT_ADDRESSES.cardano.EventFactory, 'getActiveEvents', [0, 1]);
 
-    if (baseCode && polkadotCode && cardanoCode) {
-      return { success: true, message: 'Contracts deployed successfully across all networks' };
+    if (baseCode) {
+      return { success: true, message: 'Base contracts deployed successfully' };
     }
-    return { success: false, message: 'One or more contracts not deployed' };
+    return { success: false, message: 'Base contracts not deployed' };
   }
 );
 
@@ -895,14 +916,15 @@ validator.addValidation(
   async () => {
     const responses = await Promise.all([
       fetch(process.env.NEXT_PUBLIC_BASE_RPC_URL!),
-      fetch(process.env.NEXT_PUBLIC_POLKADOT_RPC_URL!),
-      fetch(process.env.NEXT_PUBLIC_CARDANO_RPC_URL!)
+      // Polkadot and Cardano RPC checks planned for Q1 2026
+      // fetch(process.env.NEXT_PUBLIC_POLKADOT_RPC_URL!),
+      // fetch(process.env.NEXT_PUBLIC_CARDANO_RPC_URL!)
     ]);
 
     if (responses.every(r => r.ok)) {
-      return { success: true, message: 'All RPC endpoints are accessible' };
+      return { success: true, message: 'Base RPC endpoints are accessible' };
     }
-    return { success: false, message: 'One or more RPC endpoints are unreachable' };
+    return { success: false, message: 'Base RPC endpoints are unreachable' };
   }
 );
 
@@ -952,17 +974,22 @@ resource "vercel_project" "echain" {
       value = var.base_rpc_url
     },
     {
-      key   = "NEXT_PUBLIC_POLKADOT_RPC_URL"
-      value = var.polkadot_rpc_url
+      key   = "NEXT_PUBLIC_HEDERA_NETWORK"
+      value = var.hedera_network
     },
-    {
-      key   = "NEXT_PUBLIC_CARDANO_RPC_URL"
-      value = var.cardano_rpc_url
-    },
-    {
-      key   = "NEXT_PUBLIC_BRIDGE_API_URL"
-      value = var.bridge_api_url
-    }
+    # Polkadot and Cardano planned for Q1 2026
+    # {
+    #   key   = "NEXT_PUBLIC_POLKADOT_RPC_URL"
+    #   value = var.polkadot_rpc_url
+    # },
+    # {
+    #   key   = "NEXT_PUBLIC_CARDANO_RPC_URL"
+    #   value = var.cardano_rpc_url
+    # },
+    # {
+    #   key   = "NEXT_PUBLIC_BRIDGE_API_URL"
+    #   value = var.bridge_api_url
+    # }
   ]
 }
 
@@ -1042,7 +1069,7 @@ resource "aws_cloudwatch_dashboard" "echain" {
 
 ---
 
-**This deployment guide ensures reliable, secure, and scalable deployment of the Echain platform across all environments. The current Base Sepolia deployment demonstrates full operational readiness for mainnet transition.**
+**This deployment guide ensures reliable, secure, and scalable deployment of the Echain platform. The current Base Sepolia and Hedera testnet deployments demonstrate operational readiness, with multi-chain expansion (Polkadot/Cardano) planned for Q1 2026.**
 
 <div align="center">
 

@@ -3,14 +3,13 @@
 <div align="center">
 
 ![Echain API](https://img.shields.io/badge/Echain-API-00D4FF?style=for-the-badge&logo=api&logoColor=white)
-![Direct RPC](https://img.shields.io/badge/Direct_RPC-Multi--Chain-00AEEF?style=for-the-badge&logo=api&logoColor=white)
+![Direct RPC](https://img.shields.io/badge/Direct_RPC-Base_&_Hedera-00AEEF?style=for-the-badge&logo=api&logoColor=white)
 ![Base Network](https://img.shields.io/badge/Base-Sepolia-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)
-![Polkadot](https://img.shields.io/badge/Polkadot-Rococo-E6007A?style=for-the-badge&logo=polkadot&logoColor=white)
-![Cardano](https://img.shields.io/badge/Cardano-Preview-0033AD?style=for-the-badge&logo=cardano&logoColor=white)
+![Hedera](https://img.shields.io/badge/Hedera-Testnet-6F3FF5?style=for-the-badge&logo=hedera&logoColor=white)
 
-**Complete API reference for the Echain multi-chain blockchain events platform**
+**Complete API reference for the Echain blockchain events platform**
 
-*Direct RPC integration across Base, Polkadot, and Cardano networks*
+*Direct RPC integration across Base and Hedera networks*
 
 [🏗️ Architecture](#-api-architecture) • [🚀 Quick Start](#-quick-start) • [📋 Endpoints](#-api-endpoints) • [🔄 Real-time](#-real-time-events) • [🛠️ SDK](#-sdk-integration)
 
@@ -47,9 +46,8 @@ graph TB
 
     subgraph "Blockchain Networks"
         I[Base Sepolia RPC]
-        J[Polkadot Rococo RPC]
-        K[Cardano Preview RPC]
-        L[Cross-chain Bridges]
+        J[Hedera Testnet RPC]
+        K[Network Bridges]
     end
 
     subgraph "Smart Contracts"
@@ -105,13 +103,11 @@ graph TB
 ### Base Configuration
 ```yaml
 Base RPC: https://sepolia.base.org
-Polkadot RPC: wss://rococo-contracts-rpc.polkadot.io
-Cardano RPC: https://preview-api.cardano.moonsonglabs.com
+Hedera SDK: https://github.com/hashgraph/hedera-sdk-js
 Protocol: HTTPS + WSS (WebSocket)
 Rate Limits:
   - Base: 100 requests/minute
-  - Polkadot: 100 requests/minute
-  - Cardano: 100 requests/minute
+  - Hedera: 100 requests/minute
 ```
 
 ### Authentication Methods
@@ -125,21 +121,25 @@ const authMethods = {
     chainId: 84532,
     wallet: 'MetaMask' // or other Web3 wallet
   },
-  polkadot: {
-    rpcUrl: 'wss://rococo-contracts-rpc.polkadot.io',
-    wallet: 'Polkadot.js'
-  },
-  cardano: {
-    rpcUrl: 'https://preview-api.cardano.moonsonglabs.com',
-    wallet: 'Cardano Wallet'
+  hedera: {
+    network: 'testnet',
+    accountId: process.env.HEDERA_ACCOUNT_ID,
+    privateKey: process.env.HEDERA_PRIVATE_KEY
   }
 };
 
 // Example transaction signing
 const signTransaction = async (tx: any, network: string) => {
-  const provider = new ethers.providers.JsonRpcProvider(authMethods[network].rpcUrl);
-  const signer = provider.getSigner();
-  return await signer.sendTransaction(tx);
+  if (network === 'base') {
+    const provider = new ethers.providers.JsonRpcProvider(authMethods.base.rpcUrl);
+    const signer = provider.getSigner();
+    return await signer.sendTransaction(tx);
+  } else if (network === 'hedera') {
+    // Hedera SDK transaction signing
+    const client = Client.forTestnet();
+    client.setOperator(authMethods.hedera.accountId, authMethods.hedera.privateKey);
+    return await tx.execute(client);
+  }
 };
 ```
 
@@ -228,8 +228,7 @@ interface ApiResponse {
 ```bash
 # Current production RPC endpoints
 BASE_RPC_URL="https://sepolia.base.org"
-POLKADOT_RPC_URL="wss://rococo-contracts-rpc.polkadot.io"
-CARDANO_RPC_URL="https://preview-api.cardano.moonsonglabs.com"
+HEDERA_NETWORK="testnet"
 
 # Optional: API key for enhanced features (legacy support)
 DAPP_API_KEY="your-wallet-private-key-or-api-key"
@@ -935,8 +934,7 @@ DELETE /marketplace/listings/{listingId}
 // Establish direct RPC WebSocket connections
 const wsConnections = {
   base: new WebSocket('wss://sepolia.base.org/ws'),
-  polkadot: new WebSocket('wss://rococo-contracts-rpc.polkadot.io'),
-  cardano: new WebSocket('wss://preview-api.cardano.moonsonglabs.com/ws')
+  hedera: new WebSocket('wss://testnet.mirrornode.hedera.com/api/v1/ws') // Hedera mirror node WebSocket
 };
 
 // Base WebSocket connection
@@ -995,21 +993,16 @@ const subscribeToEvents = () => {
     }]
   }));
 
-  // Polkadot event subscription
-  polkadotApi.query.system.events((events) => {
-    events.forEach((record) => {
-      const { event } = record;
-      if (event.section === 'contracts' && event.method === 'ContractEmitted') {
-        handlePolkadotEvent(event);
-      }
-    });
-  });
-
-  // Cardano event monitoring (via polling or WebSocket)
-  setInterval(async () => {
-    const latestBlock = await cardanoLucid.provider.getLatestBlock();
-    // Check for new transactions/events
-  }, 10000);
+  // Hedera event monitoring via mirror nodes
+  const hederaWs = wsConnections.hedera;
+  hederaWs.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.events) {
+      data.events.forEach((hederaEvent: any) => {
+        handleHederaEvent(hederaEvent);
+      });
+    }
+  };
 };
 ```
 
@@ -1102,11 +1095,10 @@ const subscribeToEvents = () => {
 
 ### TypeScript/JavaScript SDK
 ```typescript
-// Multi-chain SDK integration
+// Base and Hedera SDK integration
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { baseSepolia } from 'viem/chains';
-import { ApiPromise, WsProvider } from '@polkadot/api';
-import { Blockfrost, Lucid } from 'lucid-cardano';
+import { Client, ContractExecuteTransaction, ContractCallQuery } from '@hashgraph/sdk';
 
 // Base/Ethereum integration
 const baseClient = createPublicClient({
@@ -1119,27 +1111,18 @@ const baseWallet = createWalletClient({
   transport: http('https://sepolia.base.org')
 });
 
-// Polkadot/Substrate integration
-const polkadotApi = await ApiPromise.create({
-  provider: new WsProvider('wss://rococo-contracts-rpc.polkadot.io')
-});
-
-// Cardano integration
-const cardanoLucid = await Lucid.new(
-  new Blockfrost('https://cardano-preview.blockfrost.io/api/v0', 'previewApiKey'),
-  'Preview'
-);
+// Hedera integration
+const hederaClient = Client.forTestnet();
+hederaClient.setOperator(process.env.HEDERA_ACCOUNT_ID!, process.env.HEDERA_PRIVATE_KEY!);
 
 // Type-safe contract interactions
 export class EchainAPI {
   private baseClient: any;
-  private polkadotApi: ApiPromise;
-  private cardanoLucid: Lucid;
+  private hederaClient: Client;
 
   constructor() {
     this.baseClient = baseClient;
-    this.polkadotApi = polkadotApi;
-    this.cardanoLucid = cardanoLucid;
+    this.hederaClient = hederaClient;
   }
 
   // Get active events from Base
@@ -1165,16 +1148,29 @@ export class EchainAPI {
     });
     return hash;
   }
+
+  // Hedera contract interaction
+  async createEventHedera(name: string, price: number, maxTickets: number) {
+    const transaction = new ContractExecuteTransaction()
+      .setContractId(hederaEventFactoryId)
+      .setGas(100000)
+      .setFunction('createEvent', new ContractFunctionParameters()
+        .addString(name)
+        .addUint256(price)
+        .addUint256(maxTickets)
+      );
+
+    const txResponse = await transaction.execute(this.hederaClient);
+    return await txResponse.getReceipt(this.hederaClient);
+  }
 }
 ```
 
 ### React Hooks Integration
 ```typescript
-// Custom hooks for multi-chain React applications
+// Custom hooks for Base and Hedera React applications
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usePublicClient, useWalletClient, useAccount } from 'wagmi';
-import { usePolkadotExtension } from '@polkadot/react-hooks';
-import { useLucid } from 'lucid-cardano';
 
 export function useEvents() {
   const publicClient = usePublicClient();
@@ -1511,7 +1507,7 @@ const trackApiError = (error: ApiError, context: any) => {
 
 #### Health Check Endpoints
 ```typescript
-// Multi-chain health monitoring
+// Base and Hedera health monitoring
 const healthEndpoints = {
   // Overall platform health
   '/health': {
@@ -1522,8 +1518,7 @@ const healthEndpoints = {
       version: string,
       networks: {
         base: 'ok' | 'degraded' | 'down',
-        polkadot: 'ok' | 'degraded' | 'down',
-        cardano: 'ok' | 'degraded' | 'down'
+        hedera: 'ok' | 'degraded' | 'down'
       }
     }
   },
@@ -1538,16 +1533,10 @@ const healthEndpoints = {
         blockNumber: 12345678,
         lastCheck: 1735689600
       },
-      polkadot: {
+      hedera: {
         status: 'ok',
-        wsConnected: true,
-        blockNumber: 9876543,
-        lastCheck: 1735689600
-      },
-      cardano: {
-        status: 'ok',
-        apiConnected: true,
-        slotNumber: 45678912,
+        mirrorNodeLatency: 89,
+        consensusTimestamp: '1735689600.123456789',
         lastCheck: 1735689600
       }
     }
@@ -1684,11 +1673,9 @@ wscat -c "wss://sepolia.base.org/ws"
 
 ### API Resources
 - **[Base Network Docs](https://docs.base.org/)**: Base network documentation and RPC details
-- **[Polkadot Docs](https://wiki.polkadot.network/)**: Polkadot/Substrate development guides
-- **[Cardano Docs](https://docs.cardano.org/)**: Cardano blockchain integration guides
+- **[Hedera SDK Docs](https://docs.hedera.com/guides/sdks)**: Hedera SDK documentation and integration guides
 - **[viem Documentation](https://viem.sh/)**: Ethereum RPC client library
-- **[@polkadot/api](https://polkadot.js.org/docs/api/)**: Polkadot/Substrate API reference
-- **[Lucid Cardano](https://lucid.spacebudz.io/)**: Cardano development framework
+- **[@hashgraph/sdk](https://github.com/hashgraph/hedera-sdk-js)**: Hedera JavaScript SDK reference
 
 ### Developer Tools
 - **RPC Explorers**: Direct blockchain explorers for each network
@@ -1699,7 +1686,7 @@ wscat -c "wss://sepolia.base.org/ws"
 ### Community Support
 - **GitHub Issues**: Report bugs and request features
 - **Discord Community**: Get help from other developers
-- **Technical Blog**: Tutorials and best practices for multi-chain development
+- **Technical Blog**: Tutorials and best practices for Base and Hedera development
 
 ---
 
@@ -1893,4 +1880,4 @@ function EventPage({ eventId }: { eventId: string }) {
 }
 ```
 
-This API documentation provides comprehensive coverage of all platform capabilities with direct multi-chain RPC integration across Base, Polkadot, and Cardano networks.
+This API documentation provides comprehensive coverage of all platform capabilities with direct RPC integration across Base and Hedera networks.

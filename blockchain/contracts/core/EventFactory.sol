@@ -346,37 +346,33 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
     /**
      * @dev Gets current active events (events that are active and not ended)
      * @return activeEventIds Array of currently active event IDs
+     * @notice Optimized to use single loop with dynamic array
      */
     function _getCurrentActiveEventIds()
         internal
         view
         returns (uint256[] memory activeEventIds)
     {
-        uint256 activeCount = 0;
+        // Use a temporary array with max possible size
+        uint256[] memory tempIds = new uint256[](_activeEvents.length);
+        uint256 count = 0;
 
-        // First pass: count currently active events
+        // Single pass: collect active event IDs
         for (uint256 i = 0; i < _activeEvents.length; i++) {
             uint256 eventId = _activeEvents[i];
             if (
                 events[eventId].isActive &&
                 events[eventId].endTime > block.timestamp
             ) {
-                activeCount++;
+                tempIds[count] = eventId;
+                count++;
             }
         }
 
-        // Second pass: collect active event IDs
-        activeEventIds = new uint256[](activeCount);
-        uint256 index = 0;
-        for (uint256 i = 0; i < _activeEvents.length; i++) {
-            uint256 eventId = _activeEvents[i];
-            if (
-                events[eventId].isActive &&
-                events[eventId].endTime > block.timestamp
-            ) {
-                activeEventIds[index] = eventId;
-                index++;
-            }
+        // Create correctly sized array
+        activeEventIds = new uint256[](count);
+        for (uint256 i = 0; i < count; i++) {
+            activeEventIds[i] = tempIds[i];
         }
     }
 
@@ -574,15 +570,8 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
         emit TreasuryUpdated(newTreasury);
     }
 
-    /**
-     * @notice Updates treasury address (only owner) - DEPRECATED: Use proposeTreasuryChange
-     * @param newTreasury New treasury address
-     */
-    function setTreasury(address newTreasury) external onlyOwner {
-        require(newTreasury != address(0), "Invalid treasury");
-        treasury = newTreasury;
-        emit TreasuryUpdated(newTreasury);
-    }
+    // REMOVED: Deprecated setTreasury function that bypassed timelock security
+    // Use proposeTreasuryChange() and executeTreasuryChange() instead
 
     /**
      * @notice Sets POAP template address (only owner)

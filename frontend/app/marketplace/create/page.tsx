@@ -7,7 +7,7 @@ import Link from "next/link";
 import { parseEther } from "viem";
 import { useListTicketForSale } from "../../hooks/useMarketplace";
 import { useUserTickets, UserTicket } from "../../hooks/useTickets";
-import { useWalletHelpers } from "@echain/wallet/hooks";
+import { useWalletHelpers } from "@polymathuniversata/echain-wallet/hooks";
 import { CONTRACT_ADDRESSES } from "../../../lib/contracts";
 
 // Prevent static rendering
@@ -35,7 +35,7 @@ const CreateListingPage: React.FC = () => {
   useEffect(() => {
     if (isConnected) {
       ensureBaseSepoliaNetwork()
-        .then(result => setNetworkChecked(result));
+        .then((result: boolean) => setNetworkChecked(result));
     }
   }, [isConnected, ensureBaseSepoliaNetwork]);
 

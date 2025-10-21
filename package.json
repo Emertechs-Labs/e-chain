@@ -47,7 +47,7 @@
   "workspaces": [
     "blockchain",
     "frontend",
-    "packages/wallet"
+    "frontend/wallet-app"
   ],
   "dependencies": {
     "@vercel/analytics": "^1.5.0",

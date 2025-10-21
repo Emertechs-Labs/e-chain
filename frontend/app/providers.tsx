@@ -5,10 +5,10 @@ import { WagmiProvider } from 'wagmi';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { OnchainKitProvider } from '@coinbase/onchainkit';
 import { base } from 'wagmi/chains';
-import { defaultChain, config } from '@echain/wallet';
+import { getConfig, defaultChain } from '@polymathuniversata/echain-wallet';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '../lib/theme-provider';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import '@rainbow-me/rainbowkit/styles.css';
 import dynamic from 'next/dynamic';
 
@@ -20,9 +20,29 @@ const DynamicOnchainKitProvider = dynamic(
 
 // Dynamically import Farcaster's AuthKitProvider with SSR disabled
 const AuthKitProvider = dynamic(
-  () => import('@farcaster/auth-kit').then(mod => mod.AuthKitProvider),
+  () => import('@farcaster/auth-kit').then(mod => ({ default: mod.AuthKitProvider })),
   { ssr: false }
 );
+
+// Client-side only wrapper for AuthKitProvider
+function ClientAuthKitProvider({ children }: { children: React.ReactNode }) {
+  const farcasterConfig = {
+    relay: 'https://relay.farcaster.xyz',
+    rpcUrl: 'https://mainnet.base.org',
+    domain: 'localhost:3000', // for dev
+    siweUri: 'http://localhost:3000/login',
+  };
+
+  return (
+    <AuthKitProvider config={farcasterConfig}>
+      {children}
+    </AuthKitProvider>
+  );
+}
+
+const DynamicAuthKitProvider = dynamic(() => Promise.resolve(ClientAuthKitProvider), {
+  ssr: false
+});
 
 export function Providers({ children }: { children: React.ReactNode }) {
   // Create QueryClient instance once per provider instance
@@ -35,17 +55,18 @@ export function Providers({ children }: { children: React.ReactNode }) {
     },
   }));
 
-  const farcasterConfig = {
-    relay: 'https://relay.farcaster.xyz',
-    rpcUrl: 'https://mainnet.base.org',
-    domain: 'localhost:3000', // for dev
-    siweUri: 'http://localhost:3000/login',
-  };
+  const [wagmiConfig, setWagmiConfig] = useState<any>(null);
+
+  // Load wagmi config on client side
+  useEffect(() => {
+    getConfig().then(setWagmiConfig);
+  }, []);
 
   const ProviderContent = (
     <ThemeProvider defaultTheme="dark" storageKey="echain-theme">
-      <WagmiProvider config={config}>
-        <QueryClientProvider client={queryClient}>
+      {wagmiConfig ? (
+        <WagmiProvider config={wagmiConfig}>
+          <QueryClientProvider client={queryClient}>
           <DynamicOnchainKitProvider
             apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
             chain={base}
@@ -64,17 +85,24 @@ export function Providers({ children }: { children: React.ReactNode }) {
           </DynamicOnchainKitProvider>
         </QueryClientProvider>
       </WagmiProvider>
+      ) : (
+        <QueryClientProvider client={queryClient}>
+          <DynamicOnchainKitProvider
+            apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
+            chain={base}
+          >
+            {children}
+            <Toaster position="top-right" />
+          </DynamicOnchainKitProvider>
+        </QueryClientProvider>
+      )}
     </ThemeProvider>
   );
 
   // On the client side, wrap with AuthKitProvider. On the server, render without it.
-  if (typeof window === 'undefined') {
-    return ProviderContent;
-  }
-
   return (
-    <AuthKitProvider config={farcasterConfig}>
+    <DynamicAuthKitProvider>
       {ProviderContent}
-    </AuthKitProvider>
+    </DynamicAuthKitProvider>
   );
 }

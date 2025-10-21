@@ -23,8 +23,12 @@ const BASE_RPC_ENDPOINTS = [
     responseTime: 0
   },
   {
-    http: 'https://base-sepolia.g.alchemy.com/v2/demo',
-    ws: 'wss://base-sepolia.g.alchemy.com/v2/demo',
+    http: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY
+      ? `https://base-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`
+      : 'https://base-sepolia.blockpi.network/v1/rpc/public',
+    ws: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY
+      ? `wss://base-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`
+      : 'wss://base-sepolia.blockpi.network/v1/rpc/public',
     priority: 3,
     weight: 60,
     lastHealthCheck: 0,

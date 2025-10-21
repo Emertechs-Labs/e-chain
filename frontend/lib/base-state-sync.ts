@@ -94,7 +94,7 @@ class BaseStateSyncEngine {
       if (!abi) return;
 
       // Get all events from the ABI
-      const events = abi.filter(item => item.type === 'event');
+      const events = abi.filter((item: any) => item.type === 'event');
 
       for (const event of events) {
         try {

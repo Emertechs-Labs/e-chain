@@ -96,7 +96,7 @@ export async function directContractRead<T = any>(
     console.log(`[Fallback] ABI source:`, isContractName ? 'CONTRACT_ABIS' : 'EventTicket default');
     console.log(`[Fallback] Direct read: ${address}.${functionName}(${safeStringifyArgs(args)})`);
     console.log(`[Fallback] Using ABI with ${abi?.length || 0} entries`);
-    console.log(`[Fallback] Function exists in ABI:`, abi?.some(f => 'name' in f && f.name === functionName));
+    console.log(`[Fallback] Function exists in ABI:`, abi?.some((f: any) => 'name' in f && f.name === functionName));
 
     const result = await client.readContract({
       address,

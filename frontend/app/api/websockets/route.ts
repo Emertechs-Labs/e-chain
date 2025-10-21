@@ -14,7 +14,7 @@ function initSocketIO(httpServer: HTTPServer) {
   io = new SocketIOServer(httpServer, {
     path: '/api/websockets',
     cors: {
-      origin: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+      origin: true, // Allow all origins in development
       methods: ['GET', 'POST'],
       credentials: true,
     },

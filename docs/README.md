@@ -4,14 +4,13 @@
 
 ![Echain Logo](https://img.shields.io/badge/Echain-Blockchain_Events_Platform-00D4FF?style=for-the-badge&logo=ethereum&logoColor=white)
 ![Base Network](https://img.shields.io/badge/Base-Ethereum_L2-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)
-![Event-Driven](https://img.shields.io/badge/Architecture-Event--Driven-FF6B35?style=for-the-badge&logo=apachekafka&logoColor=white)
-![Real-Time](https://img.shields.io/badge/Real--Time-WebSockets-00FF88?style=for-the-badge&logo=socket.io&logoColor=white)
+![Direct RPC](https://img.shields.io/badge/Data_Source-Direct_RPC-FF6B35?style=for-the-badge&logo=graphql&logoColor=white)
 
-**Multi-Chain Web3 Event Management Platform with Event-Driven Architecture**
+**Base-first Web3 Event Management Platform**
 
-*Transform traditional events into blockchain-powered experiences with NFT tickets, POAP certificates, and real-time updates across multiple blockchains.*
+*Turn on-chain ticketing concepts into live experiences using Solidity contracts and a Next.js 15 frontend that talks directly to Base Sepolia.*
 
-[🚀 Quick Start](#-quick-start) • [📚 Documentation](#-documentation-structure) • [🔗 Live Demo](https://echain-eight.vercel.app) • [📊 Implementation Status](./IMPLEMENTATION_STATUS.md)
+[🚀 Quick Start](#-quick-start) • [📚 Documentation](#-documentation-structure) • [🔗 Live Demo](https://echain-eight.vercel.app) • [🛠 Developer Guide](./DEVELOPER_GUIDE.md)
 
 </div>
 
@@ -19,93 +18,55 @@
 
 ## 🎯 Platform Overview
 
-Echain is a comprehensive multi-chain blockchain-based event management platform featuring:
+Echain currently ships with a Base-focused implementation and a direct smart-contract integration model:
 
-- **🎟️ NFT Ticketing**: Secure, verifiable, transferable event tickets with creator royalties
-- **🏆 POAP Certificates**: Soulbound attendance tokens for reputation building
-- **💰 Gamified Incentives**: Rewards and loyalty systems for engagement
-- **🔄 Multi-Chain Support**: Parallel development on Base, Hedera, Polkadot, and Cardano networks
-- **⚡ Real-Time Updates**: WebSocket streaming and webhook-driven architecture
-- **🛡️ Enterprise Security**: OpenZeppelin audited contracts with circuit breakers
-- **🔗 Farcaster Integration**: Social login, recovery, and cross-platform Frames support
-- **🔐 Real Wallet Integration**: Production-ready wallet connections for Ethereum and Hedera
+- **🎟️ NFT Ticketing**: Event creation and ticket sale flows powered by the `EventFactory` and `EventTicket` contracts.
+- **🏆 POAP Certificates**: POAP minting flows prepared via deployed `POAPAttendance` contracts (UI integration in progress).
+- **💰 Incentive Hooks**: `IncentiveManager` contract available for rewards features (frontend wiring pending).
+- **🛡️ Security Foundations**: Contracts lean on OpenZeppelin libraries and Foundry test coverage.
+- **🔗 Wallet Experience**: RainbowKit + Wagmi configuration targeting Base wallets, with Farcaster/AuthKit experiments behind feature flags.
 
-**Current Status**: ✅ **PRODUCTION READY** - Sprint 6 Complete: Event-Driven Architecture (October 2025)
+**Current Status**: 🚧 **BETA** – direct RPC reads and writes to Base Sepolia are live; webhook/indexer pipelines and multi-chain rollouts remain in development.
 
-### 🌟 **Latest Features - Production Ready!**
+### 🌟 Latest Highlights
 
-**Event-Driven Architecture** ⚡
-- **Webhook Integration**: Coinbase Developer Platform webhooks for transaction events
-- **WebSocket Streaming**: Real-time updates without polling or background loops
-- **Indexed Data Layer**: The Graph and Covalent integration replacing direct RPC calls
-- **Background Sync**: Efficient data synchronization with minimal frontend delays
-- **Chainstack/Alchemy Optimization**: High-performance node infrastructure
-- **Caching Strategy**: Redis-based caching for frequently accessed data
+- **Direct RPC Contract Wrapper**: `frontend/lib/contract-wrapper.ts` standardises reads/writes using `viem`, removing bespoke provider wiring.
+- **Realtime Subscriptions (Opt-In)**: `useRealtimeSubscriptions()` consumes a WebSocket RPC endpoint when `NEXT_PUBLIC_WS_PROVIDER` is provided, enabling cache invalidation without polling.
+- **Socket.IO Utilities**: `/api/websockets` exposes a lightweight Socket.IO server for manual broadcasts and local testing.
+- **Rate Limiting Middleware**: `lib/middleware/rate-limit.ts` offers in-memory throttling with an optional Redis upgrade path.
 
-**Real Wallet Integration** 🔐
-- **Dual Wallet Support**: Full Ethereum/Base and Hedera wallet integration
-- **Production-Ready Components**: UnifiedConnectModal, BalanceDisplay, NetworkSwitcher
-- **Hedera Multisig Wallet**: Complete wallet infrastructure with HashPack, Blade, and Kabila connectors
-- **Real Account Data**: Replace placeholder data with actual user wallet connections
-- **Type-Safe Implementation**: Comprehensive TypeScript coverage with strict validation
+### 🛣️ Roadmap Snapshot
 
-**Farcaster Social Login & Cross-Platform Availability** 🎉
-- **Hybrid Authentication**: Optional Farcaster login alongside traditional wallet connections
-- **Social Recovery**: Account recovery via Farcaster verification
-- **Farcaster Frames**: Interactive event embeds in Farcaster posts
-- **Base App Optimization**: Gasless transactions and PWA support
-- **Enterprise Security**: Comprehensive audit with production-ready security measures
+- **Webhook ingestion (Coinbase CDP)**: ❌ Not yet implemented – currently documented as future work.
+- **The Graph / Covalent indexing**: ❌ Planned; all reads presently hit Base directly.
+- **Redis-backed caching**: ⚠️ Optional stub exists; production wiring still pending.
+- **Hedera / Polkadot / Cardano**: 🔄 Research & contract scaffolding underway; no live deployments or UI hooks today.
 
-**Multi-Chain Architecture**: Parallel development on Base, Hedera, Polkadot, and Cardano
-- **Base Network**: ✅ Production-ready with OnchainKit integration
-- **Hedera**: ✅ Production-ready with real wallet integration and multisig functionality
-- **Polkadot**: 🚧 Planned for Q1 2026
-- **Cardano**: 🚧 Planned for Q1 2026
-
-**Status**: ✅ All Core Features Complete - Event-Driven Architecture Ready for Production Deployment
-
-### 📋 Deployed Contract Addresses (Base Testnet)
+### 📋 Deployed Contract Addresses (Base Sepolia)
 
 | Contract | Address | Purpose |
 | -------- | ------- | ------- |
 | **EventFactory** | `0xA97cB40548905B05A67fCD4765438aFBEA4030fc` | Deploys event-specific ticket contracts |
-| **EventTicket** | `0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C` | ERC-721 NFT ticket implementation |
-| **POAPAttendance** | `0x08344CfBfB3afB2e114A0dbABbaF40e7eB62FD33` | Soulbound attendance certificates |
-| **IncentiveManager** | `0x1cfDae689817B954b72512bC82f23F35B997617D` | Gamified rewards and loyalty system |
-| **Marketplace** | `0xD061393A54784da5Fea48CC845163aBc2B11537A` | Secondary ticket trading platform |
+| **EventTicket** | `0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C` | ERC-721 ticket logic queried directly by the frontend |
+| **POAPAttendance** | `0x08344CfBfB3afB2e114A0dbABbaF40e7eB62FD33` | POAP minting (UI integration upcoming) |
+| **IncentiveManager** | `0x1cfDae689817B954b72512bC82f23F35B997617D` | Incentive scaffolding for future releases |
+| **Marketplace** | `0xD061393A54784da5Fea48CC845163aBc2B11537A` | Marketplace features under development |
 
-### 🔄 Multi-Chain Development Roadmap
+### 🔄 Network Roadmap
 
-| Network | Status | Target Completion | Features |
-| ------- | ------ | ----------------- | -------- |
-| **Base** | ✅ **PRODUCTION READY** | **COMPLETED** | Full feature set, gasless transactions, PWA support |
-| **Hedera** | ✅ **PRODUCTION READY** | **COMPLETED** | Real wallet integration, multisig functionality, transaction management |
-| **Polkadot** | 🚧 Planned | Q1 2026 | Substrate-based implementation |
-| **Cardano** | 🚧 Planned | Q1 2026 | Plutus smart contracts |
+| Network | Status | Notes |
+| ------- | ------ | ----- |
+| **Base** | ✅ Active | Frontend interacts directly with deployed contracts via `viem`.
+| **Hedera** | 🧪 Experimental | Wallet SDK experiments live inside `frontend/wallet-app/`; main app integration pending.
+| **Polkadot** | 📝 Planned | Contracts and integration guides tracked in `docs/base-docs/`.
+| **Cardano** | 📝 Planned | Research-only, no code committed.
 
-### 💰 **Hedera Multisig Wallet App**
+### 💡 Wallet Experimentation
 
-**Sprint 5: Real Wallet Integration** ✅ **COMPLETED**
-- Complete Hedera wallet connectors (HashPack, Blade, Kabila)
-- HederaWalletManager for centralized wallet state management
-- useHederaWallet React hook for wallet state management
-- Updated UI components for dual wallet support
-- TypeScript compilation fixes and test validation
-
-**Sprint 6: Event-Driven Architecture** ✅ **COMPLETED**
-- Webhook integration with Coinbase Developer Platform
-- WebSocket streaming for real-time updates
-- The Graph indexing for efficient data queries
-- Redis caching layer for performance optimization
-- Chainstack/Alchemy node infrastructure
-- Background sync mechanisms
-
-**Wallet Features:**
-- **Real Wallet Connections**: Production-ready Ethereum and Hedera wallet connections
-- **Multisig Security**: Configurable threshold signatures for transactions
-- **Dual Network Support**: Seamless switching between Ethereum/Base and Hedera networks
-- **Unified Components**: UnifiedConnectModal, BalanceDisplay, NetworkSwitcher
-- **Type-Safe Implementation**: Comprehensive TypeScript coverage with strict validation
+- **RainbowKit + Wagmi (Base)**: Production path used throughout `frontend/app/`.
+- **Coinbase OnchainKit**: Optional provider available in `app/providers.tsx` for Base-specific UX improvements.
+- **Farcaster Auth Kit**: Loaded dynamically; currently opt-in and scoped to onboarding experiments.
+- **Hedera Multisig (Prototype)**: Implemented in `frontend/wallet-app/`, awaiting integration with core flows.
 
 ## 🚀 Quick Start
 
@@ -121,7 +82,7 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 
 ### For Attendees
 1. **[Connect Wallet](./guides/README.md#getting-started)**: Set up MetaMask or Web3 wallet
-2. **[Browse Events](./examples/README.md)**: Discover upcoming events
+2. **[Browse Events](./guides/README.md#browsing-events)**: Discover upcoming events
 3. **[Purchase Tickets](./guides/README.md#buying-tickets)**: Buy NFT tickets with crypto
 
 ---
@@ -129,130 +90,71 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 ## 📋 Documentation Structure
 
 ### 🔐 [Wallet Package](./wallet-enhancement/README.md)
-Complete wallet package documentation for the `@polymathuniversata/echain-wallet` library:
-- **Real Wallet Integration**: Production-ready Ethereum and Hedera wallet connections
-- **Component Library**: UnifiedConnectModal, BalanceDisplay, NetworkSwitcher components
-- **Hedera Connectors**: HashPack, Blade, and Kabila wallet implementations
-- **React Hooks**: useHederaWallet, useWalletConnection, and utility hooks
-- **Type-Safe API**: Comprehensive TypeScript definitions and interfaces
-- **Testing Suite**: Complete unit and integration test coverage
+Documentation for the exploratory `@polymathuniversata/echain-wallet` package, covering connector prototypes, Farcaster experiments, and multisig concepts.
 
 ### 🏗️ [Smart Contracts](./contracts/README.md)
-Complete smart contract architecture and deployment guide for:
-- **EventFactory**: Factory pattern for deploying event-specific contracts
-- **EventTicket**: ERC-721 NFT implementation with transfer restrictions
-- **POAP**: Soulbound tokens for attendance verification
-- **IncentiveManager**: Gamified rewards and loyalty programs
-- **Marketplace**: Secondary trading with creator royalties
-- OpenZeppelin security patterns and upgradeability
-- Gas optimization and testing strategies
+Architecture and deployment notes for the Base Sepolia contracts, including `EventFactory`, `EventTicket`, `POAPAttendance`, `IncentiveManager`, and the early `Marketplace` work.
 
 ### ⚡ [Event-Driven Architecture](./architecture/event-driven/README.md)
-Comprehensive event-driven architecture documentation:
-- **Webhook Integration**: Coinbase Developer Platform webhook configuration
-- **WebSocket Streaming**: Real-time data streaming without polling
-- **Data Indexing**: The Graph and Covalent integration for efficient queries
-- **Caching Strategy**: Redis-based caching for performance optimization
-- **Background Sync**: Efficient data synchronization mechanisms
-- **Chainstack/Alchemy**: High-performance node infrastructure setup
+Focuses on the **planned** webhook + indexing pipeline, alongside the currently shipping WebSocket subscription utilities.
 
 ### 🔗 [Multi-Chain Integration](./integration/README.md)
-Comprehensive multi-chain integration covering:
-- **Base Network**: Ethereum L2 deployment and OnchainKit integration
-- **Hedera Network**: Hashgraph integration with SDK and wallet support
-- **Future Networks**: Polkadot and Cardano (planned for Q1 2026)
-- **Wallet Integration**: Multi-chain wallet support and abstraction
-- **Farcaster Integration**: Social authentication and cross-platform Frames
+Tracks research and design docs for extending beyond Base. Implementations here should be treated as draft guidance until merged into the main app.
 
 ### 🚀 [Deployment](./deployment/README.md)
-Step-by-step deployment instructions for:
-- **Local Development**: Foundry setup and contract testing
-- **Base Sepolia Testnet**: Testnet deployment and verification
-- **Production Deployment**: Base mainnet deployment strategies
-- **Environment Configuration**: API keys and network settings
-- **Monitoring Setup**: Contract monitoring and alerting
-- **Farcaster Production Setup**: Social auth and Frame deployment
+Guides for local development, Base Sepolia deployments, and the configuration required to move towards mainnet.
 
 ### 📚 [User Guides](./guides/README.md)
-Practical guides for all user types:
-- **Event Organizers**: Complete event creation and management workflow
-- **Attendees**: Wallet setup, ticket purchasing, and event attendance
-- **Developers**: API integration, customization, and extension development
-- **Administrators**: Platform management and troubleshooting
+Workflow walkthroughs for organisers and attendees based on the current Base deployment.
 
 ### 💡 [Code Examples](./examples/README.md)
-Code examples and use cases:
-- **Event Creation**: Complete event setup with metadata
-- **Ticket Purchasing**: NFT minting and payment flows
-- **POAP Minting**: Attendance verification and certificate claiming
-- **Marketplace Trading**: Secondary market transactions
-- **Real-time Updates**: WebSocket event streaming
+Sample snippets demonstrating direct contract reads, metadata enrichment, and WebSocket hooks that are already in the repository.
 
 ### 🔒 [Security](./security/README.md)
-Security documentation including:
-- **Audit Reports**: OpenZeppelin security audit findings and fixes
-- **Implementation Details**: Security patterns and best practices
-- **Testing Procedures**: Security-focused testing guidelines
-- **Vulnerability Management**: Reporting and response procedures
+Security considerations, Foundry test coverage notes, and future audit tracking.
 
 ### 📡 [API Reference](./api/README.md)
-Complete API documentation:
-- **Webhook Endpoints**: Event-driven webhook processing
-- **WebSocket Events**: Real-time event streaming across networks
-- **Indexed Data APIs**: The Graph and Covalent query interfaces
-- **Contract ABIs**: Smart contract interfaces for all chains
-- **TypeScript Types**: Type definitions for multi-chain integration
+Details the currently available Next.js API routes (`/api/events`, `/api/contracts/*`, etc.) and the future-facing webhook/indexer endpoints.
 
 ### 🏛️ [Architecture](./architecture/README.md)
-System architecture documentation:
-- **Event-Driven Design**: Webhook and WebSocket architecture patterns
-- **Data Layer**: Indexing services and caching strategies
-- **Performance Optimization**: Chainstack/Alchemy integration
-- **Scalability Considerations**: Performance and scaling strategies
+Explains the live direct-RPC architecture and the roadmap towards fully event-driven, multi-chain infrastructure.
 
 ---
 
 ## 🛠️ Technology Stack
 
 ### **Blockchain Layer**
-- **Networks**: Base (Ethereum L2), Hedera (Hashgraph), Polkadot (planned), Cardano (planned)
-- **Smart Contracts**: Solidity ^0.8.19, Ink! (Polkadot - planned), Plutus (Cardano - planned)
-- **API Platforms**: OnchainKit (Base), Hedera SDK, Polkadot.js (planned), Cardano SDK (planned)
-- **Security**: OpenZeppelin security patterns and monitoring
+- **Networks**: Base Sepolia (active), Hedera (prototype), Polkadot/Cardano (research only)
+- **Smart Contracts**: Solidity ^0.8.19 with Foundry; additional runtimes planned but not yet integrated.
+- **Tooling**: OnchainKit and Wagmi for Base; Hedera SDK experiments in `wallet-app/`.
+- **Security**: OpenZeppelin library usage and Foundry-based testing.
 
 ### **Event-Driven Infrastructure**
-- **Webhooks**: Coinbase Developer Platform for transaction events
-- **WebSockets**: Socket.io for real-time client updates
-- **Data Indexing**: The Graph, Covalent, SubQuery for efficient queries
-- **Caching**: Redis for high-performance data caching
-- **Node Providers**: Chainstack, Alchemy for optimized RPC access
-- **Background Processing**: Queue-based sync mechanisms
+- **Webhooks**: Planned Coinbase CDP integration (not yet deployed).
+- **WebSockets**: Socket.IO endpoint for local broadcasting; chain-level subscriptions via optional WebSocket RPC (Alchemy/Chainstack, user-provided).
+- **Data Indexing**: Currently direct RPC; The Graph and Covalent integrations tracked as future work.
+- **Caching**: In-memory rate limiting shipped; Redis wiring remains optional to configure.
+- **Background Processing**: No queue workers today; roadmap item.
 
 ### **Wallet Package**
-- **@polymathuniversata/echain-wallet**: Modular wallet library with dual blockchain support
-- **Hedera SDK**: Official SDK for Hedera network integration
-- **Wagmi v2**: React hooks for Ethereum wallet interactions
-- **RainbowKit**: Beautiful wallet connection UI components
-- **TypeScript**: Strict type checking and comprehensive type definitions
+- **@polymathuniversata/echain-wallet**: Experimental package for advanced connectors (Farcaster, Hedera multisig, etc.).
+- **Core Frontend**: Uses Wagmi v2 + RainbowKit for Base wallet UX.
+- **TypeScript**: Strict mode enforced throughout the app and wallet package.
 
 ### **Frontend Layer**
-- **Framework**: Next.js 15.5.4 with App Router and Turbopack
-- **Language**: TypeScript with strict type checking
-- **Styling**: Tailwind CSS with custom design system
-- **State Management**: TanStack Query for server state caching
-- **Real-Time**: Socket.io client for WebSocket connections
-- **Wallet Integration**: RainbowKit + Reown (WalletConnect v2)
-- **Social Auth**: Farcaster Auth Kit with MiniKit integration
+- **Framework**: Next.js 15.5.4 (App Router) with strict TypeScript.
+- **Styling**: Tailwind CSS design system.
+- **State Management**: TanStack Query orchestrating direct contract reads.
+- **Realtime Hooks**: Socket.IO helpers + `useRealtimeSubscriptions()` when a WebSocket RPC is configured.
+- **Wallet Integration**: RainbowKit + Wagmi primary flow; Coinbase OnchainKit optional.
+- **Social Auth**: Farcaster Auth Kit loaded conditionally for experiments.
 
 ### **Infrastructure**
-- **Hosting**: Vercel with edge functions and ISR
-- **Storage**: IPFS/Pinata for decentralized metadata
-- **Database**: PostgreSQL with Prisma ORM (planned)
-- **Caching**: Redis for high-performance data caching
-- **Webhooks**: Serverless webhook processing
-- **WebSockets**: Socket.io for real-time communication
-- **Monitoring**: Sentry for error tracking and performance
-- **CDN**: Vercel Edge Network for global performance
+- **Hosting**: Vercel (Next.js) + optional ancillary services.
+- **Storage**: IPFS via metadata URIs; Vercel Blob for asset storage (see `frontend/README.md`).
+- **Database**: No persistent database today; all state lives on-chain or in metadata.
+- **Caching**: Client-side caching via TanStack Query; Redis integration left to deployers.
+- **Monitoring**: Sentry hooks available but require configuration.
 
 ### **Development Tools**
 - **Testing**: Jest, React Testing Library, Foundry (Forge/Anvil)
@@ -311,65 +213,52 @@ System architecture documentation:
 
 ---
 
-### 📊 System Architecture
+### 📊 System Architecture (Current)
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Event-Driven  │    │   Smart         │
-│   (Next.js 15)  │◄──►│   Layer         │◄──►│   Contracts     │
-│                 │    │   (Webhooks)    │    │   (Multi-VM)   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   WebSocket     │    ┌─────────────────┐    │   The Graph     │    │   Chainstack    │
-│   Streaming     │    │   Redis Cache   │    │   Indexing      │    │   RPC Nodes     │
-│   (Real-time)   │    │   Layer         │    │   (Queries)      │    │   (Optimized)   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────────┐           ┌──────────────────────┐
+│ Next.js Frontend    │  direct   │ Base Sepolia         │
+│ (RainbowKit, viem)  │──────────▶│ Smart Contracts      │
+└─────────────────────┘           └──────────────────────┘
+         │                                    ▲
+         │ optional WebSocket RPC             │
+         ▼                                    │
+┌─────────────────────┐           ┌───────────┴──────────┐
+│ useRealtimeSubscriptions │◄──────│ WebSocket RPC Provider │
+└─────────────────────┘           └──────────────────────┘
 ```
 
-### Multi-Chain Data Flow
-1. **Transaction Events**: Smart contract events trigger Coinbase webhooks
-2. **Webhook Processing**: Serverless functions process and index data
-3. **WebSocket Broadcasting**: Real-time updates sent to connected clients
-4. **Cache Invalidation**: Redis cache updated with fresh data
-5. **Indexed Queries**: The Graph provides efficient data access
-6. **Client Updates**: Frontend receives real-time updates without polling
+### Planned Event-Driven Flow (Roadmap)
+1. Smart contract events → Coinbase CDP webhooks → serverless handler.
+2. Handlers persist state (Redis) and broadcast over Socket.IO.
+3. The Graph/Covalent provide indexed reads for the frontend.
+4. Client invalidates caches and refreshes data automatically.
+
+Until that pipeline lands, the app performs direct contract reads and relies on optional WebSocket RPC subscriptions for cache invalidation.
 
 ---
 
-### 📈 Performance Metrics
+### 📈 Performance Targets (Current vs. Planned)
 
-- **Transaction Speed**: <3 seconds on Base L2 (gasless transactions available)
-- **Real-Time Latency**: <100ms WebSocket event delivery
-- **Query Performance**: <50ms indexed data retrieval (vs 2-5s RPC calls)
-- **Cache Hit Rate**: >95% for frequently accessed data
-- **Webhook Processing**: <200ms end-to-end event processing
-- **Concurrent Connections**: 10,000+ WebSocket connections supported
-- **Data Freshness**: <5 seconds data synchronization
-- **API Response**: <50ms average with indexing and caching
+- **Direct RPC Reads**: Dependent on provider latency (Alchemy/Chainstack recommended).
+- **WebSocket Cache Invalidation**: Latency defined by external RPC provider.
+- **Webhook / Indexing Metrics**: Not yet applicable – tracked as acceptance criteria for future sprints.
 
 ---
 
-### 🔄 Development Workflow
+### 🔄 Development Workflow (Reality Check)
 
 ```mermaid
 graph TD
     A[Local Development] --> B[Contract Testing]
-    B --> C[Event-Driven Setup]
+    B --> C[Direct RPC Integration]
     C --> D[Testnet Deployment]
-    D --> E[Webhook Testing]
-    E --> F[WebSocket Integration]
-    F --> G[Indexing Setup]
-    G --> H[Performance Testing]
-    H --> I[Production Deployment]
-    I --> J[Multi-Chain Expansion]
-    J --> K[Polkadot Implementation]
-    K --> L[Cardano Implementation]
-    L --> M[Cross-Chain Features]
+    D --> E[Optional WS Subscriptions]
+    E --> F[Webhook + Indexing (Roadmap)]
+    F --> G[Multi-Network Expansion]
 ```
 
-**Current Phase**: ✅ Production Deployment Complete - Event-Driven Architecture Implemented
+**Current Focus**: Delivering webhook/indexer support while hardening the Base-first experience.
 
 ---
 
@@ -430,6 +319,6 @@ npm run dev
 
 *Built with ❤️ for the Web3 community across multiple blockchains*
 
-*Last Updated: October 11, 2025*
+*Last Updated: October 21, 2025*
 
 </div>

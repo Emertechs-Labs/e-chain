@@ -34,24 +34,33 @@ export type {
   IncentiveManager
 } from './typechain-types';
 
-// Contract ABIs (imported from typechain factories)
-import { EventFactory__factory } from './typechain-types/factories/contracts/core/EventFactory__factory';
-import { EventTicket__factory } from './typechain-types/factories/contracts/core/EventTicket__factory';
-import { POAPAttendance__factory } from './typechain-types/factories/contracts/modules/POAPAttendance__factory';
-import { IncentiveManager__factory } from './typechain-types/factories/contracts/modules/IncentiveManager.sol/IncentiveManager__factory';
-import { Marketplace__factory } from './typechain-types/factories/contracts/core/Marketplace__factory';
-
+// Contract ABIs (lazy-loaded to avoid dynamic require issues)
 export const CONTRACT_ABIS = {
-  EventFactory: EventFactory__factory.abi,
-  EventTicket: EventTicket__factory.abi,
-  POAPAttendance: POAPAttendance__factory.abi,
-  IncentiveManager: IncentiveManager__factory.abi,
-  Marketplace: Marketplace__factory.abi
+  get EventFactory() {
+    const { EventFactory__factory } = require('./typechain-types/factories/contracts/core/EventFactory__factory');
+    return EventFactory__factory.abi;
+  },
+  get EventTicket() {
+    const { EventTicket__factory } = require('./typechain-types/factories/contracts/core/EventTicket__factory');
+    return EventTicket__factory.abi;
+  },
+  get POAPAttendance() {
+    const { POAPAttendance__factory } = require('./typechain-types/factories/contracts/modules/POAPAttendance__factory');
+    return POAPAttendance__factory.abi;
+  },
+  get IncentiveManager() {
+    const { IncentiveManager__factory } = require('./typechain-types/factories/contracts/modules/IncentiveManager.sol/IncentiveManager__factory');
+    return IncentiveManager__factory.abi;
+  },
+  get Marketplace() {
+    const { Marketplace__factory } = require('./typechain-types/factories/contracts/core/Marketplace__factory');
+    return Marketplace__factory.abi;
+  }
 } as const;
 
 // Debug logging
 console.log('CONTRACT_ABIS loaded:', {
   EventFactory: CONTRACT_ABIS.EventFactory?.length || 0,
-  hasEventCount: CONTRACT_ABIS.EventFactory?.some(f => 'name' in f && f.name === 'eventCount'),
-  hasIsVerifiedOrganizer: CONTRACT_ABIS.EventFactory?.some(f => 'name' in f && f.name === 'isVerifiedOrganizer')
+  hasEventCount: CONTRACT_ABIS.EventFactory?.some((f: any) => 'name' in f && f.name === 'eventCount'),
+  hasIsVerifiedOrganizer: CONTRACT_ABIS.EventFactory?.some((f: any) => 'name' in f && f.name === 'isVerifiedOrganizer')
 });

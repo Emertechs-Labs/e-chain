@@ -1,13 +1,21 @@
 import { useConnect, useAccount, useDisconnect, useSwitchChain, useChainId } from 'wagmi';
 import { useState, useEffect } from 'react';
-import { config } from '@echain/wallet';
+import { getConfig } from '@polymathuniversata/echain-wallet';
 
 export const useConnectWallet = () => {
+  const [wagmiConfig, setWagmiConfig] = useState<any>(null);
+
+  useEffect(() => {
+    getConfig().then(setWagmiConfig);
+  }, []);
+
   const { connect, connectors } = useConnect({
-    config
+    config: wagmiConfig
   });
 
   const connectWallet = async () => {
+    if (!wagmiConfig) return;
+
     try {
       // Get the first available connector (usually MetaMask)
       const connector = connectors[0];
@@ -26,12 +34,20 @@ export const useConnectWallet = () => {
     }
   };
 
-  return { connectWallet };
+  return { connectWallet, isReady: !!wagmiConfig };
 };
 
 export function useWalletHelpers() {
+  const [wagmiConfig, setWagmiConfig] = useState<any>(null);
+
+  useEffect(() => {
+    getConfig().then(setWagmiConfig);
+  }, []);
+
   const { address, isConnected, isConnecting, isDisconnected } = useAccount();
-  const { connect, connectors, isPending: isConnectPending, error: connectError } = useConnect();
+  const { connect, connectors, isPending: isConnectPending, error: connectError } = useConnect({
+    config: wagmiConfig
+  });
   const { disconnect } = useDisconnect();
   const chainId = useChainId();
   const { switchChain, isPending: isSwitchPending, error: switchError } = useSwitchChain();
@@ -56,7 +72,7 @@ export function useWalletHelpers() {
   // Function to connect wallet
   const connectWallet = async () => {
     try {
-      const injected = connectors.find((c) => c.id === 'injected');
+      const injected = connectors.find((c: any) => c.id === 'injected');
       if (injected) {
         connect({ connector: injected });
       } else if (connectors.length > 0) {
@@ -121,6 +137,7 @@ export function useWalletHelpers() {
     chainId,
     connectError,
     switchError,
-    isNetworkSwitchPending: isSwitchPending
+    isNetworkSwitchPending: isSwitchPending,
+    isReady: !!wagmiConfig
   };
 };

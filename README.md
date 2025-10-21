@@ -13,17 +13,19 @@
 
 **A Web3-native event management platform built on Base with Farcaster integration, NFT tickets, POAP certificates, and gamified participation**
 
-Echain transforms traditional events into blockchain-powered experiences with NFT tickets, POAP certificates, and gamified participation. Now featuring Farcaster social authentication, interactive Frames, and cross-platform availability while maintaining wallet-first security.
+Echain transforms traditional events into blockchain-powered experiences with NFT tickets, POAP certificates, and gamified participation. Now featuring **beautiful wallet connection UI**, Farcaster social authentication, email-based wallet linking, and seamless multi-network support for Base and Hedera.
 
-## Deployed Contract Addresses (Base Sepolia)
+## 🎉 Latest Update: Enhanced Wallet Connection (October 2025)
 
-| Contract | Address | Verified Link |
-| -------- | ------- | ------------- |
-| EventFactory | `0xA97cB40548905B05A67fCD4765438aFBEA4030fc` | [View on BaseScan](https://sepolia.basescan.org/address/0xA97cB40548905B05A67fCD4765438aFBEA4030fc#code) |
-| EventTicket | `0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C` | [View on BaseScan](https://sepolia.basescan.org/address/0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C#code) |
-| POAPAttendance | `0x08344CfBfB3afB2e114A0dbABbaF40e7eB62FD33` | [View on BaseScan](https://sepolia.basescan.org/address/0x08344CfBfB3afB2e114A0dbABbaF40e7eB62FD33#code) |
-| IncentiveManager | `0x1cfDae689817B954b72512bC82f23F35B997617D` | [View on BaseScan](https://sepolia.basescan.org/address/0x1cfDae689817B954b72512bC82f23F35B997617D#code) |
-| Marketplace | `0xD061393A54784da5Fea48CC845163aBc2B11537A` | [View on BaseScan](https://sepolia.basescan.org/address/0xD061393A54784da5Fea48CC845163aBc2B11537A#code) |
+**New Features:**
+- 🎨 **Beautiful, Modern UI** - Privy-inspired design with Echain branding
+- 🟣 **Farcaster Social Login** - One-click authentication with social recovery
+- 📧 **Email Authentication** - Automatic wallet creation for Web2 users
+- 🔗 **Multi-Wallet Binding** - Link and manage multiple wallets per account
+- 🌐 **Base & Hedera Focus** - Optimized for both networks
+- 💫 **Smooth Animations** - Delightful user experience
+
+[**View Full Redesign Details →**](./docs/WALLET_UI_REDESIGN_SUMMARY.md)
 
 ## Deployed Contract Addresses (Base Sepolia)
 

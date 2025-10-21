@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAccount, useWalletClient, useChainId, useSwitchChain } from 'wagmi';
-import { defaultChain } from '@echain/wallet';
+import { defaultChain } from '@polymathuniversata/echain-wallet';
 import { CONTRACT_ADDRESSES } from '../../lib/contracts';
 import { uploadTicketMetadata } from '../../lib/ipfs';
 import { ethers } from 'ethers';

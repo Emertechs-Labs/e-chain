@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { UnifiedConnectButton } from '@echain/wallet/components';
-import { useWalletConnection } from '@echain/wallet';
+import { UnifiedConnectButton } from '@polymathuniversata/echain-wallet/components';
+import { useWalletConnection } from '@polymathuniversata/echain-wallet';
 import { ThemeToggle } from '../ThemeToggle';
 import { usePendingTransactions } from '../TransactionStatus';
 import { SignInWithBaseButton } from '../SignInWithBaseButton';

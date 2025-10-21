@@ -1,0 +1,49 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Commit message validation
+# Enforces conventional commits format: type(scope): message
+
+commit_msg_file=$1
+commit_msg=$(cat "$commit_msg_file")
+
+# Regex for conventional commits
+# Format: type(scope): message
+# Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert
+conventional_commit_regex='^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .{1,100}'
+
+# Check if commit message matches conventional commits format
+if ! echo "$commit_msg" | grep -qE "$conventional_commit_regex"; then
+  echo ""
+  echo "❌ Invalid commit message format!"
+  echo ""
+  echo "Commit message must follow conventional commits format:"
+  echo "  <type>(<scope>): <message>"
+  echo ""
+  echo "Types:"
+  echo "  feat:     A new feature"
+  echo "  fix:      A bug fix"
+  echo "  docs:     Documentation changes"
+  echo "  style:    Code style changes (formatting, etc.)"
+  echo "  refactor: Code refactoring"
+  echo "  test:     Adding or updating tests"
+  echo "  chore:    Maintenance tasks"
+  echo "  perf:     Performance improvements"
+  echo "  ci:       CI/CD changes"
+  echo "  build:    Build system changes"
+  echo "  revert:   Revert a previous commit"
+  echo ""
+  echo "Examples:"
+  echo "  feat(auth): add wallet signature verification"
+  echo "  fix(contracts): resolve reentrancy vulnerability"
+  echo "  docs: update API documentation"
+  echo "  test(marketplace): add listing cancellation tests"
+  echo ""
+  echo "Your commit message:"
+  echo "  $commit_msg"
+  echo ""
+  echo "To bypass this check, use: git commit --no-verify"
+  exit 1
+fi
+
+echo "✅ Commit message format is valid"

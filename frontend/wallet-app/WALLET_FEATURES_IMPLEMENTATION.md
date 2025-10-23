@@ -388,7 +388,7 @@ NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your-actual-project-id
 
 ### Repository
 - GitHub: `@polymathuniversata/echain-wallet`
-- npm: `@polymathuniversata/echain-wallet@1.0.1`
+- npm: `@polymathuniversata/echain-wallet@1.0.3`
 
 ### Support
 - Issues: GitHub Issues

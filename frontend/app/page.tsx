@@ -8,7 +8,9 @@ const HeroSection = dynamic(() => import('./components/sections/HeroSection').th
   loading: () => <div className="min-h-screen bg-slate-900 flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div></div>
 });
 const FeaturedEventsSection = dynamic(() => import('./components/sections/FeaturedEventsSection').then(m => m.FeaturedEventsSection));
+const StatsSection = dynamic(() => import('./components/sections/StatsSection').then(m => m.StatsSection));
 const FeaturesSection = dynamic(() => import('./components/sections/FeaturesSection').then(m => m.FeaturesSection));
+const BlockchainSection = dynamic(() => import('./components/sections/BlockchainSection').then(m => m.BlockchainSection));
 const TestimonialsSection = dynamic(() => import('./components/sections/TestimonialsSection').then(m => m.TestimonialsSection));
 const FAQSection = dynamic(() => import('./components/sections/FAQSection').then(m => m.FAQSection));
 const CTASection = dynamic(() => import('./components/sections/CTASection').then(m => m.CTASection));
@@ -51,8 +53,10 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <HeroSection />
+      <StatsSection />
       <FeaturedEventsSection />
       <FeaturesSection />
+      <BlockchainSection />
       <TestimonialsSection />
       <FAQSection />
       <CTASection />

@@ -43,7 +43,8 @@ export default function EventCard({ event }: EventCardProps) {
   return (
     <div className="bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-700 overflow-hidden hover:border-cyan-500/50 transition-all duration-300 hover:scale-[1.02]">
       {/* Event Image/Banner */}
-      <div className="h-40 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 relative">
+      <Link href={`/events/${event.id}`} className="block">
+        <div className="h-40 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 relative cursor-pointer group">
         {/* Background image from metadata if available */}
         {(event.image || event.imageUrl) && (
           <Image 
@@ -59,33 +60,36 @@ export default function EventCard({ event }: EventCardProps) {
             }}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-blue-500/20 to-purple-500/20"></div>
-        <div className="absolute top-4 left-4 flex gap-2">
-          <span className="bg-green-500/90 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-            ✓ Verified
-          </span>
-          <span className="bg-slate-800/80 text-cyan-400 px-3 py-1 rounded-full text-xs font-medium">
-            {displayCategory}
-          </span>
-          <span className="bg-slate-800/80 text-purple-400 px-3 py-1 rounded-full text-xs font-medium">
-            Limited NFT
-          </span>
-        </div>
-        <div className="absolute top-4 right-4">
-          <span className="bg-cyan-500 text-slate-900 px-3 py-1 rounded-full text-sm font-bold">
-            {ticketPriceInEth} ETH
-          </span>
-        </div>
-        {/* Default emoji icon when no image available */}
-        {!(event.image || event.imageUrl) && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-6xl">🎪</div>
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-blue-500/20 to-purple-500/20 group-hover:from-cyan-500/30 group-hover:via-blue-500/30 group-hover:to-purple-500/30 transition-all duration-300"></div>
+          <div className="absolute top-4 left-4 flex gap-2 z-10 pointer-events-none">
+            <span className="bg-green-500/90 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+              ✓ Verified
+            </span>
+            <span className="bg-slate-800/80 text-cyan-400 px-3 py-1 rounded-full text-xs font-medium">
+              {displayCategory}
+            </span>
+            <span className="bg-slate-800/80 text-purple-400 px-3 py-1 rounded-full text-xs font-medium">
+              Limited NFT
+            </span>
           </div>
-        )}
-      </div>
+          <div className="absolute top-4 right-4 z-10 pointer-events-none">
+            <span className="bg-cyan-500 text-slate-900 px-3 py-1 rounded-full text-sm font-bold">
+              {ticketPriceInEth} ETH
+            </span>
+          </div>
+          {/* Default emoji icon when no image available */}
+          {!(event.image || event.imageUrl) && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-6xl group-hover:scale-110 transition-transform duration-300">🎪</div>
+            </div>
+          )}
+        </div>
+      </Link>
 
       <div className="p-5">
-        <h3 className="text-lg font-bold text-white mb-2">{event.name}</h3>
+        <Link href={`/events/${event.id}`}>
+          <h3 className="text-lg font-bold text-white mb-2 hover:text-cyan-400 transition-colors cursor-pointer">{event.name}</h3>
+        </Link>
         <p className="text-gray-400 text-sm mb-3 line-clamp-2">
           {displayDescription}
         </p>

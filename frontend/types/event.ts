@@ -22,6 +22,10 @@ export interface Event {
   // Formatted dates from metadata
   formattedStartDate?: string;
   formattedEndDate?: string;
+  // Additional fields for enhanced events
+  tags?: string[];
+  isLive?: boolean;
+  attendees?: number;
 }
 
 export interface Ticket {

@@ -5,7 +5,6 @@ import { WagmiProvider } from 'wagmi';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { OnchainKitProvider } from '@coinbase/onchainkit';
 import { base } from 'wagmi/chains';
-import { getConfig, defaultChain } from '@polymathuniversata/echain-wallet';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '../lib/theme-provider';
 import { useState, useEffect } from 'react';
@@ -56,15 +55,35 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }));
 
   const [wagmiConfig, setWagmiConfig] = useState<any>(null);
+  const [mounted, setMounted] = useState(false);
+  const [defaultChainValue, setDefaultChainValue] = useState(base);
 
-  // Load wagmi config on client side
+  // Load wagmi config on client side only
   useEffect(() => {
-    getConfig().then(setWagmiConfig);
+    setMounted(true);
+    // Delay config loading to ensure we're on client side
+    const loadConfig = async () => {
+      try {
+        // Only load config if we're on the client side
+        if (typeof window !== 'undefined') {
+          const walletModule = await import('@polymathuniversata/echain-wallet');
+          const config = await walletModule.getConfig();
+          setWagmiConfig(config);
+          setDefaultChainValue(walletModule.defaultChain);
+        }
+      } catch (error) {
+        console.warn('Failed to load wallet config:', error);
+        // Fallback to a basic config if SDK fails
+        setWagmiConfig(null);
+      }
+    };
+    
+    loadConfig();
   }, []);
 
   const ProviderContent = (
     <ThemeProvider defaultTheme="dark" storageKey="echain-theme">
-      {wagmiConfig ? (
+      {wagmiConfig && mounted ? (
         <WagmiProvider config={wagmiConfig}>
           <QueryClientProvider client={queryClient}>
           <DynamicOnchainKitProvider
@@ -76,7 +95,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 appName: 'Echain Event Ticketing',
                 learnMoreUrl: 'http://localhost:3000',
               }}
-              initialChain={defaultChain}
+              initialChain={mounted ? defaultChainValue : base}
               showRecentTransactions={true}
             >
               {children}

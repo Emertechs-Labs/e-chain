@@ -138,6 +138,15 @@ const nextConfig = {
       new webpack.DefinePlugin({
         'process.env.NODE_DEBUG': JSON.stringify(process.env.NODE_DEBUG || ''),
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+        // Polyfill browser globals for SSR
+        ...(isServer ? {
+          'global.HTMLElement': 'class HTMLElement {}',
+          'global.HTMLDivElement': 'class HTMLDivElement {}',
+          'global.HTMLButtonElement': 'class HTMLButtonElement {}',
+          'global.HTMLInputElement': 'class HTMLInputElement {}',
+          'global.window': '{}',
+          'global.document': '{ createElement: () => ({}), body: {}, head: {} }',
+        } : {}),
       })
     );
     

@@ -20,13 +20,6 @@ import Link from 'next/link';
 import type { HederaNetwork } from '@polymathuniversata/echain-wallet';
 import { toast, Toaster } from 'sonner';
 
-type TokenBalance = {
-  tokenId: string;
-  balance: number;
-  symbol: string;
-  name?: string;
-};
-
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [showCreateTx, setShowCreateTx] = useState(false);
@@ -168,7 +161,7 @@ export default function Dashboard() {
                 accountId={accountId}
                 autoRefresh={true}
                 refreshInterval={10000}
-                onBalanceUpdate={(balance: number, tokens: TokenBalance[]) => {
+                onBalanceUpdate={(balance: number, tokens: any) => {
                   console.log('Balance updated:', balance, tokens);
                 }}
               />

@@ -20,6 +20,7 @@ import { ModernButton } from '../../components/ui/ModernButton';
 import { ModernCard } from '../../components/ui/ModernCard';
 import { motion } from 'framer-motion';
 import { isMockEvent } from '../../../lib/mockEvents';
+import { EventLocationMap } from '../../components/maps/EventLocationMap';
 
 const EventDetailPage: React.FC = () => {
   const params = useParams();
@@ -410,6 +411,13 @@ const EventDetailPage: React.FC = () => {
               <ModernCard variant="glass" className="p-6">
                 <h2 className="text-xl font-bold text-white mb-4">Registration</h2>
                 <p className="text-slate-400">{eventDetails.registration}</p>
+              </ModernCard>
+            )}
+
+            {/* Event Location Map */}
+            {event.venue && (
+              <ModernCard variant="glass" className="p-6">
+                <EventLocationMap venue={event.venue} />
               </ModernCard>
             )}
           </div>

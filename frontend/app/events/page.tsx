@@ -69,9 +69,22 @@ const EventsPage: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-white mb-4">All Events</h1>
-            <p className="text-gray-400 max-w-2xl mx-auto">
+            <p className="text-gray-400 max-w-2xl mx-auto mb-6">
               Discover blockchain-powered events in Kenya and beyond. Join hackathons, workshops, conferences, and networking events.
             </p>
+            
+            {/* Create Event Button */}
+            <div className="flex justify-center">
+              <Link 
+                href="/events/create"
+                className="inline-block bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-3 rounded-lg font-bold hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 shadow-lg hover:shadow-xl hover:shadow-cyan-500/50 hover:scale-105 transform"
+              >
+                <span className="flex items-center gap-2">
+                  <span>🎯</span>
+                  <span>Create Event</span>
+                </span>
+              </Link>
+            </div>
           </div>
             
           {/* Filters Section */}

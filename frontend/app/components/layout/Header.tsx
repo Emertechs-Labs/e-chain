@@ -110,16 +110,16 @@ export default function Header() {
             ) : (
               // Unconnected user navigation
               <>
-                <Link href="#hero" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
+                <Link href="/" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
                   Home
                 </Link>
-                <Link href="#events" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
+                <Link href="/#events" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
                   Events
                 </Link>
-                <Link href="#features" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
+                <Link href="/#features" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
                   Features
                 </Link>
-                <Link href="#faq" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
+                <Link href="/#faq" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
                   FAQ
                 </Link>
                 <Link href="/marketplace" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
@@ -253,21 +253,28 @@ export default function Header() {
                 // Mobile unconnected navigation
                 <>
                   <Link
-                    href="#events"
+                    href="/"
+                    className="text-muted-foreground hover:text-foreground block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Home
+                  </Link>
+                  <Link
+                    href="/#events"
                     className="text-muted-foreground hover:text-foreground block px-3 py-2 rounded-md text-base font-medium transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Events
                   </Link>
                   <Link
-                    href="#features"
+                    href="/#features"
                     className="text-muted-foreground hover:text-foreground block px-3 py-2 rounded-md text-base font-medium transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Features
                   </Link>
                   <Link
-                    href="#faq"
+                    href="/#faq"
                     className="text-muted-foreground hover:text-foreground block px-3 py-2 rounded-md text-base font-medium transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >

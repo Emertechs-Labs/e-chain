@@ -7,6 +7,7 @@ import { defaultChain } from '../lib/wagmi';
 import { Toaster } from 'sonner';
 import { config } from '../lib/wagmi';
 import { ThemeProvider } from '../lib/theme-provider';
+import { GoogleMapsProvider } from './components/maps/GoogleMapsProvider';
 import { useState } from 'react';
 import '@rainbow-me/rainbowkit/styles.css';
 
@@ -33,8 +34,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
             initialChain={defaultChain}
             showRecentTransactions={true}
           >
-            {children}
-            <Toaster position="top-right" />
+            <GoogleMapsProvider>
+              {children}
+              <Toaster position="top-right" />
+            </GoogleMapsProvider>
           </RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>

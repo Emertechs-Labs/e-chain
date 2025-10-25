@@ -69,6 +69,15 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 
 ## 📋 Documentation Structure
 
+### 🔍 [Audit Results](./AUDIT_SUMMARY.md)
+Comprehensive codebase audit results and beta release assessment:
+- **Security Audit**: All critical vulnerabilities resolved
+- **Code Quality**: Modern architecture with excellent patterns
+- **Testing Coverage**: Comprehensive test suite with 85%+ coverage
+- **Performance**: Optimized for production use
+- **Documentation**: Complete user and developer guides
+- **Beta Readiness**: Approved for beta release with high confidence
+
 ### 🏗️ [Smart Contracts](./contracts/README.md)
 Complete smart contract architecture and deployment guide for:
 - **EventFactory**: Factory pattern for deploying event-specific contracts
@@ -130,6 +139,16 @@ System architecture documentation:
 - **Database Schema**: Data models and relationships
 - **Integration Patterns**: Third-party service integrations
 - **Scalability Considerations**: Performance and scaling strategies
+
+### 🛠️ [Development Guide](./DEVELOPMENT_GUIDE.md)
+Comprehensive development guide for contributors:
+- **Quick Start**: Setup and installation instructions
+- **Code Standards**: Coding conventions and best practices
+- **Testing Guidelines**: Testing strategies and coverage requirements
+- **Security Best Practices**: Security patterns and vulnerability prevention
+- **Performance Optimization**: Performance tuning and optimization strategies
+- **Deployment Process**: Development, staging, and production deployment
+- **Troubleshooting**: Common issues and debugging techniques
 
 ---
 

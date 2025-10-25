@@ -68,11 +68,11 @@ Deliver a production-ready beta on Base Sepolia with confidence in security, per
 ## 4. Milestones & Timeline
 | Date | Milestone | Exit Criteria |
 |------|-----------|---------------|
-| 2025-11-03 | War Room Kickoff | Cross-team plan signed off; tracking in TASKS/ISSUES per team. |
-| 2025-11-10 | Security/App Foundations | Treasury fix PR merged, API service scaffold deployed to staging, QA noise triaged. |
-| 2025-11-14 | UX & Support Readiness | Reduced-motion updates live, CTA adjustments deployed, support playbook drafted. |
-| 2025-11-20 | Beta Candidate Build | Playwright suite passing in CI, observability metrics active, docs updated. |
-| 2025-11-25 | Beta Launch Go/No-Go | Checklist review with leadership; beta invite wave prepared. |
+| 2025-11-26 | War Room Kickoff | Cross-team plan signed off; tracking in TASKS/ISSUES per team. |
+| 2025-12-03 | Security/App Foundations | Treasury fix PR merged, API service scaffold deployed to staging, QA noise triaged. |
+| 2025-12-10 | UX & Support Readiness | Reduced-motion updates live, CTA adjustments deployed, support playbook drafted. |
+| 2025-12-17 | Beta Candidate Build | Playwright suite passing in CI, observability metrics active, docs updated. |
+| 2025-12-22 | Beta Launch Go/No-Go | Checklist review with leadership; beta invite wave prepared. |
 
 ## 5. Success Metrics
 - **Security:** No medium-or-higher contract issues open; timelock workflow enforced.

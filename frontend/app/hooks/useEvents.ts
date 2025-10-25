@@ -95,31 +95,25 @@ const multicallContractReads = async (contractCalls: any[]): Promise<any[]> => {
  */
 export const discoverEventsFromBlockchain = async (): Promise<Event[]> => {
   const cacheKey = 'blockchain-events';
-  
+
   // Check cache first
   const cached = getCachedData<Event[]>(cacheKey);
   if (cached) {
-    console.log('[discoverEventsFromBlockchain] Returning cached events');
     return cached;
   }
 
   try {
-    console.log('[discoverEventsFromBlockchain] Discovering events from blockchain...');
-
     // Get total event count with retry
-    const eventCount = await retryWithBackoff(async () => 
+    const eventCount = await retryWithBackoff(async () =>
       await readContract('EventFactory', 'eventCount', [])
     ) as bigint;
-    
+
     const totalEvents = Number(eventCount);
 
     if (totalEvents === 0) {
-      console.log('[discoverEventsFromBlockchain] No events found on blockchain');
       setCachedData(cacheKey, [], CACHE_TTL_EVENTS);
       return [];
     }
-
-    console.log(`[discoverEventsFromBlockchain] Found ${totalEvents} events on blockchain`);
 
     // Prepare batch calls for all events
     const eventCalls = [];
@@ -134,9 +128,9 @@ export const discoverEventsFromBlockchain = async (): Promise<Event[]> => {
 
     // Execute batch with optimized concurrency
     const batchResults = await multicallContractReads(eventCalls);
-    
+
     const events: Event[] = [];
-    
+
     batchResults.forEach((result) => {
       if (result.success && result.result && result.result[11]) { // isActive check
         const eventData = result.result;
@@ -162,22 +156,17 @@ export const discoverEventsFromBlockchain = async (): Promise<Event[]> => {
       }
     });
 
-    console.log(`[discoverEventsFromBlockchain] Successfully discovered ${events.length} active events`);
-    
     // Cache the results
     setCachedData(cacheKey, events, CACHE_TTL_EVENTS);
     return events;
-    
+
   } catch (error) {
-    console.error('[discoverEventsFromBlockchain] Failed to discover events:', String(error));
-    
     // Return cached data if available, even if expired
     const staleCache = eventCache.get(cacheKey);
     if (staleCache) {
-      console.log('[discoverEventsFromBlockchain] Returning stale cached data due to error');
       return staleCache.data as Event[];
     }
-    
+
     return [];
   }
 };
@@ -186,24 +175,18 @@ export const useEvents = () => {
   return useQuery({
     queryKey: ['events'],
     queryFn: async (): Promise<Event[]> => {
-      console.log('[useEvents] Starting optimized event discovery...');
-
       try {
         // Get events with caching and retry logic
         const blockchainEvents = await discoverEventsFromBlockchain();
 
         if (blockchainEvents.length > 0) {
-          console.log(`[useEvents] Found ${blockchainEvents.length} events on blockchain`);
-
           // Enrich with metadata
           const enrichedEvents = await enrichEventsWithMetadata(blockchainEvents);
           return enrichedEvents;
         }
 
-        console.warn('[useEvents] No events found on blockchain');
         return [];
       } catch (error) {
-        console.error('[useEvents] Error in event discovery:', String(error));
         return [];
       }
     },
@@ -235,7 +218,7 @@ export const useEventsByOrganizer = (organizer?: string) => {
       if (!targetOrganizer) return [];
 
       const cacheKey = `organizer-events-${targetOrganizer.toLowerCase()}`;
-      
+
       // Check cache first
       const cached = getCachedData<Event[]>(cacheKey);
       if (cached) {
@@ -245,30 +228,26 @@ export const useEventsByOrganizer = (organizer?: string) => {
       try {
         // Use cached blockchain events to avoid redundant calls
         const allEvents = await discoverEventsFromBlockchain();
-        
+
         // Filter events by organizer
         const organizerEvents = allEvents.filter((event: Event) =>
           event.organizer.toLowerCase() === targetOrganizer.toLowerCase()
         );
 
-        console.log('[useEventsByOrganizer] Found events on blockchain:', organizerEvents.length);
-        
         // Enrich with metadata
         const enrichedEvents = await enrichEventsWithMetadata(organizerEvents);
-        
+
         // Cache the results
         setCachedData(cacheKey, enrichedEvents, CACHE_TTL_EVENTS);
-        
+
         return enrichedEvents;
       } catch (error) {
-        console.error('Error fetching organizer events:', String(error));
-        
         // Return stale cache if available
         const staleCache = eventCache.get(cacheKey);
         if (staleCache) {
           return staleCache.data as Event[];
         }
-        
+
         return [];
       }
     },

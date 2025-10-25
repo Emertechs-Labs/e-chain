@@ -80,19 +80,19 @@ POST_QA_COMMANDS=(
 # ===========================================
 
 # Development environment
-if [ "$NODE_ENV" = "development" ]; then
+if [ "${NODE_ENV:-}" = "development" ]; then
     ENABLE_PERFORMANCE_CHECKS=false
     TIMEOUT_TEST=300
 fi
 
 # CI/CD environment
-if [ -n "$CI" ] || [ -n "$CONTINUOUS_INTEGRATION" ]; then
+if [ -n "${CI:-}" ] || [ -n "${CONTINUOUS_INTEGRATION:-}" ]; then
     ENABLE_DOC_UPDATES=false  # Docs updated separately in CI
-    SLACK_WEBHOOK_URL="$SLACK_WEBHOOK_CI"
+    SLACK_WEBHOOK_URL="${SLACK_WEBHOOK_CI:-}"
 fi
 
 # Production environment
-if [ "$NODE_ENV" = "production" ]; then
+if [ "${NODE_ENV:-}" = "production" ]; then
     FAIL_ON_SECURITY_VULNERABILITIES=true
     ENABLE_PERFORMANCE_CHECKS=true
 fi

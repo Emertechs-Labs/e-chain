@@ -4,81 +4,180 @@ import { readContract } from '../../lib/contract-wrapper';
 import { Event } from '../../types/event';
 import { enrichEventsWithMetadata, enrichEventWithMetadata } from '../../lib/metadata';
 import { formatEther } from 'viem';
+import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from '../../lib/contracts';
 
+// Cache layer for events with TTL
+const eventCache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+const CACHE_TTL_EVENTS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_METRICS = 2 * 60 * 1000; // 2 minutes
+const MAX_RETRIES = 3;
+const RETRY_DELAY_BASE = 1000; // 1 second base delay
+
+// Enhanced caching utilities
+const getCachedData = <T>(key: string): T | null => {
+  const cached = eventCache.get(key);
+  if (cached && Date.now() - cached.timestamp < cached.ttl) {
+    console.log(`[Cache] Hit for key: ${key}`);
+    return cached.data as T;
+  }
+  if (cached) {
+    console.log(`[Cache] Expired for key: ${key}`);
+    eventCache.delete(key);
+  }
+  return null;
+};
+
+const setCachedData = <T>(key: string, data: T, ttl: number = CACHE_TTL_EVENTS): void => {
+  eventCache.set(key, { data, timestamp: Date.now(), ttl });
+  console.log(`[Cache] Set for key: ${key}, TTL: ${ttl}ms`);
+};
+
+// Exponential backoff retry utility
+const retryWithBackoff = async <T>(
+  fn: () => Promise<T>,
+  retries: number = MAX_RETRIES,
+  delay: number = RETRY_DELAY_BASE
+): Promise<T> => {
+  try {
+    return await fn();
+  } catch (error) {
+    if (retries > 0) {
+      console.log(`[Retry] Attempt failed, retrying in ${delay}ms. Retries left: ${retries - 1}`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return retryWithBackoff(fn, retries - 1, delay * 2);
+    }
+    throw error;
+  }
+};
+
+// Optimized multicall for batch contract reads
+const multicallContractReads = async (contractCalls: any[]): Promise<any[]> => {
+  try {
+    console.log(`[Multicall] Batching ${contractCalls.length} contract reads...`);
+    
+    // For now, we'll implement batching with controlled concurrency
+    const batchSize = 5; // Reduce batch size to avoid overwhelming RPC
+    const results: any[] = [];
+    
+    for (let i = 0; i < contractCalls.length; i += batchSize) {
+      const batch = contractCalls.slice(i, i + batchSize);
+      
+      const batchPromises = batch.map(async (call, index) => {
+        try {
+          const result = await retryWithBackoff(() => 
+            readContract(call.contract || 'EventFactory', call.functionName, call.args || [])
+          );
+          return { success: true, result, index: i + index };
+        } catch (error) {
+          console.warn(`[Multicall] Failed call ${i + index}:`, error);
+          return { success: false, error, index: i + index };
+        }
+      });
+      
+      const batchResults = await Promise.all(batchPromises);
+      results.push(...batchResults);
+      
+      // Small delay between batches
+      if (i + batchSize < contractCalls.length) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+    
+    return results;
+  } catch (error) {
+    console.error('[Multicall] Batch operation failed:', error);
+    throw error;
+  }
+};
 /**
- * Discover events by monitoring EventCreated events from blockchain
- * This provides transaction-based accuracy instead of database reliance
+ * Optimized event discovery with caching and batch processing
+ * This provides transaction-based accuracy with improved performance
  */
 export const discoverEventsFromBlockchain = async (): Promise<Event[]> => {
+  const cacheKey = 'blockchain-events';
+  
+  // Check cache first
+  const cached = getCachedData<Event[]>(cacheKey);
+  if (cached) {
+    console.log('[discoverEventsFromBlockchain] Returning cached events');
+    return cached;
+  }
+
   try {
     console.log('[discoverEventsFromBlockchain] Discovering events from blockchain...');
 
-    // Get total event count from contract
-    const eventCount = await readContract('EventFactory', 'eventCount', []) as bigint;
+    // Get total event count with retry
+    const eventCount = await retryWithBackoff(async () => 
+      await readContract('EventFactory', 'eventCount', [])
+    ) as bigint;
+    
     const totalEvents = Number(eventCount);
 
     if (totalEvents === 0) {
       console.log('[discoverEventsFromBlockchain] No events found on blockchain');
+      setCachedData(cacheKey, [], CACHE_TTL_EVENTS);
       return [];
     }
 
     console.log(`[discoverEventsFromBlockchain] Found ${totalEvents} events on blockchain`);
 
-    const events: Event[] = [];
-
-    // Fetch events in batches to avoid overwhelming the RPC
-    const batchSize = 10;
-    for (let i = 1; i <= totalEvents; i += batchSize) {
-      const batchPromises = [];
-      const endIndex = Math.min(i + batchSize - 1, totalEvents);
-
-      for (let eventId = i; eventId <= endIndex; eventId++) {
-        batchPromises.push(
-          readContract('EventFactory', 'events', [BigInt(eventId)])
-            .then((eventData: any) => {
-              if (eventData && eventData[11]) { // isActive is at index 11
-                return {
-                  id: Number(eventData[0]), // id
-                  name: eventData[5], // name
-                  organizer: eventData[1], // organizer
-                  ticketContract: eventData[2], // ticketContract
-                  poapContract: eventData[3] || undefined, // poapContract
-                  incentiveContract: eventData[4] || undefined, // incentiveContract
-                  metadataURI: eventData[6], // metadataURI
-                  ticketPrice: BigInt(eventData[7]), // ticketPrice
-                  maxTickets: Number(eventData[8]), // maxTickets
-                  startTime: Number(eventData[9]), // startTime
-                  endTime: Number(eventData[10]), // endTime
-                  isActive: eventData[11], // isActive
-                  createdAt: Number(eventData[12]), // createdAt
-                  description: '',
-                  venue: '',
-                  category: 'General'
-                };
-              }
-              return null;
-            })
-            .catch((error) => {
-              console.warn(`[discoverEventsFromBlockchain] Failed to fetch event ${eventId}:`, error?.message || String(error));
-              return null;
-            })
-        );
-      }
-
-      const batchResults = await Promise.all(batchPromises);
-      const validEvents = batchResults.filter(e => e !== null) as Event[];
-      events.push(...validEvents);
-
-      // Small delay between batches to be respectful to RPC
-      if (endIndex < totalEvents) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
+    // Prepare batch calls for all events
+    const eventCalls = [];
+    for (let eventId = 1; eventId <= totalEvents; eventId++) {
+      eventCalls.push({
+        contract: 'EventFactory',
+        functionName: 'events',
+        args: [BigInt(eventId)],
+        eventId
+      });
     }
 
+    // Execute batch with optimized concurrency
+    const batchResults = await multicallContractReads(eventCalls);
+    
+    const events: Event[] = [];
+    
+    batchResults.forEach((result) => {
+      if (result.success && result.result && result.result[11]) { // isActive check
+        const eventData = result.result;
+        const event: Event = {
+          id: Number(eventData[0]), // id
+          name: eventData[5], // name
+          organizer: eventData[1], // organizer
+          ticketContract: eventData[2], // ticketContract
+          poapContract: eventData[3] || undefined, // poapContract
+          incentiveContract: eventData[4] || undefined, // incentiveContract
+          metadataURI: eventData[6], // metadataURI
+          ticketPrice: BigInt(eventData[7]), // ticketPrice
+          maxTickets: Number(eventData[8]), // maxTickets
+          startTime: Number(eventData[9]), // startTime
+          endTime: Number(eventData[10]), // endTime
+          isActive: eventData[11], // isActive
+          createdAt: Number(eventData[12]), // createdAt
+          description: '',
+          venue: '',
+          category: 'General'
+        };
+        events.push(event);
+      }
+    });
+
     console.log(`[discoverEventsFromBlockchain] Successfully discovered ${events.length} active events`);
+    
+    // Cache the results
+    setCachedData(cacheKey, events, CACHE_TTL_EVENTS);
     return events;
+    
   } catch (error) {
     console.error('[discoverEventsFromBlockchain] Failed to discover events:', String(error));
+    
+    // Return cached data if available, even if expired
+    const staleCache = eventCache.get(cacheKey);
+    if (staleCache) {
+      console.log('[discoverEventsFromBlockchain] Returning stale cached data due to error');
+      return staleCache.data as Event[];
+    }
+    
     return [];
   }
 };
@@ -87,11 +186,10 @@ export const useEvents = () => {
   return useQuery({
     queryKey: ['events'],
     queryFn: async (): Promise<Event[]> => {
-      console.log('[useEvents] Starting blockchain-based event discovery...');
+      console.log('[useEvents] Starting optimized event discovery...');
 
       try {
-        // Get events directly from blockchain (most accurate)
-        console.log('[useEvents] Discovering events from blockchain...');
+        // Get events with caching and retry logic
         const blockchainEvents = await discoverEventsFromBlockchain();
 
         if (blockchainEvents.length > 0) {
@@ -109,8 +207,21 @@ export const useEvents = () => {
         return [];
       }
     },
-    // Set stale time to prevent excessive refetching
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    // Increased stale time with optimized refetching
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    // Enhanced retry logic
+    retry: (failureCount, error) => {
+      if (failureCount < 3) {
+        console.log(`[useEvents] Retrying after failure ${failureCount + 1}/3`);
+        return true;
+      }
+      return false;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    // Enable background refetching but reduce frequency
+    refetchOnWindowFocus: false,
+    refetchInterval: 15 * 60 * 1000, // Refetch every 15 minutes in background
   });
 };
 
@@ -123,61 +234,49 @@ export const useEventsByOrganizer = (organizer?: string) => {
     queryFn: async (): Promise<Event[]> => {
       if (!targetOrganizer) return [];
 
+      const cacheKey = `organizer-events-${targetOrganizer.toLowerCase()}`;
+      
+      // Check cache first
+      const cached = getCachedData<Event[]>(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
       try {
-        // Get events directly from blockchain
-        console.log('[useEventsByOrganizer] Discovering events from blockchain...');
-        const eventCount = await readContract(
-          'EventFactory',
-          'eventCount',
-          []
-        ) as bigint;
+        // Use cached blockchain events to avoid redundant calls
+        const allEvents = await discoverEventsFromBlockchain();
+        
+        // Filter events by organizer
+        const organizerEvents = allEvents.filter((event: Event) =>
+          event.organizer.toLowerCase() === targetOrganizer.toLowerCase()
+        );
 
-        const events: Event[] = [];
-        for (let eventId = 1; eventId <= Number(eventCount); eventId++) {
-          try {
-            const eventData = await readContract(
-              'EventFactory',
-              'events',
-              [BigInt(eventId)]
-            ) as any;
-
-            if (eventData[11] && eventData[1].toLowerCase() === targetOrganizer.toLowerCase()) { // isActive at index 11, organizer at index 1
-              const event: Event = {
-                id: Number(eventData[0]), // id
-                name: eventData[5], // name
-                organizer: eventData[1], // organizer
-                ticketContract: eventData[2], // ticketContract
-                poapContract: eventData[3] || undefined, // poapContract
-                incentiveContract: eventData[4] || undefined, // incentiveContract
-                metadataURI: eventData[6], // metadataURI
-                ticketPrice: BigInt(eventData[7]), // ticketPrice
-                maxTickets: Number(eventData[8]), // maxTickets
-                startTime: Number(eventData[9]), // startTime
-                endTime: Number(eventData[10]), // endTime
-                isActive: eventData[11], // isActive
-                createdAt: Number(eventData[12]), // createdAt
-                description: '',
-                venue: '',
-                category: 'General'
-              };
-              events.push(event);
-            }
-          } catch (error) {
-            console.warn(`Failed to fetch event ${eventId}:`, String(error));
-          }
-        }
-
-        console.log('[useEventsByOrganizer] Found events on blockchain:', events.length);
+        console.log('[useEventsByOrganizer] Found events on blockchain:', organizerEvents.length);
+        
         // Enrich with metadata
-        const enrichedEvents = await enrichEventsWithMetadata(events);
+        const enrichedEvents = await enrichEventsWithMetadata(organizerEvents);
+        
+        // Cache the results
+        setCachedData(cacheKey, enrichedEvents, CACHE_TTL_EVENTS);
+        
         return enrichedEvents;
       } catch (error) {
         console.error('Error fetching organizer events:', String(error));
+        
+        // Return stale cache if available
+        const staleCache = eventCache.get(cacheKey);
+        if (staleCache) {
+          return staleCache.data as Event[];
+        }
+        
         return [];
       }
     },
     enabled: !!targetOrganizer,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 8 * 60 * 1000, // 8 minutes
+    gcTime: 20 * 60 * 1000, // 20 minutes
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 10000),
   });
 };
 
@@ -187,26 +286,28 @@ export const useEvent = (eventId: number) => {
     queryFn: async (): Promise<Event | null> => {
       if (!eventId) return null;
 
+      const cacheKey = `single-event-${eventId}`;
+      
+      // Check cache first
+      const cached = getCachedData<Event>(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
       try {
-        // Get event directly from blockchain
+        // Get event with optimized retry logic
         console.log('[useEvent] Fetching event from blockchain:', eventId);
-        const eventCount = await readContract(
-          'EventFactory',
-          'eventCount',
-          []
-        ) as bigint;
+        
+        const [eventCount, eventData] = await Promise.all([
+          retryWithBackoff(() => readContract('EventFactory', 'eventCount', [])),
+          retryWithBackoff(() => readContract('EventFactory', 'events', [BigInt(eventId)]))
+        ]);
 
         // Validate eventId
         if (Number(eventId) <= 0 || Number(eventId) > Number(eventCount)) {
           console.warn(`[useEvent] Invalid event ID ${eventId}, eventCount: ${Number(eventCount)}`);
           return null;
         }
-
-        const eventData = await readContract(
-          'EventFactory',
-          'events',
-          [BigInt(eventId)]
-        ) as any;
 
         // Convert contract data to Event interface
         const event: Event = {
@@ -229,20 +330,35 @@ export const useEvent = (eventId: number) => {
         };
 
         console.log('[useEvent] Found event on blockchain:', event.name);
+        
         // Enrich with metadata
         const enrichedEvent = await enrichEventWithMetadata(event);
+        
+        // Cache the result
+        setCachedData(cacheKey, enrichedEvent, CACHE_TTL_EVENTS);
+        
         return enrichedEvent;
       } catch (error) {
         console.error('Error fetching event:', String(error));
+        
+        // Return stale cache if available
+        const staleCache = eventCache.get(cacheKey);
+        if (staleCache) {
+          return staleCache.data as Event;
+        }
+        
         return null;
       }
     },
     enabled: !!eventId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 8 * 60 * 1000, // 8 minutes
+    gcTime: 20 * 60 * 1000, // 20 minutes
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1500 * 2 ** attemptIndex, 20000),
   });
 };
 
-// Hook to get aggregated metrics for all events by an organizer
+// Hook to get aggregated metrics for all events by an organizer with optimized performance
 export const useOrganizerMetrics = (organizer?: string) => {
   const { address } = useAccount();
   const targetOrganizer = organizer || address;
@@ -259,69 +375,92 @@ export const useOrganizerMetrics = (organizer?: string) => {
         };
       }
 
+      const cacheKey = `metrics-${targetOrganizer.toLowerCase()}`;
+      
+      // Check cache first
+      const cached = getCachedData<any>(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
       try {
-        // Get events and aggregate metrics from blockchain
-        console.log('[useOrganizerMetrics] Discovering events from blockchain for metrics...');
-        const events = await discoverEventsFromBlockchain();
-        const organizerEvents = events.filter((event: Event) =>
+        // Use cached events to avoid redundant blockchain calls
+        console.log('[useOrganizerMetrics] Getting metrics using cached events...');
+        const allEvents = await discoverEventsFromBlockchain();
+        const organizerEvents = allEvents.filter((event: Event) =>
           event.organizer.toLowerCase() === targetOrganizer.toLowerCase()
         );
 
         if (organizerEvents.length === 0) {
-          return {
+          const emptyMetrics = {
             totalEvents: 0,
             totalTicketsSold: 0,
             totalRevenue: '0',
             totalPOAPClaims: 0
           };
+          setCachedData(cacheKey, emptyMetrics, CACHE_TTL_METRICS);
+          return emptyMetrics;
         }
 
-        // Aggregate metrics from blockchain
+        // Batch ticket contract reads for better performance
+        const ticketCalls = organizerEvents
+          .filter(event => event.ticketContract)
+          .map(event => ({
+            contract: event.ticketContract,
+            functionName: 'totalSold',
+            args: [],
+            eventId: event.id
+          }));
+
         let totalTicketsSold = 0;
         let totalRevenue = 0;
         let totalPOAPClaims = 0;
 
-        for (const event of organizerEvents) {
-          try {
-            if (event.ticketContract) {
-              // Get sold tickets from contract
-              const soldTickets = await readContract(
-                event.ticketContract as `0x${string}`,
-                'totalSold',
-                []
-              );
-
-              const soldTicketsNum = Number(soldTickets);
+        if (ticketCalls.length > 0) {
+          console.log(`[useOrganizerMetrics] Batching ${ticketCalls.length} ticket contract reads...`);
+          
+          const batchResults = await multicallContractReads(ticketCalls);
+          
+          batchResults.forEach((result, index) => {
+            if (result.success) {
+              const soldTicketsNum = Number(result.result);
               totalTicketsSold += soldTicketsNum;
 
-              // Calculate revenue
-              const ticketPrice = Number(formatEther(event.ticketPrice));
-              totalRevenue += soldTicketsNum * ticketPrice;
-
-              // Estimate POAP claims (70% claim rate)
-              totalPOAPClaims += Math.floor(soldTicketsNum * 0.7);
+              // Find corresponding event for revenue calculation
+              const event = organizerEvents.find(e => e.ticketContract === ticketCalls[index]?.contract);
+              if (event) {
+                const ticketPrice = Number(formatEther(event.ticketPrice));
+                totalRevenue += soldTicketsNum * ticketPrice;
+                
+                // Estimate POAP claims (70% claim rate)
+                totalPOAPClaims += Math.floor(soldTicketsNum * 0.7);
+              }
             }
-          } catch (error) {
-            console.warn(`Failed to fetch metrics for event ${event.id}:`, String(error));
-            // Continue with other events
-          }
+          });
         }
 
-        console.log('[useOrganizerMetrics] Blockchain-based metrics:', {
-          totalEvents: organizerEvents.length,
-          totalTicketsSold,
-          totalRevenue: totalRevenue.toFixed(3),
-          totalPOAPClaims
-        });
-
-        return {
+        const metrics = {
           totalEvents: organizerEvents.length,
           totalTicketsSold,
           totalRevenue: totalRevenue.toFixed(3),
           totalPOAPClaims
         };
+
+        console.log('[useOrganizerMetrics] Optimized metrics:', metrics);
+        
+        // Cache the metrics
+        setCachedData(cacheKey, metrics, CACHE_TTL_METRICS);
+        
+        return metrics;
       } catch (error) {
         console.error('Error fetching organizer metrics:', String(error));
+        
+        // Return stale cache if available
+        const staleCache = eventCache.get(cacheKey);
+        if (staleCache) {
+          return staleCache.data;
+        }
+        
         return {
           totalEvents: 0,
           totalTicketsSold: 0,
@@ -331,6 +470,9 @@ export const useOrganizerMetrics = (organizer?: string) => {
       }
     },
     enabled: !!targetOrganizer,
-    staleTime: 2 * 60 * 1000, // 2 minutes - refresh more frequently for metrics
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(3000 * 2 ** attemptIndex, 15000),
   });
 };

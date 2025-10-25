@@ -1,8 +1,8 @@
 # 📚 Echain Documentation Index
 
-**Version:** 1.0.0  
+**Version:** 1.1.0  
 **Last Updated:** October 25, 2025  
-**Status:** Production Ready
+**Status:** Production Ready with Enhanced Features
 
 ---
 
@@ -70,6 +70,13 @@
 - **[Fallback Integration](./qa/FALLBACK_INTEGRATION_COMPLETE.md)** - Fallback mechanism implementation
 - **[Fallback Test Report](./qa/FALLBACK_TEST_REPORT.md)** - Fallback testing results
 - **[QA Log](./qa/qalog.md)** - Quality assurance activities log
+
+### 👥 Team Documentation
+- **[Team Overview](./team/README.md)** - Development team profiles and expertise
+- **[Lead Engineer](./team/Ancestor%20Koiyaki%20Lead%20Engineer/)** - Technical leadership documentation
+- **[Full Stack Developer](./team/Daniel%20Full%20Stack%20Dev/)** - Full stack development logs
+- **[UI/UX Developer](./team/Natasha%20Frontend%20UI-UX/)** - Design and UX documentation
+- **[Smart Contract Developer](./team/Peter%20Smart%20Contract%20Dev/)** - Blockchain development logs
 
 ---
 

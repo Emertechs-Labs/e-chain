@@ -308,9 +308,12 @@ graph TD
 - **[Cardano Explorer](https://cardanoscan.io/)**: Cardano blockchain explorer
 
 ### **Community**
-- **[Discord Server](https://discord.gg/echain)**: Community support and discussions
-- **[Twitter](https://twitter.com/echain_events)**: Updates and announcements
-- **[Blog](https://blog.echain.events)**: Technical articles and tutorials
+- **[GitHub Repository](https://github.com/emertechs-Labs/echain)**: Source code and issue tracking
+- **[Live Demo](https://echain-eight.vercel.app)**: Production application
+- **[Facebook](https://www.facebook.com/share/1JQeq5La3v/)**: Community updates and discussions
+- **[Instagram](https://www.instagram.com/eventsonchain)**: Visual content and event highlights
+- **[WhatsApp](https://chat.whatsapp.com/KKZ6Z9SOUfHIKwFVWzWI6t)**: Direct community support
+- **[X (Twitter)](https://x.com/eventsonchain)**: Real-time updates and announcements
 
 ### **Developer Resources**
 - **[API Documentation](./api/README.md)**: Complete integration guide
@@ -332,8 +335,8 @@ We welcome contributions from the community! See our [Contributing Guide](../CON
 
 ### **Development Setup**
 ```bash
-git clone https://github.com/Talent-Index/Echain.git
-cd Echain
+git clone https://github.com/emertechs-Labs/echain.git
+cd echain
 npm install
 cd blockchain && npm install
 cd ../frontend && npm install
@@ -344,9 +347,11 @@ npm run dev
 
 <div align="center">
 
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=flat-square&logo=github)](https://github.com/Talent-Index/Echain)
-[![Discord](https://img.shields.io/badge/Discord-Community-5865F2?style=flat-square&logo=discord)](https://discord.gg/echain)
-[![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=flat-square&logo=twitter)](https://twitter.com/echain_events)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=flat-square&logo=github)](https://github.com/emertechs-Labs/echain)
+[![Facebook](https://img.shields.io/badge/Facebook-Community-1877F2?style=flat-square&logo=facebook)](https://www.facebook.com/share/1JQeq5La3v/)
+[![Instagram](https://img.shields.io/badge/Instagram-Follow-E4405F?style=flat-square&logo=instagram)](https://www.instagram.com/eventsonchain)
+[![WhatsApp](https://img.shields.io/badge/WhatsApp-Chat-25D366?style=flat-square&logo=whatsapp)](https://chat.whatsapp.com/KKZ6Z9SOUfHIKwFVWzWI6t)
+[![Twitter](https://img.shields.io/badge/X-Follow-000000?style=flat-square&logo=x)](https://x.com/eventsonchain)
 
 **Ready to revolutionize event management with blockchain?**
 

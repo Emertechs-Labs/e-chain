@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
-import { useEvent } from "../../hooks/useEvents";
-import { usePurchaseTicketDirect } from "../../hooks/useTransactionsDirect"; // Direct wallet transaction
+import { useCombinedEvent } from "../../hooks/useCombinedEvent";
+import { usePurchaseTicketDirect } from "../../hooks/useTransactionsDirect";
 import { useClaimPOAP } from "../../hooks/useTransactions";
 import { formatEther } from "viem";
 import { toast } from "sonner";
@@ -14,15 +14,20 @@ import { CONTRACT_ADDRESSES } from "../../../lib/contracts";
 import { EnhancedConnectButton } from "../../components/EnhancedConnectButton";
 import Image from "next/image";
 import { readContract } from "../../../lib/contract-wrapper";
-import { baseSepolia } from 'viem/chains';
-import { CONTRACT_ABIS } from "../../../lib/contracts";
+import { FiCalendar, FiMapPin, FiUsers, FiShare2, FiBookmark, FiClock, FiGlobe, FiTwitter, FiMessageCircle, FiX, FiExternalLink } from 'react-icons/fi';
+import { HiTicket, HiCheckCircle, HiSparkles } from 'react-icons/hi';
+import { ModernButton } from '../../components/ui/ModernButton';
+import { ModernCard } from '../../components/ui/ModernCard';
+import { motion } from 'framer-motion';
+import { isMockEvent } from '../../../lib/mockEvents';
+import { EventLocationMap } from '../../components/maps/EventLocationMap';
 
 const EventDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const eventId = parseInt(params.id as string);
   const { isConnected, address } = useAccount();
-  const { data: event, isLoading } = useEvent(eventId);
+  const { data: event, isLoading } = useCombinedEvent(eventId);
   const purchaseTicketMutation = usePurchaseTicketDirect(); // ✅ Using direct wallet hook
   const claimPOAPMutation = useClaimPOAP();
   const [quantity, setQuantity] = useState(1);
@@ -50,9 +55,15 @@ const EventDetailPage: React.FC = () => {
   });
 
   // Get sold tickets count using wrapper with fallback
+  // For mock events, use attendees count; for blockchain events, fetch from contract
   const { data: soldTickets = 0 } = useQuery({
     queryKey: ['sold-tickets-blockchain', eventId, event?.ticketContract],
     queryFn: async (): Promise<number> => {
+      // For mock events, return the attendees count
+      if (isMockEvent(eventId)) {
+        return (event as any)?.attendees || 0;
+      }
+      
       if (!event?.ticketContract) return 0;
 
       try {
@@ -179,7 +190,7 @@ const EventDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-[#0a0a0b] flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
@@ -187,7 +198,7 @@ const EventDetailPage: React.FC = () => {
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-[#0a0a0b] flex items-center justify-center">
         <div className="text-center px-4">
           <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4">Event Not Found</h2>
           <Link
@@ -207,200 +218,428 @@ const EventDetailPage: React.FC = () => {
   // We already have soldTickets from the query above, no need to recalculate
   // const soldTickets = Math.floor((event.id * 37) % (event.maxTickets * 0.8));
 
+  const eventDetails = (event as any)?.details;
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative py-12 sm:py-16 lg:py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-muted to-background"></div>
+    <div className="min-h-screen bg-[#0a0a0b]">
+      {/* Header */}
+      <div className="border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <Link href="/events" className="inline-flex items-center text-slate-400 hover:text-white transition-colors">
+            <span className="mr-2">←</span>
+            <span>Events</span>
+          </Link>
+        </div>
+      </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            {/* Event Image */}
-            <div className="h-64 sm:h-80 lg:h-96 bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 rounded-2xl flex items-center justify-center order-2 lg:order-1 relative overflow-hidden">
-              {(event.image || event.imageUrl) && (
-                <Image
-                  src={event.image || event.imageUrl || ''}
-                  alt={event.name}
-                  fill
-                  className="object-cover rounded-2xl"
-                  unoptimized={true}
-                  onError={(e) => {
-                    // Hide broken images and fall back to emoji
-                    console.warn('Failed to load event image:', event.image || event.imageUrl);
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              )}
-              {/* Fallback emoji - always visible if no image or image fails to load */}
-              <div className="absolute inset-0 flex items-center justify-center text-4xl sm:text-6xl lg:text-8xl z-10 bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 rounded-2xl">
-                🎪
-              </div>
-            </div>
-
-            {/* Event Details */}
-            <div className="order-1 lg:order-2">
-              <div className="flex flex-wrap items-center gap-2 mb-4">
-                <span className="bg-green-500/90 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
-                  ✓ Verified Event
-                </span>
-                <span className="bg-muted text-muted-foreground px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
-                  {event.category || 'Conference'}
-                </span>
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4">{event.name}</h1>
-
-              <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-                <div className="flex items-center text-muted-foreground">
-                  <span className="text-primary mr-3">📅</span>
-                  <span className="text-sm sm:text-base">
-                    {event.formattedStartDate && event.formattedEndDate 
-                      ? `${event.formattedStartDate} - ${event.formattedEndDate}`
-                      : `${new Date(event.startTime * 1000).toLocaleDateString()} - ${new Date(event.endTime * 1000).toLocaleDateString()}`
-                    }
-                  </span>
-                </div>
-                <div className="flex items-center text-muted-foreground">
-                  <span className="text-primary mr-3">📍</span>
-                  <span className="text-sm sm:text-base">{event.venue || 'Location TBA'}</span>
-                </div>
-                <div className="flex items-center text-muted-foreground">
-                  <span className="text-primary mr-3">🎫</span>
-                  <span className="text-sm sm:text-base">
-                    {event.maxTickets - soldTickets} of {event.maxTickets.toLocaleString()} tickets available
-                  </span>
-                </div>
-                <div className="flex items-center text-muted-foreground">
-                  <span className="text-primary mr-3">💰</span>
-                  <span className="text-sm sm:text-base">{ticketPriceInEth} ETH per ticket</span>
-                </div>
-              </div>
-
-              {/* Purchase Section */}
-              {!isEventEnded && (
-                <div className="bg-card border border-border rounded-xl sm:rounded-2xl p-4 sm:p-6">
-                  <h3 className="text-lg sm:text-xl font-bold text-foreground mb-4">Get Your NFT Ticket</h3>
-
-                  {/* Availability Status */}
-                  <div className="mb-4 p-3 rounded-lg border border-border">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-muted-foreground text-sm sm:text-base">Availability:</span>
-                      <div className="flex items-center gap-2">
-                        <span className={`font-semibold text-sm sm:text-base ${
-                          soldTickets >= event.maxTickets 
-                            ? 'text-destructive' 
-                            : event.maxTickets - soldTickets < 10 
-                            ? 'text-warning-orange' 
-                            : 'text-success-green'
-                        }`}>
-                          {soldTickets >= event.maxTickets 
-                            ? 'SOLD OUT' 
-                            : `${event.maxTickets - soldTickets} Available`
-                          }
-                        </span>
-                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" title="Live data from blockchain"></div>
-                      </div>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div 
-                        ref={progressBarRef}
-                        className={`h-2 rounded-full transition-all duration-500 ${
-                          soldTickets >= event.maxTickets 
-                            ? 'bg-destructive' 
-                            : soldTickets / event.maxTickets > 0.8 
-                            ? 'bg-warning-orange' 
-                            : 'bg-success-green'
-                        }`}
-                      ></div>
-                    </div>
-                    <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
-                      <span>{soldTickets} sold</span>
-                      <span>{event.maxTickets} total</span>
-                    </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          {/* Left Column - Main Content (3 cols) */}
+          <div className="lg:col-span-3 space-y-6">
+            {/* Event Header Card */}
+            <ModernCard variant="glass" className="p-0 overflow-hidden">
+              {/* Event Image */}
+              <div className="h-64 sm:h-80 bg-gradient-to-br from-cyan-500/20 via-blue-500/20 to-purple-500/20 relative overflow-hidden">
+                {(event.image || event.imageUrl) ? (
+                  <Image
+                    src={event.image || event.imageUrl || ''}
+                    alt={event.name}
+                    fill
+                    className="object-cover"
+                    unoptimized={true}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-8xl opacity-50">🎪</div>
                   </div>
+                )}
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              </div>
 
-                  {hasTicket && (
-                    <div className="mb-4 p-3 bg-success-green/10 border border-success-green/20 rounded-lg">
-                      <p className="text-success-green text-sm">✅ You already own a ticket for this event!</p>
-                    </div>
-                  )}
+              {/* Event Info */}
+              <div className="p-6">
+                <h1 className="text-3xl font-bold text-white mb-4">{event.name}</h1>
 
-                  {isConnected ? (
-                    soldTickets >= event.maxTickets ? (
-                      <div className="text-center">
-                        <div className="mb-4 p-3 sm:p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                          <h4 className="text-destructive font-semibold mb-2 text-sm sm:text-base">🎫 SOLD OUT</h4>
-                          <p className="text-muted-foreground text-xs sm:text-sm">All tickets for this event have been sold.</p>
+                {/* Event Meta Info */}
+                <div className="flex flex-wrap gap-4 text-sm text-slate-400 mb-4">
+                  <div className="flex items-center gap-2">
+                    <FiCalendar className="w-4 h-4" />
+                    <span>{formatDate(event.startTime)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FiClock className="w-4 h-4" />
+                    <span>{formatTime(event.startTime)} - {formatTime(event.endTime)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FiMapPin className="w-4 h-4" />
+                    <span>{event.venue || 'Online Event'}</span>
+                  </div>
+                </div>
+
+                {/* Host Info */}
+                <div className="mb-4">
+                  <span className="text-xs text-slate-500 uppercase tracking-wider">Hosted By</span>
+                  <div className="mt-2 flex flex-wrap gap-3">
+                    {eventDetails?.hosts ? (
+                      eventDetails.hosts.map((host: any, index: number) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-white text-sm">
+                            {host.avatar || host.name.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="text-sm text-white font-medium">{host.name}</div>
+                            {host.role && <div className="text-xs text-slate-500">{host.role}</div>}
+                          </div>
                         </div>
+                      ))
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500" />
+                        <span className="text-sm text-white">{event.organizer.slice(0, 6)}...{event.organizer.slice(-4)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Tags */}
+                {(event as any).tags && (
+                  <div className="flex flex-wrap gap-2">
+                    {(event as any).tags.map((tag: string) => (
+                      <span key={tag} className="px-3 py-1 bg-slate-800 text-slate-400 rounded-full text-xs">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </ModernCard>
+
+            {/* About Event */}
+            {(event.description || eventDetails?.about) && (
+              <ModernCard variant="glass" className="p-6">
+                <h2 className="text-xl font-bold text-white mb-4">About Event</h2>
+                <p className="text-slate-400 leading-relaxed">
+                  {eventDetails?.about || event.description}
+                </p>
+              </ModernCard>
+            )}
+
+            {/* What's Happening */}
+            {eventDetails?.whatsHappening && (
+              <ModernCard variant="glass" className="p-6">
+                <h2 className="text-xl font-bold text-white mb-4">What's Happening</h2>
+                <ul className="space-y-2">
+                  {eventDetails.whatsHappening.map((item: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2 text-slate-400">
+                      <span className="text-cyan-400 mt-1">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </ModernCard>
+            )}
+
+            {/* Prizes */}
+            {eventDetails?.prizes && (
+              <ModernCard variant="glass" className="p-6">
+                <h2 className="text-xl font-bold text-white mb-4">Prizes</h2>
+                <ul className="space-y-2">
+                  {eventDetails.prizes.map((prize: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2 text-slate-400">
+                      <span className="text-yellow-400 mt-1">🏆</span>
+                      <span>{prize}</span>
+                    </li>
+                  ))}
+                </ul>
+              </ModernCard>
+            )}
+
+            {/* What You'll Get */}
+            {eventDetails?.whatYouGet && (
+              <ModernCard variant="glass" className="p-6">
+                <h2 className="text-xl font-bold text-white mb-4">What You'll Get</h2>
+                <ul className="space-y-2">
+                  {eventDetails.whatYouGet.map((item: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2 text-slate-400">
+                      <HiCheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </ModernCard>
+            )}
+
+            {/* Who Should Join */}
+            {eventDetails?.whoShouldJoin && (
+              <ModernCard variant="glass" className="p-6">
+                <h2 className="text-xl font-bold text-white mb-4">Who Should Join</h2>
+                <ul className="space-y-2">
+                  {eventDetails.whoShouldJoin.map((item: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2 text-slate-400">
+                      <FiUsers className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </ModernCard>
+            )}
+
+            {/* Registration */}
+            {eventDetails?.registration && (
+              <ModernCard variant="glass" className="p-6">
+                <h2 className="text-xl font-bold text-white mb-4">Registration</h2>
+                <p className="text-slate-400">{eventDetails.registration}</p>
+              </ModernCard>
+            )}
+
+            {/* Event Location Map */}
+            {event.venue && (
+              <ModernCard variant="glass" className="p-6">
+                <EventLocationMap venue={event.venue} />
+              </ModernCard>
+            )}
+          </div>
+
+          {/* Right Column - Ticket & Actions (2 cols) */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Sticky Ticket Card */}
+            <div className="lg:sticky lg:top-4">
+              <ModernCard variant="glass" className="p-6">
+                {/* You're In Badge */}
+                {hasTicket && (
+                  <div className="mb-4 inline-flex items-center gap-2 bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm">
+                    <HiCheckCircle className="w-4 h-4" />
+                    <span>You're In</span>
+                  </div>
+                )}
+
+                {/* Live Badge */}
+                {(event as any).isLive && (
+                  <div className="mb-4 inline-flex items-center gap-2 bg-red-500/20 text-red-400 px-3 py-1 rounded-full text-sm font-medium">
+                    <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
+                    <span>LIVE</span>
+                  </div>
+                )}
+
+                <h3 className="text-2xl font-bold text-white mb-2">{event.name}</h3>
+                
+                <div className="space-y-3 mb-6 text-sm">
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <FiCalendar className="w-4 h-4" />
+                    <span>
+                      {new Date(event.startTime * 1000).toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <FiClock className="w-4 h-4" />
+                    <span>{formatTime(event.startTime)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <FiMapPin className="w-4 h-4" />
+                    <span>{event.venue || 'Online Event'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <HiTicket className="w-4 h-4" />
+                    <span>{soldTickets} / {event.maxTickets} attending</span>
+                  </div>
+                </div>
+
+                {/* Ticket Progress */}
+                <div className="mb-6">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-slate-400">Tickets Sold</span>
+                    <span className="text-white font-medium">{soldTickets} / {event.maxTickets}</span>
+                  </div>
+                  <div className="w-full bg-slate-700 rounded-full h-2">
+                    <div
+                      ref={progressBarRef}
+                      className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${(soldTickets / event.maxTickets) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Price */}
+                <div className="border-t border-slate-700 pt-4 mb-6">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400">Ticket Price</span>
+                    <span className="text-2xl font-bold text-white">
+                      {parseFloat(ticketPriceInEth) === 0 ? 'Free' : `${ticketPriceInEth} ETH`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Purchase Section */}
+                {!isEventEnded && (
+                  <div className="space-y-4">
+                    {isConnected ? (
+                      soldTickets >= event.maxTickets ? (
                         <button
                           disabled
-                          className="w-full bg-muted text-muted-foreground py-3 sm:py-4 rounded-lg font-bold text-sm sm:text-base cursor-not-allowed"
+                          className="w-full bg-slate-700 text-slate-400 py-3 rounded-lg font-semibold cursor-not-allowed"
                         >
                           Sold Out
                         </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
-                            Quantity
-                          </label>
-                          <input
-                            type="number"
-                            min="1"
-                            max={Math.min(10, event.maxTickets - soldTickets)}
-                            value={quantity}
-                            onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                            placeholder="1"
-                            className="w-full bg-muted text-foreground px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-border focus:border-primary focus:outline-none text-sm sm:text-base"
-                          />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Max {Math.min(10, event.maxTickets - soldTickets)} tickets per transaction
+                      ) : isMockEvent(eventId) ? (
+                        <>
+                          <ModernButton
+                            variant="gradient"
+                            size="lg"
+                            fullWidth
+                            icon={<HiTicket />}
+                            onClick={() => toast.info('This is a mock event. Purchase real NFT tickets on blockchain events!')}
+                            className="font-semibold"
+                          >
+                            Get NFT Ticket
+                          </ModernButton>
+                          <p className="text-xs text-slate-500 text-center">
+                            Mock event - No real tickets available
                           </p>
-                        </div>
-
-                        <div className="flex justify-between items-center text-foreground">
-                          <span className="text-sm sm:text-base">Total:</span>
-                          <span className="text-lg sm:text-xl font-bold text-primary">
-                            {(Number(ticketPriceInEth) * quantity).toFixed(3)} ETH
-                          </span>
-                        </div>
-
-                        <button
-                          onClick={handlePurchaseTicket}
-                          disabled={purchaseTicketMutation.isPending || quantity > (event.maxTickets - soldTickets)}
-                          className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-3 sm:py-4 rounded-lg hover:from-primary/90 hover:to-primary/70 transition-all duration-200 font-bold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {purchaseTicketMutation.isPending ? (
-                            <span className="flex items-center justify-center gap-2">
-                              <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-primary-foreground"></div>
-                              Processing...
+                        </>
+                      ) : (
+                        <>
+                          {/* Quantity Selector */}
+                          <div>
+                            <label className="block text-sm text-slate-400 mb-2">Quantity</label>
+                            <input
+                              type="number"
+                              min="1"
+                              max={Math.min(10, event.maxTickets - soldTickets)}
+                              value={quantity}
+                              onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                              className="w-full bg-slate-800 text-white px-4 py-2 rounded-lg border border-slate-700 focus:border-cyan-500 focus:outline-none"
+                            />
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400">Total:</span>
+                            <span className="text-xl font-bold text-cyan-400">
+                              {(Number(ticketPriceInEth) * quantity).toFixed(4)} ETH
                             </span>
-                          ) : (
-                            `🎫 Purchase ${quantity} Ticket${quantity > 1 ? 's' : ''}`
-                          )}
-                        </button>
-                      </div>
-                    )
-                  ) : (
-                    <div className="text-center">
-                      <p className="text-muted-foreground mb-4 text-sm sm:text-base">Connect your wallet to purchase tickets</p>
-                      <EnhancedConnectButton />
-                    </div>
-                  )}
-                </div>
-              )}
+                          </div>
 
-              {isEventEnded && (
-                <div className="bg-destructive/10 border border-destructive/20 rounded-xl sm:rounded-2xl p-4 sm:p-6">
-                  <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2">Event Ended</h3>
-                  <p className="text-muted-foreground text-sm sm:text-base">This event has already taken place.</p>
+                          <ModernButton
+                            variant="gradient"
+                            size="lg"
+                            fullWidth
+                            icon={<HiTicket />}
+                            onClick={handlePurchaseTicket}
+                            loading={purchaseTicketMutation.isPending}
+                            disabled={purchaseTicketMutation.isPending || quantity > (event.maxTickets - soldTickets)}
+                            className="font-semibold"
+                          >
+                            {purchaseTicketMutation.isPending ? 'Processing...' : `Get ${quantity} NFT Ticket${quantity > 1 ? 's' : ''}`}
+                          </ModernButton>
+                        </>
+                      )
+                    ) : (
+                      <div className="text-center">
+                        <p className="text-slate-400 mb-4">Connect wallet to purchase tickets</p>
+                        <EnhancedConnectButton />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {isEventEnded && (
+                  <div className="bg-slate-800 rounded-lg p-4">
+                    <p className="text-slate-400 text-center">This event has ended</p>
+                  </div>
+                )}
+
+                {/* Social Links */}
+                {eventDetails?.socialLinks && (
+                  <div className="border-t border-slate-700 pt-4 mt-6">
+                    <div className="flex gap-3">
+                      {eventDetails.socialLinks.website && (
+                        <a
+                          href={eventDetails.socialLinks.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+                        >
+                          <FiGlobe className="w-4 h-4" />
+                          <span className="text-sm">Website</span>
+                        </a>
+                      )}
+                      {eventDetails.socialLinks.twitter && (
+                        <a
+                          href={eventDetails.socialLinks.twitter}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+                        >
+                          <FiTwitter className="w-4 h-4" />
+                          <span className="text-sm">Twitter</span>
+                        </a>
+                      )}
+                      {eventDetails.socialLinks.discord && (
+                        <a
+                          href={eventDetails.socialLinks.discord}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+                        >
+                          <FiMessageCircle className="w-4 h-4" />
+                          <span className="text-sm">Discord</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Share Buttons */}
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      toast.success('Event link copied!');
+                    }}
+                    className="flex-1 bg-slate-800 text-slate-400 py-2 rounded-lg hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <FiShare2 className="w-4 h-4" />
+                    <span className="text-sm">Share</span>
+                  </button>
+                  <button
+                    onClick={() => toast.info('Bookmark feature coming soon!')}
+                    className="flex-1 bg-slate-800 text-slate-400 py-2 rounded-lg hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <FiBookmark className="w-4 h-4" />
+                    <span className="text-sm">Save</span>
+                  </button>
                 </div>
-              )}
+              </ModernCard>
             </div>
           </div>
         </div>
-      </section>
+      </div> 
+                
 
       {/* POAP Section - Only show if event has ended and user has ticket */}
       {isEventEnded && hasTicket && (

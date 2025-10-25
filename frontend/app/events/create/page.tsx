@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { uploadToIPFS, uploadEventMetadata, generateEventPosterWithQR } from "../../../lib/ipfs";
 import Image from "next/image";
+import { SimpleLocationPicker } from "../../components/maps/SimpleLocationPicker";
+import { EnhancedConnectButton } from "../../components/EnhancedConnectButton";
 
 interface EventForm {
   name: string;
@@ -303,13 +305,13 @@ const CreateEventPage: React.FC = () => {
   };  if (!isConnected) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto px-4">
           <div className="text-6xl mb-6">🔗</div>
           <h2 className="text-3xl font-bold text-white mb-4">Connect Your Wallet</h2>
           <p className="text-gray-400 mb-8">You need to connect your wallet to create events</p>
-          <button className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 font-semibold">
-            Connect Wallet
-          </button>
+          <div className="flex justify-center">
+            <EnhancedConnectButton />
+          </div>
         </div>
       </div>
     );
@@ -513,16 +515,12 @@ const CreateEventPage: React.FC = () => {
 
                 <div className="mt-6">
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Venue *
+                    Venue * <span className="text-cyan-400">(Interactive Map)</span>
                   </label>
-                  <input
-                    type="text"
-                    name="venue"
+                  <SimpleLocationPicker
                     value={formData.venue}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full bg-slate-700 text-white px-4 py-3 rounded-lg border border-slate-600 focus:border-cyan-500 focus:outline-none"
-                    placeholder="Convention Center, San Francisco CA"
+                    onChange={(address) => setFormData(prev => ({ ...prev, venue: address }))}
+                    placeholder="Enter event location or select from popular venues"
                   />
                 </div>
               </div>

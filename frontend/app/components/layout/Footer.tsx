@@ -1,10 +1,25 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { FaTwitter, FaGithub, FaDiscord, FaTelegram, FaMedium } from 'react-icons/fa';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [email, setEmail] = useState('');
+  
+  const handleSubscriptionChange = (checked: boolean) => {
+    setIsSubscribed(checked);
+    if (checked && email) {
+      // Handle subscription logic here
+      console.log('Subscribed with email:', email);
+      // You can add your subscription API call here
+    } else if (!checked) {
+      // Handle unsubscribe logic here
+      console.log('Unsubscribed');
+    }
+  };
   
   const socialLinks = [
     { name: 'Twitter', icon: <FaTwitter className="w-5 h-5" />, href: 'https://twitter.com/echain' },
@@ -95,24 +110,45 @@ export function Footer() {
           
           <div className="col-span-2 md:col-span-1">
             <h3 className="text-sm font-semibold text-slate-300 tracking-wider uppercase mb-4">
-              Subscribe to our newsletter
+              SHARE YOUR FEEDBACK
             </h3>
             <p className="text-slate-400 text-sm mb-4">
               Get the latest updates, news and product offers.
             </p>
-            <form className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent flex-grow"
-                required
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-medium rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 whitespace-nowrap"
-              >
-                Subscribe
-              </button>
+            <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()}>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-1 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (email) {
+                      console.log('Feedback submitted with email:', email);
+                      // Add your feedback submission logic here
+                    }
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-medium rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 whitespace-nowrap"
+                >
+                  Submit
+                </button>
+              </div>
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={isSubscribed}
+                  onChange={(e) => handleSubscriptionChange(e.target.checked)}
+                  className="w-5 h-5 text-cyan-500 bg-slate-800 border-slate-600 rounded focus:ring-2 focus:ring-cyan-500 focus:ring-offset-0 focus:ring-offset-slate-900 cursor-pointer"
+                />
+                <span className="text-sm text-slate-300 group-hover:text-cyan-400 transition-colors">
+                  {isSubscribed ? 'Subscribed to newsletter' : 'Subscribe to newsletter'}
+                </span>
+              </label>
             </form>
           </div>
         </div>

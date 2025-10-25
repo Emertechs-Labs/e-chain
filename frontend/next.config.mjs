@@ -9,6 +9,7 @@ const nextConfig = {
   experimental: {
     scrollRestoration: true,
   },
+  transpilePackages: ['@polymathuniversata/echain-wallet', 'firebase', '@firebase'],
   outputFileTracingRoot: path.resolve(__dirname),
   images: {
     domains: ['localhost', 'gateway.pinata.cloud', 'ipfs.io'],
@@ -40,7 +41,11 @@ const nextConfig = {
     // Alias react-native async-storage to a small web shim to avoid pulling RN deps
     config.resolve = config.resolve || {};
     config.resolve.alias = config.resolve.alias || {};
+    config.resolve.modules = config.resolve.modules || [];
+    config.resolve.modules.push(path.resolve(__dirname, '../../node_modules'));
     config.resolve.alias['@react-native-async-storage/async-storage'] = path.resolve(__dirname, './lib/shims/async-storage.js');
+    config.resolve.alias['@firebase/app'] = path.resolve(__dirname, 'node_modules/@firebase/app');
+    config.resolve.alias['@firebase/util'] = path.resolve(__dirname, 'node_modules/@firebase/util');
     return config;
   }
 };

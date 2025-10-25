@@ -5,6 +5,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useDisconnect } from 'wagmi';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { EnhancedConnectButton } from '../EnhancedConnectButton';
 import { ThemeToggle } from '../ThemeToggle';
 import { usePendingTransactions } from '../TransactionStatus';
@@ -50,9 +51,13 @@ export default function Header() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <div className="h-8 w-8 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">E</span>
-              </div>
+              <Image
+                src="/logo.jpeg"
+                alt="Echain Logo"
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-lg"
+              />
               <span className="ml-2 text-xl font-bold gradient-text">
                 Echain
               </span>

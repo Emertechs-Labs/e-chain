@@ -1,6 +1,8 @@
+/// <reference types="@types/google.maps" />
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { MapPin, Navigation, Search } from 'lucide-react';
 import { useGoogleMaps } from './GoogleMapsProvider';
 
@@ -40,6 +42,18 @@ export function SimpleLocationPicker({
   const googleMapRef = useRef<google.maps.Map | null>(null);
   const markerRef = useRef<google.maps.Marker | null>(null);
 
+  // Geocode coordinates to address
+  const geocodeLatLng = React.useCallback((lat: number, lng: number) => {
+    if (!isLoaded || !window.google) return;
+
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+      if (status === 'OK' && results && results[0]) {
+        onChange(results[0].formatted_address, { lat, lng });
+      }
+    });
+  }, [isLoaded, onChange]);
+
   // Initialize Google Maps when loaded
   useEffect(() => {
     if (isLoaded && mapRef.current && !googleMapRef.current) {
@@ -74,19 +88,7 @@ export function SimpleLocationPicker({
         setMapError(true);
       }
     }
-  }, [isLoaded]);
-
-  // Geocode coordinates to address
-  const geocodeLatLng = (lat: number, lng: number) => {
-    if (!isLoaded || !window.google) return;
-
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-      if (status === 'OK' && results && results[0]) {
-        onChange(results[0].formatted_address, { lat, lng });
-      }
-    });
-  };
+  }, [isLoaded, geocodeLatLng]);
 
   // Geocode address to coordinates
   const geocodeAddress = (address: string) => {
@@ -246,9 +248,11 @@ export function SimpleLocationPicker({
       ) : coordinates && getStaticMapUrl() ? (
         // Static map fallback
         <div className="relative">
-          <img 
+          <Image 
             src={getStaticMapUrl()!}
             alt="Event location map"
+            width={600}
+            height={256}
             className="w-full h-64 rounded-lg border border-slate-600 object-cover"
           />
           <div className="absolute bottom-4 left-4 bg-slate-900/90 backdrop-blur-sm text-white px-3 py-2 rounded-lg text-sm border border-slate-700">

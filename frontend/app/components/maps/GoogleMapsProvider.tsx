@@ -1,7 +1,7 @@
+/// <reference types="@types/google.maps" />
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Loader } from '@googlemaps/js-api-loader';
 
 interface GoogleMapsContextType {
   isLoaded: boolean;
@@ -33,21 +33,22 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
       return;
     }
 
-    const loader = new Loader({
-      apiKey,
-      version: 'weekly',
-      libraries: ['places', 'geocoding'],
-    });
+    // Load the Google Maps API
+    const googleMapsScript = document.createElement('script');
+    googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geocoding`;
+    googleMapsScript.async = true;
+    googleMapsScript.defer = true;
 
-    loader
-      .load()
-      .then(() => {
-        setIsLoaded(true);
-      })
-      .catch((error) => {
-        console.error('Error loading Google Maps:', error);
-        setLoadError(error);
-      });
+    googleMapsScript.onload = () => {
+      setIsLoaded(true);
+    };
+
+    googleMapsScript.onerror = (error) => {
+      console.error('Error loading Google Maps:', error);
+      setLoadError(new Error('Failed to load Google Maps API'));
+    };
+
+    document.head.appendChild(googleMapsScript);
   }, []);
 
   return (

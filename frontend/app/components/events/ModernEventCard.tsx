@@ -53,7 +53,7 @@ export default function ModernEventCard({ event, index = 0 }: ModernEventCardPro
     General: 'from-cyan-500 to-blue-500',
   };
 
-  const gradientClass = categoryColors[displayCategory] || categoryColors.General;
+  const gradientClass = categoryColors[displayCategory || 'General'] || categoryColors.General;
 
   return (
     <motion.div

@@ -81,7 +81,7 @@ export const ModernCard = React.forwardRef<HTMLDivElement, ModernCardProps>(
       scale: 1.02,
       y: -4,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 20,
       }

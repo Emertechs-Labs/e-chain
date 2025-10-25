@@ -15,6 +15,7 @@ interface EventForm {
   name: string;
   description: string;
   venue: string;
+  coordinates?: { lat: number; lng: number };
   category: string;
   startDate: string;
   endDate: string;
@@ -50,6 +51,7 @@ const CreateEventPage: React.FC = () => {
     name: "",
     description: "",
     venue: "",
+    coordinates: undefined,
     category: "",
     startDate: "",
     endDate: "",
@@ -253,11 +255,16 @@ const CreateEventPage: React.FC = () => {
         name: formData.name,
         description: formData.description,
         venue: formData.venue,
+        coordinates: formData.coordinates, // Include coordinates for heat maps and precise location data
         category: formData.category,
         image: imageUpload.ipfsUrl || formData.imageUrl || "",
         attributes: [
           { trait_type: "Event Type", value: formData.category },
           { trait_type: "Venue", value: formData.venue },
+          ...(formData.coordinates ? [
+            { trait_type: "Latitude", value: formData.coordinates.lat.toString() },
+            { trait_type: "Longitude", value: formData.coordinates.lng.toString() }
+          ] : []),
           { trait_type: "Max Tickets", value: formData.maxTickets.toString() },
           { trait_type: "Ticket Price", value: `${formData.ticketPrice} ETH` },
           { trait_type: "Start Date", value: new Date(formData.startDate).toISOString() },
@@ -519,7 +526,7 @@ const CreateEventPage: React.FC = () => {
                   </label>
                   <SimpleLocationPicker
                     value={formData.venue}
-                    onChange={(address) => setFormData(prev => ({ ...prev, venue: address }))}
+                    onChange={(address, coordinates) => setFormData(prev => ({ ...prev, venue: address, coordinates }))}
                     placeholder="Enter event location or select from popular venues"
                   />
                 </div>

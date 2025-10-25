@@ -119,16 +119,16 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 #### **Smart Wallet Integration**
 For production, integrate with:
-- **Privy**: For embedded wallet creation
 - **Web3Auth**: For social login and wallet management
 - **Custom solution**: Using the provided smart wallet manager
+- **Third-party providers**: For embedded wallet creation
 
 ### 7. **Key Features Comparison**
 
 | Feature | Before | After |
 |---------|--------|-------|
 | **Authentication** | Wallet only | Email + Social + Wallet |
-| **UI/UX** | Basic RainbowKit | Custom Privy-inspired design |
+| **UI/UX** | Basic RainbowKit | Custom modern design |
 | **Smart Wallets** | ❌ | ✅ Account abstraction |
 | **Gasless Transactions** | ❌ | ✅ Paymaster support |
 | **Session Management** | ❌ | ✅ Persistent sessions |
@@ -175,7 +175,7 @@ NEXT_PUBLIC_DEBUG_WALLET=true
 
 ---
 
-**🎉 Your wallet is now up to par with Privy and Rainbow Kit!**
+**🎉 Your wallet system is now modern and feature-rich!**
 
 The enhanced wallet system provides:
 - ✅ Modern authentication methods

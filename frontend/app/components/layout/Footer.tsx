@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { FaTwitter, FaGithub, FaDiscord, FaTelegram, FaMedium } from 'react-icons/fa';
+import { FaTwitter, FaGithub, FaFacebook, FaInstagram, FaWhatsapp } from 'react-icons/fa';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -22,11 +22,11 @@ export function Footer() {
   };
   
   const socialLinks = [
-    { name: 'Twitter', icon: <FaTwitter className="w-5 h-5" />, href: 'https://twitter.com/echain' },
-    { name: 'GitHub', icon: <FaGithub className="w-5 h-5" />, href: 'https://github.com/echain' },
-    { name: 'Discord', icon: <FaDiscord className="w-5 h-5" />, href: 'https://discord.gg/echain' },
-    { name: 'Telegram', icon: <FaTelegram className="w-5 h-5" />, href: 'https://t.me/echain' },
-    { name: 'Medium', icon: <FaMedium className="w-5 h-5" />, href: 'https://medium.com/echain' },
+    { name: 'Twitter', icon: <FaTwitter className="w-5 h-5" />, href: 'https://x.com/eventsonchain' },
+    { name: 'GitHub', icon: <FaGithub className="w-5 h-5" />, href: 'https://github.com/emertechs-Labs/echain' },
+    { name: 'Facebook', icon: <FaFacebook className="w-5 h-5" />, href: 'https://www.facebook.com/share/1JQeq5La3v/' },
+    { name: 'Instagram', icon: <FaInstagram className="w-5 h-5" />, href: 'https://www.instagram.com/eventsonchain' },
+    { name: 'WhatsApp', icon: <FaWhatsapp className="w-5 h-5" />, href: 'https://chat.whatsapp.com/KKZ6Z9SOUfHIKwFVWzWI6t' },
   ];
   
   const footerLinks = [

@@ -29,7 +29,11 @@
         "./*"
       ]
     },
-    "types": ["./types/declarations.d.ts"]
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types",
+      "../node_modules/@types"
+    ]
   },
   "include": [
     "next-env.d.ts",

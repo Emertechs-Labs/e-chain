@@ -1,6 +1,8 @@
+/// <reference types="@types/google.maps" />
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { MapPin, Navigation, ExternalLink } from 'lucide-react';
 import { useGoogleMaps } from './GoogleMapsProvider';
 
@@ -120,12 +122,16 @@ export function EventLocationMap({ venue, className = '' }: EventLocationMapProp
         </div>
       ) : coordinates && getStaticMapUrl() ? (
         // Static map fallback
-        <div className="relative rounded-lg overflow-hidden border border-slate-700">
-          <img 
+        <div 
+          className="relative rounded-lg overflow-hidden border border-slate-700 cursor-pointer"
+          onClick={openInGoogleMaps}
+        >
+          <Image 
             src={getStaticMapUrl()!}
             alt={`Map showing ${venue}`}
-            className="w-full h-80 object-cover cursor-pointer"
-            onClick={openInGoogleMaps}
+            width={600}
+            height={320}
+            className="w-full h-80 object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent pointer-events-none" />
         </div>

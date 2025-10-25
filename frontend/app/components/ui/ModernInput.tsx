@@ -77,21 +77,19 @@ export const ModernInput = React.forwardRef<HTMLInputElement, ModernInputProps>(
             className={cn(
               'absolute left-3 transition-all duration-200 pointer-events-none z-10',
               'text-slate-400',
-              (isFocused || hasValue || props.value) ? (
-                'top-0 -translate-y-1/2 text-xs px-2 bg-slate-900'
-              ) : (
-                'top-1/2 -translate-y-1/2 text-base'
-              ),
-              (isFocused || hasValue || props.value) && (
-                error ? 'text-red-400' : success ? 'text-green-400' : 'text-cyan-400'
-              )
+              (isFocused || hasValue || props.value) ? 
+                'top-0 -translate-y-1/2 text-xs px-2 bg-slate-900' : 
+                'top-1/2 -translate-y-1/2 text-base',
+              (isFocused || hasValue || props.value) ? 
+                (error ? 'text-red-400' : success ? 'text-green-400' : 'text-cyan-400') : 
+                undefined
             )}
             animate={{
               fontSize: (isFocused || hasValue || props.value) ? '0.75rem' : '1rem',
             }}
           >
             {label}
-          </label>
+          </motion.label>
         )}
 
         <div className="relative">
@@ -111,8 +109,8 @@ export const ModernInput = React.forwardRef<HTMLInputElement, ModernInputProps>(
               'disabled:opacity-50 disabled:cursor-not-allowed',
               variantClasses[variant],
               stateClasses,
-              icon && iconPosition === 'left' && 'pl-12',
-              icon && iconPosition === 'right' && 'pr-12',
+              icon && iconPosition === 'left' ? 'pl-12' : '',
+              icon && iconPosition === 'right' ? 'pr-12' : '',
               className
             )}
             onFocus={handleFocus}

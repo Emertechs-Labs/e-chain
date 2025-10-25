@@ -26,6 +26,47 @@ export interface Event {
   tags?: string[];
   isLive?: boolean;
   attendees?: number;
+  // Additional event details
+  details?: {
+    about?: string;
+    whatsHappening?: string[];
+    prizes?: string[];
+    whatYouGet?: string[];
+    whoShouldJoin?: string[];
+    requirements?: string[];
+    schedule?: Array<{
+      time: string;
+      activity: string;
+      description?: string;
+    }>;
+    speakers?: Array<{
+      name: string;
+      title: string;
+      bio?: string;
+      image?: string;
+    }>;
+    sponsors?: Array<{
+      name: string;
+      logo?: string;
+      website?: string;
+    }>;
+    hosts?: Array<{
+      name: string;
+      title?: string;
+      organization?: string;
+      image?: string;
+      role?: string;
+      avatar?: string;
+    }>;
+    registration?: string;
+    socialLinks?: {
+      website?: string;
+      twitter?: string;
+      discord?: string;
+      telegram?: string;
+      linkedin?: string;
+    };
+  };
 }
 
 export interface Ticket {

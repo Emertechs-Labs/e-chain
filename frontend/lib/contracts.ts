@@ -40,6 +40,7 @@ import { EventTicket__factory } from './typechain-types/factories/contracts/core
 import { POAPAttendance__factory } from './typechain-types/factories/contracts/modules/POAPAttendance__factory';
 import { IncentiveManager__factory } from './typechain-types/factories/contracts/modules/IncentiveManager.sol/IncentiveManager__factory';
 import { Marketplace__factory } from './typechain-types/factories/contracts/core/Marketplace__factory';
+import logger from './logger';
 
 export const CONTRACT_ABIS = {
   EventFactory: EventFactory__factory.abi,
@@ -49,9 +50,14 @@ export const CONTRACT_ABIS = {
   Marketplace: Marketplace__factory.abi
 } as const;
 
-// Debug logging
-console.log('CONTRACT_ABIS loaded:', {
-  EventFactory: CONTRACT_ABIS.EventFactory?.length || 0,
-  hasEventCount: CONTRACT_ABIS.EventFactory?.some(f => 'name' in f && f.name === 'eventCount'),
-  hasIsVerifiedOrganizer: CONTRACT_ABIS.EventFactory?.some(f => 'name' in f && f.name === 'isVerifiedOrganizer')
-});
+// Debug logging (only in development)
+if (process.env.NODE_ENV === 'development') {
+  logger.info({
+    msg: 'Contract ABIs loaded',
+    contracts: {
+      EventFactory: CONTRACT_ABIS.EventFactory?.length || 0,
+      hasEventCount: CONTRACT_ABIS.EventFactory?.some(f => 'name' in f && f.name === 'eventCount'),
+      hasIsVerifiedOrganizer: CONTRACT_ABIS.EventFactory?.some(f => 'name' in f && f.name === 'isVerifiedOrganizer')
+    }
+  });
+}

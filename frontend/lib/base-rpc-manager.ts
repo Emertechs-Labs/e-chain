@@ -1,6 +1,7 @@
 import { createPublicClient, createWalletClient, http, webSocket, fallback, type PublicClient, type WalletClient, type Transport } from 'viem';
 import { baseSepolia } from 'viem/chains';
 import { config } from './wagmi';
+import logger from './logger';
 
 // Base Sepolia RPC endpoints with health monitoring
 const BASE_RPC_ENDPOINTS = [
@@ -131,7 +132,11 @@ class BaseRPCManager {
     } catch (error) {
       endpoint.isHealthy = false;
       endpoint.responseTime = 9999; // High penalty for failed requests
-      console.warn(`RPC endpoint ${endpoint.http} health check failed:`, error);
+      logger.warn({
+        msg: 'RPC endpoint health check failed',
+        endpoint: endpoint.http,
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
 
     endpoint.lastHealthCheck = Date.now();

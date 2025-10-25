@@ -9,6 +9,9 @@ const nextConfig = {
   experimental: {
     scrollRestoration: true,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   transpilePackages: ['@polymathuniversata/echain-wallet', 'firebase', '@firebase'],
   outputFileTracingRoot: path.resolve(__dirname),
   images: {

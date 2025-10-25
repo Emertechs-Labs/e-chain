@@ -14,14 +14,16 @@ const MyTicketsPage: React.FC = () => {
   const [showQRModal, setShowQRModal] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>({});
 
-  // Debug logging
-  console.log('[MyTicketsPage] Component state:', {
-    isConnected,
-    address,
-    ticketsCount: tickets.length,
-    isLoading,
-    error
-  });
+  // Debug logging (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[MyTicketsPage] Component state:', {
+      isConnected,
+      address,
+      ticketsCount: tickets.length,
+      isLoading,
+      error
+    });
+  }
 
   // Enhanced debug: Check events API
   useEffect(() => {
@@ -31,14 +33,18 @@ const MyTicketsPage: React.FC = () => {
         try {
           const eventsResponse = await fetch('/api/events');
           const events = eventsResponse.ok ? await eventsResponse.json() : [];
-          console.log('[MyTicketsPage] Events from API:', events);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[MyTicketsPage] Events from API:', events);
+          }
 
           setDebugInfo({
             eventsFromAPI: events,
             eventsCount: events.length
           });
         } catch (err) {
-          console.error('[MyTicketsPage] Error loading debug info:', err);
+          if (process.env.NODE_ENV === 'development') {
+            console.error('[MyTicketsPage] Error loading debug info:', err);
+          }
         }
       }
     };

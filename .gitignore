@@ -1,5 +1,5 @@
 # Dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.js
 
@@ -146,6 +146,9 @@ typechain-types/
 .yarn/install-state.gz
 
 # Blockchain
+artifacts/
+broadcast/
+cache/
 deployments/
 flattened/
 
@@ -162,3 +165,4 @@ frontend/.env.production
 # QA artifacts
 qa-report.json
 qa_output.log
+test_results_*/

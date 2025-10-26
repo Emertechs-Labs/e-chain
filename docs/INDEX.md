@@ -1,8 +1,8 @@
 # 📚 Echain Documentation Index
 
-**Version:** 1.1.0  
-**Last Updated:** October 25, 2025  
-**Status:** Production Ready with Enhanced Features
+**Version:** 1.2.0  
+**Last Updated:** October 26, 2025  
+**Status:** Beta Release Ready with Dynamic Data System
 
 ---
 
@@ -13,9 +13,15 @@
 - **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Complete development setup
 - **[Quick Start](./README.md#-quick-start)** - Get up and running in minutes
 
+### 🆕 NEW: Beta Release & Implementation
+- **[Dynamic Data Implementation](./implementation/DYNAMIC_DATA_IMPLEMENTATION.md)** - Sprint plan for dynamic data system
+- **[Dynamic Data Complete Guide](./implementation/DYNAMIC_DATA_COMPLETE.md)** - Full documentation of implemented features
+- **[Base Integration Guide](./deployment/BASE_INTEGRATION_GUIDE.md)** - Base mainnet deployment, Farcaster mini-apps, and distribution
+- **[Static vs Dynamic Analysis](./analysis/STATIC_VS_DYNAMIC_DATA_REPORT.md)** - Complete analysis of data sources
+
 ### 🔍 Audit & Assessment
 - **[Audit Documentation](./audit/README.md)** - Comprehensive audit reports and beta assessments
-- **[Audit Summary](./audit/AUDIT_SUMMARY_20251025.md)** - Complete codebase audit results
+- **[Smart Contracts Audit Metadata](./audit/SMART_CONTRACT_AUDIT_METADATA.md)** - Complete audit metadata with contract addresses, verification links, and node provider integrations
 - **[Beta Release Assessment](./audit/BETA_RELEASE_ASSESSMENT.md)** - Beta readiness evaluation
 - **[Beta Release Plan](./audit/BETA_RELEASE_PLAN.md)** - Strategic beta release planning
 - **[Security Audit](./security/README.md)** - Security documentation and fixes
@@ -28,8 +34,10 @@
 
 ### 🚀 Deployment & Operations
 - **[Deployment Guide](./deployment/README.md)** - Production deployment instructions
+- **[Base Integration Guide](./deployment/BASE_INTEGRATION_GUIDE.md)** - 🆕 Base mainnet deployment with RPC providers
 - **[Vercel Deployment](./deployment/VERCEL_DEPLOYMENT_GUIDE.md)** - Frontend deployment guide
 - **[Testing Guide](./deployment/TESTING_DEPLOYMENT_GUIDE.md)** - Testing and validation procedures
+- **[Branching Strategy](./BRANCHING_STRATEGY.md)** - Git branching workflow for development, beta, and production
 
 ### 📖 User Guides
 - **[User Guides](./guides/README.md)** - End-user documentation
@@ -38,6 +46,7 @@
 
 ### 🔒 Security
 - **[Security Overview](./security/README.md)** - Security documentation index
+- **[Organizer Approval Security Audit](./security/ORGANIZER_APPROVAL_SECURITY_AUDIT.md)** - Complete organizer verification flow audit
 - **[Critical Vulnerabilities](./security/CRITICAL_VULNERABILITIES_FIXES.md)** - Security fixes
 - **[Security Audit Report](./security/SECURITY_AUDIT_REPORT_2025.md)** - Latest audit results
 - **[Deployment Security](./security/DEPLOYMENT_SECURITY_CHECKLIST.md)** - Security checklist
@@ -47,17 +56,17 @@
 - **[Polkadot Integration](./bridge/adapters/PolkadotAdapter.md)** - Polkadot adapter
 - **[Multi-Chain APIs](./bridge/apis/README.md)** - Cross-chain API documentation
 
-### 🎨 Design & UI
-- **[Design System](./design/README.md)** - UI/UX design documentation
-- **[Component Library](./design/COMPONENT_LIBRARY.md)** - Design system components
-- **[Accessibility Guidelines](./design/ACCESSIBILITY_GUIDELINES.md)** - Accessibility standards
+### 🤖 AI Integration
+- **[AgentKit MCP Server](./tools/mcp-server/README.md)** - Coinbase AgentKit MCP server for AI-powered blockchain operations
+- **[OnchainKit Integration](./frontend/README.md#coinbase-onchainkit)** - Frontend integration with Coinbase OnchainKit
+- **[CDP SDK Backend](./api/README.md#cdp-sdk-integration)** - Backend integration with Coinbase Developer Platform
 
 ### 📊 Project Status
 - **[Status Documentation](./status/README.md)** - Project status and progress reports
 - **[Task Completion Summary](./status/TASK_COMPLETION_SUMMARY.md)** - Development progress overview
 - **[Production Implementation](./status/PRODUCTION_IMPLEMENTATION_SUMMARY.md)** - Production readiness status
 - **[Production Testing](./status/PRODUCTION_TESTING_GUIDE.md)** - Production testing procedures
-- **[Issue Fixes Summary](./status/ISSUE_FIXES_SUMMARY.md)** - Resolved issues and fixes
+- **[Product Market Fit Assessment](./status/PRODUCT_MARKET_FIT_ASSESSMENT.md)** - Comprehensive PMF analysis and competitor assessment vs Luma
 
 ### 🎨 Frontend Development
 - **[Frontend Documentation](./frontend/README.md)** - Frontend-specific documentation
@@ -83,11 +92,12 @@
 ## 📊 Documentation Status
 
 ### ✅ **Complete Documentation**
-- **Platform Overview**: Complete with architecture diagrams
+- **Platform Overview**: Complete with Coinbase integrations and architecture diagrams
 - **Security Documentation**: Comprehensive audit reports and fixes
 - **Deployment Guides**: Step-by-step production deployment
 - **User Guides**: Complete user and developer documentation
 - **API Reference**: Full API documentation with examples
+- **AI Integration**: Coinbase AgentKit MCP server documentation
 
 ### 🔄 **In Progress**
 - **Multi-Chain Integration**: Polkadot and Cardano implementation

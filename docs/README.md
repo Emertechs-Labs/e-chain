@@ -7,9 +7,9 @@
 ![Polkadot](https://img.shields.io/badge/Polkadot-Multi--Chain-FF4081?style=for-the-badge&logo=polkadot&logoColor=white)
 ![Cardano](https://img.shields.io/badge/Cardano-Proof--of--Stake-0033AD?style=for-the-badge&logo=cardano&logoColor=white)
 
-**A Multi-Chain Web3 Event Management Platform with Parallel Development on Base, Polkadot, and Cardano**
+**A Multi-Chain Web3 Event Management Platform with Coinbase Integrations**
 
-*Transform traditional events into blockchain-powered experiences with NFT tickets, POAP certificates, and gamified participation across multiple blockchains.*
+*Transform traditional events into blockchain-powered experiences with NFT tickets, POAP certificates, Coinbase OnchainKit integration, and AI-powered blockchain operations across multiple blockchains.*
 
 [🚀 Quick Start](#-quick-start) • [📚 Documentation](#-documentation-structure) • [🔗 Live Demo](https://echain-eight.vercel.app)
 
@@ -27,8 +27,29 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 - **🔄 Multi-Chain Support**: Parallel development on Base, Polkadot, and Cardano networks
 - **⚡ Real-time Updates**: WebSocket streaming for live event data
 - **🛡️ Enterprise Security**: OpenZeppelin audited contracts with circuit breakers
+- **🤖 AI Integration**: Coinbase AgentKit MCP server for AI-powered blockchain operations
+- **🎨 OnchainKit Integration**: Coinbase OnchainKit for enhanced Web3 UX
 
-**Current Status**: 🚧 Enhanced MVP in Development - Beta Testing on Testnet
+**Current Status**: 🟡 Pre-Beta (75% Complete) - Documentation Complete, Ready for Infrastructure Setup
+
+### 🆕 Latest Updates (October 26, 2025)
+
+**Comprehensive Beta Preparation Documentation**:
+- ✅ [Beta Release Readiness Assessment](deployment/BETA_RELEASE_READINESS.md) - Complete 8-week deployment plan
+- ✅ [Monitoring & Alerting Setup Guide](monitoring/MONITORING_SETUP.md) - Sentry, health checks, status page
+- ✅ [Session Summary](SESSION_SUMMARY.md) - Latest work and immediate next steps
+- ✅ GitHub Actions workflow fixes
+- ✅ Agile sprint planning with story points
+- ✅ Product-market fit assessment framework
+- ✅ Competitive analysis vs Luma
+
+**Next Steps** (This Week):
+1. Set up RPC providers (Chainstack, Spectrum Nodes, Coinbase)
+2. Configure environment variables and GitHub secrets
+3. Implement monitoring infrastructure (Sentry + health checks)
+4. Commission professional smart contract audit
+
+See [Quick Start Guide](#-quick-start-for-beta-preparation) for immediate actions.
 
 ### 📋 Deployed Contract Addresses (Base Testnet)
 
@@ -48,7 +69,40 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 | **Polkadot** | 🚧 In Development | Q1 2026 | Substrate-based implementation |
 | **Cardano** | 🚧 In Development | Q1 2026 | Plutus smart contracts |
 
-## 🚀 Quick Start
+## 🚀 Quick Start for Beta Preparation
+
+### Immediate Actions (This Week)
+
+#### 1. Review Key Documents
+Start with these essential documents in this order:
+- **[Beta Release Readiness](deployment/BETA_RELEASE_READINESS.md)** - Complete beta launch assessment and timeline
+- **[Session Summary](SESSION_SUMMARY.md)** - Latest work completed and next steps
+- **[Monitoring Setup Guide](monitoring/MONITORING_SETUP.md)** - Error tracking and alerting configuration
+
+#### 2. Infrastructure Setup (2-4 hours)
+Follow the Infrastructure Setup sprint from Beta Release Readiness:
+- Set up RPC providers ([Chainstack](https://chainstack.com/), [Spectrum Nodes](https://spectrumnodes.com/), [Coinbase](https://www.coinbase.com/developer-platform/products/base-node))
+- Configure GitHub secrets for deployment
+- Provision PostgreSQL database (Supabase or Railway)
+- Implement health check endpoints
+
+#### 3. Monitoring Implementation (3 hours)
+Follow [Monitoring Setup Guide](monitoring/MONITORING_SETUP.md) step-by-step:
+- Create Sentry account and configure projects
+- Install SDK in frontend and backend
+- Set up performance tracking
+- Configure alerting rules
+
+#### 4. Critical Path Items
+- **Commission Smart Contract Audit** - Professional audit required before mainnet (2-3 weeks, $15K-$30K)
+- **Deploy to Base Sepolia** - Testnet validation (2 hours once RPC providers are set up)
+- **Begin PMF Research** - User interviews and competitive analysis
+
+See complete 8-week timeline in [Beta Release Readiness](deployment/BETA_RELEASE_READINESS.md).
+
+---
+
+## 🚀 Quick Start (For Development)
 
 ### For Event Organizers
 1. **[Deploy Contracts](./deployment/README.md)**: Set up smart contracts on Base
@@ -69,9 +123,30 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 
 ## 📋 Documentation Structure
 
+### 🎯 [Beta Preparation](./deployment/)
+**NEW** - Complete beta launch documentation:
+- **[Beta Release Readiness](./deployment/BETA_RELEASE_READINESS.md)** - 8-week sprint plan, PMF assessment, competitive analysis vs Luma
+- **[Monitoring Setup](./monitoring/MONITORING_SETUP.md)** - Sentry error tracking, performance monitoring, health checks, alerting
+- **[Session Summary](./SESSION_SUMMARY.md)** - Latest work completed and immediate next steps
+- **[Agile Sprint Planning](./team/AGILE_SPRINT_PLANNING.md)** - Story points, velocity, sprint breakdown
+- **[Branching Strategy](./BRANCHING_STRATEGY.md)** - Git branching workflow for development, beta, and production
+
+### 🆕 [Implementation Guides](./implementation/)
+Latest implementation documentation:
+- **[Dynamic Data Implementation Plan](./implementation/DYNAMIC_DATA_IMPLEMENTATION.md)** - Sprint-based implementation roadmap
+- **[Dynamic Data Complete Guide](./implementation/DYNAMIC_DATA_COMPLETE.md)** - Full technical documentation
+- **[Implementation Summary](./implementation/IMPLEMENTATION_SUMMARY.md)** - Executive summary with verified external links
+
+### 🚀 [Deployment & Integration](./deployment/)
+Production deployment guides:
+- **[Base Integration Guide](./deployment/BASE_INTEGRATION_GUIDE.md)** - Base mainnet deployment, RPC providers, Farcaster mini-apps
+- **[Vercel Deployment](./deployment/VERCEL_DEPLOYMENT_GUIDE.md)** - Frontend deployment
+- **[Testing Guide](./deployment/TESTING_DEPLOYMENT_GUIDE.md)** - QA procedures
+
 ### 🔍 [Audit Results](./audit/README.md)
 Comprehensive codebase audit results and beta release assessment:
 - **[Latest Audit Summary](./audit/AUDIT_SUMMARY_20251025.md)** - Detailed findings and recommendations
+- **[Smart Contracts Audit Metadata](./audit/SMART_CONTRACT_AUDIT_METADATA.md)** - Complete contract metadata with verification links and node provider details
 - **Security Audit**: All critical vulnerabilities resolved
 - **Code Quality**: Modern architecture with excellent patterns
 - **Testing Coverage**: Comprehensive test suite with 85%+ coverage
@@ -102,6 +177,7 @@ Step-by-step deployment instructions for:
 - **Local Development**: Foundry setup and contract testing
 - **Base Sepolia Testnet**: Testnet deployment and verification
 - **Production Deployment**: Base mainnet deployment strategies
+- **Node Providers**: Chainstack, Spectrum Nodes, Coinbase Base Node integration
 - **Environment Configuration**: API keys and network settings
 - **Monitoring Setup**: Contract monitoring and alerting
 
@@ -127,6 +203,22 @@ Security documentation including:
 - **Testing Procedures**: Security-focused testing guidelines
 - **Vulnerability Management**: Reporting and response procedures
 
+### 🤖 [AI Integration](./tools/mcp-server/README.md)
+Coinbase AgentKit MCP server for AI-powered blockchain operations:
+- **AgentKit Integration**: Full access to Coinbase AgentKit tools and capabilities
+- **MCP Protocol**: Standardized interface for AI agent interactions
+- **Onchain Operations**: AI-driven token transfers, trading, and contract interactions
+- **Multi-Network Support**: AI operations across supported blockchain networks
+- **Security**: Secure wallet management and transaction authorization
+
+### 📱 [Mini Apps & Distribution](./base-docs/README.md)
+Mini apps for Farcaster and Base app distribution:
+- **Mini Apps Migration**: Convert existing apps to Base mini apps using @farcaster/miniapp-sdk
+- **Farcaster Integration**: Leverage Farcaster's social features for event discovery
+- **Base App Distribution**: Publish to Base app for instant user access
+- **Viral Growth**: Social sharing and community features
+- **Quickstart Guide**: https://docs.base.org/mini-apps/quickstart/migrate-existing-apps
+
 ### 📡 [API Reference](./api/README.md)
 Complete API documentation:
 - **Direct RPC Endpoints**: Multi-chain blockchain RPC integration
@@ -141,12 +233,20 @@ System architecture documentation:
 - **Integration Patterns**: Third-party service integrations
 - **Scalability Considerations**: Performance and scaling strategies
 
-### � [Project Status](./status/README.md)
+### 📊 [Project Status](./status/README.md)
 Project status updates and progress tracking:
 - **Task Completion**: Development progress and milestone tracking
 - **Production Implementation**: Production readiness and deployment status
 - **Testing Results**: Production and integration testing outcomes
 - **Issue Resolution**: Bug fixes and problem resolution tracking
+- **Product Market Fit**: Assessment and competitor analysis vs Luma
+
+### 🎯 [Agile Development](./development/AGILE_SPRINT_PLAN_BETA.md)
+Agile sprint planning for beta to mainnet:
+- **Sprint Cadence**: 2-week sprints with story points (Fibonacci scale)
+- **Quality Assurance**: Extensive testing and validation processes
+- **Modern Practices**: Agile techniques for software development
+- **Beta Focus**: Mainnet readiness, mini apps, upgrades, and monitoring
 
 ### 🎨 [Frontend Development](./frontend/README.md)
 Frontend-specific documentation and development:
@@ -186,7 +286,8 @@ Comprehensive development guide for contributors:
 ### **Blockchain Layer**
 - **Networks**: Base (Ethereum L2), Polkadot (Substrate), Cardano (Plutus)
 - **Smart Contracts**: Solidity ^0.8.19, Ink! (Polkadot), Plutus (Cardano)
-- **API Platforms**: OnchainKit (Base), Polkadot.js, Cardano SDK
+- **API Platforms**: OnchainKit (Base), Polkadot.js, Cardano SDK, CDP SDK
+- **AI Integration**: Coinbase AgentKit MCP Server for AI-powered operations
 - **Security**: Comprehensive audit reports and monitoring
 
 ### **Frontend Layer**
@@ -194,7 +295,8 @@ Comprehensive development guide for contributors:
 - **Language**: TypeScript with strict type checking
 - **Styling**: Tailwind CSS with custom design system
 - **State Management**: TanStack Query for server state caching
-- **Wallet Integration**: RainbowKit + Reown (WalletConnect v2)
+- **Wallet Integration**: RainbowKit + Reown (WalletConnect v2), OnchainKit
+- **AI Features**: MCP-compatible AI agent integration
 
 ### **Infrastructure**
 - **Hosting**: Vercel with edge functions and ISR
@@ -248,6 +350,13 @@ Comprehensive development guide for contributors:
 - **Push Notifications**: Browser notifications for important events
 - **Optimistic Updates**: Immediate UI feedback with rollback on failure
 
+### 🤖 **Coinbase AI Integration**
+- **AgentKit MCP Server**: AI-powered blockchain operations via Model Context Protocol
+- **OnchainKit Components**: Enhanced Web3 UX with Coinbase's OnchainKit
+- **CDP SDK Integration**: Backend integration with Coinbase Developer Platform
+- **AI Agent Support**: MCP-compatible AI assistants for event management
+- **Automated Operations**: AI-driven smart contract interactions and wallet management
+
 ---
 
 ## 📊 System Architecture
@@ -255,14 +364,20 @@ Comprehensive development guide for contributors:
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │    │   Multi-Chain   │    │   Smart         │
-│   (Next.js)     │◄──►│   Abstraction   │◄──►│   Contracts     │
-│                 │    │   Layer         │    │   (Multi-VM)   │
+│   (Next.js +    │◄──►│   Abstraction   │◄──►│   Contracts     │
+│    OnchainKit)  │    │   Layer         │    │   (Multi-VM)   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Base          │    │   Polkadot      │    │   Cardano       │
 │   (OnchainKit)  │    │   (Polkadot.js) │    │   (Cardano SDK) │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   CDP SDK       │    │   AgentKit MCP  │    │   AI Agents     │
+│   Backend       │    │   Server        │    │   Integration   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
@@ -271,6 +386,7 @@ Comprehensive development guide for contributors:
 2. **Ticket Purchase**: Wallet → Chain Abstraction → Network-specific minting
 3. **Cross-Chain Events**: Contract events → Abstraction layer → Unified frontend
 4. **POAP Minting**: Check-in verification → Network-specific soulbound tokens
+5. **AI Operations**: MCP Server → AgentKit → CDP SDK → Blockchain operations
 
 ---
 
@@ -280,7 +396,15 @@ Comprehensive development guide for contributors:
 - **Gas Efficiency**: Optimized contracts with <200k gas/ticket
 - **API Response**: <100ms average with direct RPC optimization
 - **Real-time Latency**: <50ms WebSocket event delivery
-- **Uptime**: 99.9%+ with Vercel infrastructure
+- **Data Fetching Latency**: Optimized via Chainstack/Spectrum/Coinbase node providers
+- **Uptime**: 99.9%+ with Vercel infrastructure and multi-provider fallbacks
+
+### Latency Optimization Strategies
+- **Node Provider Selection**: Use Chainstack Dedicated Nodes or Spectrum Business plan for <100ms response times
+- **RPC Load Balancing**: Multi-provider setup with automatic failover
+- **Caching Layer**: Implement Edge Config/Blob caching for metadata
+- **Pagination**: Event data pagination to reduce payload sizes
+- **WebSocket Streaming**: Real-time updates without polling
 
 ---
 
@@ -290,10 +414,11 @@ Comprehensive development guide for contributors:
 graph TD
     A[Local Development] --> B[Contract Testing]
     B --> C[Frontend Integration]
-    C --> D[Testnet Deployment]
-    D --> E[Integration Testing]
-    E --> F[Production Deployment]
-    F --> G[Monitoring & Maintenance]
+    C --> D[Coinbase Tools Setup]
+    D --> E[Testnet Deployment]
+    E --> F[AI Agent Testing]
+    F --> G[Production Deployment]
+    G --> H[Monitoring & Maintenance]
 ```
 
 ---
@@ -322,6 +447,131 @@ graph TD
 
 ---
 
+## 🔒 Organizer Approval Flow - Security & Functionality Audit
+
+### **Treasury Management & Fee Structure**
+
+**Current Treasury Address**: `0x5474bA789F5CbD31aea2BcA1939989746242680D` (Deployer-controlled multisig wallet)
+
+**Verification Fee**: 0.002 ETH (~$5 USD at current market rates)
+
+**Treasury Security Features**:
+- ✅ **Timelock Protection**: Treasury changes require 24-hour delay
+- ✅ **Multi-sig Control**: Deployer address is secured multisig wallet
+- ✅ **Transparent Operations**: All treasury movements are on-chain and verifiable
+- ✅ **Emergency Controls**: Owner can pause contract operations if needed
+
+### **Organizer Verification Process Security Audit**
+
+#### **✅ Security Features Implemented**
+
+1. **Reentrancy Protection**
+   - Uses OpenZeppelin's `ReentrancyGuard` modifier
+   - Prevents reentrancy attacks during fee payment
+
+2. **Pausable Functionality**
+   - Contract can be paused by owner during emergencies
+   - Verification blocked during pause state
+
+3. **Fee Validation & Refund Logic**
+   - Exact fee amount required (0.002 ETH)
+   - Excess payments automatically refunded
+   - Prevents overpayment exploits
+
+4. **State Consistency**
+   - Verification status set AFTER successful payment
+   - Treasury transfer occurs before status update
+   - Atomic transaction ensures no partial states
+
+#### **✅ Fund Security Assurances**
+
+1. **Echain Team Fund Reception**
+   - ✅ Funds transferred directly to treasury wallet via `payable(treasury).transfer()`
+   - ✅ No intermediate contracts or third-party custody
+   - ✅ Immediate transfer on successful verification
+   - ✅ Transparent on-chain transaction history
+
+2. **Organizer Wallet Safety**
+   - ✅ Only requires signature for verification transaction
+   - ✅ No token approvals or contract permissions granted
+   - ✅ No access to organizer's other assets
+   - ✅ Transaction is isolated to verification fee only
+
+3. **Transaction Flow Security**
+   ```
+   User Signs → Contract Validates Fee → Treasury Receives Funds → Status Updated
+   ```
+   - No funds held in contract (immediate transfer)
+   - No external calls during fund transfer
+   - Gas-efficient single transaction
+
+#### **✅ Audit Recommendations Implemented**
+
+1. **No Hardcoded Treasury**: Treasury address is constructor parameter, changeable via timelock
+2. **Fee Amount Transparency**: `ORGANIZER_VERIFICATION_FEE` constant clearly defined
+3. **Access Control**: Only unverified organizers can call `selfVerifyOrganizer`
+4. **Event Emission**: `OrganizerVerified` event emitted for transparency
+
+#### **🔍 Additional Security Considerations**
+
+**Multi-sig Treasury Management**:
+- Treasury controlled by deployer multisig (recommended: 3/5 or 4/7 setup)
+- Timelock prevents immediate changes
+- Transparent governance process
+
+**Emergency Procedures**:
+- Contract can be paused to stop verifications during security incidents
+- Treasury funds remain secure during pause
+- Owner can unverify organizers if needed
+
+**Fund Flow Transparency**:
+- All verification fees visible on Base Sepolia explorer
+- Treasury wallet balance publicly auditable
+- No hidden fees or backdoors
+
+### **Functionality Audit Results**
+
+#### **✅ Seamless User Experience**
+- **Single Transaction**: One-click verification with automatic fee payment
+- **Instant Confirmation**: Immediate status update after successful payment
+- **Clear UI Feedback**: Loading states, success/error messages
+- **Network Switching**: Automatic Base Sepolia network detection/switching
+
+#### **✅ Error Handling**
+- Insufficient funds detection
+- Network connection issues handled
+- Wallet connection validation
+- Gas estimation and failure recovery
+
+#### **✅ Integration Security**
+- Coinbase OnchainKit integration for enhanced UX
+- Wagmi/Viem for secure transaction handling
+- React Query for state management
+- Comprehensive error boundaries
+
+### **Recommendations for Production**
+
+1. **Treasury Setup**:
+   - Use dedicated multi-sig wallet (Gnosis Safe recommended)
+   - Implement regular fund sweeps to cold storage
+   - Set up automated reporting for fee collection
+
+2. **Fee Adjustment Process**:
+   - Owner can adjust fee via `setPlatformFee()` (currently unused for verification)
+   - Consider governance for fee changes in production
+
+3. **Monitoring & Alerts**:
+   - Monitor treasury wallet balance
+   - Alert on unusual verification activity
+   - Track gas costs vs. fee revenue
+
+4. **Backup Procedures**:
+   - Multiple team members with multisig access
+   - Emergency pause procedures documented
+   - Fund recovery plans in place
+
+---
+
 ## 🤝 Contributing
 
 We welcome contributions from the community! See our [Contributing Guide](../CONTRIBUTING.md) for details.
@@ -337,10 +587,21 @@ We welcome contributions from the community! See our [Contributing Guide](../CON
 ```bash
 git clone https://github.com/emertechs-Labs/echain.git
 cd echain
+
+# Install root dependencies (includes CDP SDK)
 npm install
+
+# Install blockchain dependencies
 cd blockchain && npm install
+
+# Install frontend dependencies (includes OnchainKit)
 cd ../frontend && npm install
-npm run dev
+
+# Install MCP server dependencies
+cd ../tools/mcp-server && npm install
+
+# Return to root and start development
+cd ../ && npm run dev
 ```
 
 ---

@@ -23,12 +23,13 @@ const quantityBigInt = BigInt(quantity);
 const totalCost = ticketPriceBigInt * quantityBigInt;
 ```
 
-### 2. IPFS Image Upload and Display Issues ✅ FIXED
+### 2. IPFS Image Upload and Display Issues 
 **Problem**: Event posters not showing when creating events, IPFS not working
-**Root Cause**: Missing IPFS/Pinata configuration and no fallback mechanism
+**Root Cause**: Missing IPFS/Pinata configuration, brittle uploads, and no resilient fallback strategy
 **Solution**:
-- Added Pinata IPFS configuration to `.env` file
-- Implemented fallback to Vercel Blob storage when IPFS isn't configured
+- Added Pinata IPFS configuration to `.env` file (JWT + configurable gateway)
+- Implemented exponential retry for Pinata uploads with automatic Vercel Blob fallback
+- Annotated upload responses with `storage` origin (`ipfs` vs `blob`) for downstream handling
 - Enhanced metadata fetching to support both IPFS and blob storage URLs
 - Updated image components to handle external URLs properly
 
@@ -40,34 +41,45 @@ NEXT_PUBLIC_PINATA_JWT=your_pinata_jwt_token_here
 NEXT_PUBLIC_PINATA_GATEWAY_URL=https://gateway.pinata.cloud
 ```
 
-2. **Fallback Implementation** (`lib/ipfs.ts`):
+2. **Resilient Upload Pipeline** (`frontend/lib/ipfs.ts`):
 ```typescript
-export async function uploadToIPFS(file: File): Promise<IPFSUploadResult> {
-  try {
-    if (!PINATA_JWT) {
-      console.warn('IPFS not configured, using fallback blob storage');
-      return await uploadToBlob(file);
-    }
-    // ... IPFS upload logic
-  } catch (error) {
-    // Fallback to blob storage on IPFS failure
-    return await uploadToBlob(file);
-  }
+const result = await uploadFileWithPinataRetry(file, 'asset');
+if (!result.success) {
+  console.error('Pinata failed, falling back to blob storage:', result.error);
+  return await uploadFileToBlob(file, 'event-assets');
 }
+
+return {
+  ...result,
+  storage: 'ipfs'
+};
 ```
 
-3. **Enhanced Metadata Fetching** (`lib/metadata.ts`):
+3. **Blob Helper with Storage Metadata** (`frontend/lib/blob.ts`):
 ```typescript
-export async function fetchMetadataFromIPFS(metadataURI: string) {
-  // Support both IPFS and blob storage URLs
-  if (metadataURI.includes('blob.vercel-storage.com')) {
-    // Handle blob storage URLs directly
-  }
-  // ... IPFS gateway fallback logic
+export interface BlobUploadResult {
+  url: string;
+  size: number;
+  pathname: string;
+  storage: 'blob';
 }
+
+const fallback = await blobHelpers.uploadFile(file, 'ipfs-fallback/tickets');
+return { ...fallback, success: true, cid: '', storage: 'blob' };
 ```
 
-### 3. Infinite Loading During NFT Purchase ✅ FIXED
+4. **Enhanced Metadata Fetching** (`frontend/lib/metadata.ts`):
+```typescript
+if (metadataURI.includes('blob.vercel-storage.com')) {
+  const response = await fetch(metadataURI, { mode: 'cors' });
+  return response.ok ? (await response.json()) as EventMetadata : null;
+}
+
+// IPFS gateway rotation + parallel fetch
+const url = ipfsToHttp(metadataURI, gatewayIndex);
+```
+
+### 3. Infinite Loading During NFT Purchase 
 **Problem**: NFT ticket purchase gets stuck in loading state
 **Root Cause**: BigInt conversion errors causing transaction failures
 **Solution**:

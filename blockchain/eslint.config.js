@@ -9,6 +9,7 @@ module.exports = [
       'artifacts/**/*',
       'cache/**/*',
       'typechain-types/**/*', // generated files from typechain
+      'lib/**/*', // third-party libraries
       'eslint.config.js', // avoid self linting
     ],
     languageOptions: {

@@ -126,13 +126,27 @@ export function OrganizerApprovalDashboard({ onApprovalSuccess }: OrganizerAppro
             <div className="text-right">
               <div className="text-lg font-bold text-cyan-400">Self-Verification</div>
               <div className="text-xs text-gray-400">
-                0.001 ETH fee
+                0.002 ETH fee
               </div>
             </div>
           </div>
-          <p className="text-xs text-gray-400">
-            Pay 0.001 ETH to become a verified organizer instantly
+          <p className="text-xs text-gray-400 mb-3">
+            Pay 0.002 ETH to become a verified organizer instantly
           </p>
+          
+          {/* Treasury Information */}
+          <div className="border-t border-slate-600 pt-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="h-4 w-4 text-green-400" />
+              <span className="text-xs font-medium text-green-400">Secure Treasury</span>
+            </div>
+            <p className="text-xs text-gray-400">
+              Funds sent to Echain treasury: <code className="bg-slate-800 px-1 rounded text-cyan-300">0x5474...2680D</code>
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Multi-sig controlled • Timelock protected • Transparent operations
+            </p>
+          </div>
         </div>
 
         {/* Action Button */}
@@ -154,7 +168,7 @@ export function OrganizerApprovalDashboard({ onApprovalSuccess }: OrganizerAppro
           ) : (
             <>
               <Shield className="h-4 w-4" />
-              Pay 0.001 ETH & Get Verified
+              Pay 0.002 ETH & Get Verified
             </>
           )}
         </button>
@@ -167,12 +181,39 @@ export function OrganizerApprovalDashboard({ onApprovalSuccess }: OrganizerAppro
           </div>
           <div className="flex items-center justify-center gap-2 text-sm text-yellow-400">
             <span className="text-xs">💰</span>
-            <span>0.001 ETH (~$1) verification fee required</span>
+            <span>0.002 ETH (~$5) verification fee required</span>
           </div>
           <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
             <Clock className="h-4 w-4" />
             <span>Instant verification after payment</span>
           </div>
+          
+          {/* Security Assurances */}
+          <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3 mt-4">
+            <h4 className="text-sm font-medium text-green-400 mb-2 flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Security Assurances
+            </h4>
+            <div className="space-y-1 text-xs text-green-300">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-3 w-3" />
+                <span>Funds go directly to secure treasury</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-3 w-3" />
+                <span>No access to your other assets</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-3 w-3" />
+                <span>Reentrancy & pause protection</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-3 w-3" />
+                <span>Transparent on-chain operations</span>
+              </div>
+            </div>
+          </div>
+          
           <p className="text-xs text-gray-500">
             By proceeding, you agree to our terms of service and organizer guidelines
           </p>

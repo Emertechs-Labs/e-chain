@@ -28,17 +28,25 @@ NEXT_PUBLIC_INCENTIVE_ADDRESS=0x8290c12f874DF9D03FDadAbE10C7c6321B69Ded9
 NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=your_reown_project_id
 
 # Webhook Security
-BASE_WEBHOOK_SECRET=your_webhook_secret
+BASE_WEBHOOK_SECRET=your_base_webhook_secret
+PINATA_WEBHOOK_SECRET=your_pinata_webhook_secret
+PAYMENT_WEBHOOK_SECRET=your_payment_webhook_secret
 ```
 
 ### 2. Webhook Configuration (Optional)
 
-Configure your preferred webhook provider to point to your Vercel deployment:
+Configure your providers to point to your Vercel deployment:
 
 ```
-Webhook URL: https://your-app.vercel.app/api/events
-Secret: your_webhook_secret
-Events: event.emitted (EventCreated)
+Pinata Webhook URL: https://your-app.vercel.app/api/webhooks/pinata
+Secret: your_pinata_webhook_secret
+
+Payments Webhook URL: https://your-app.vercel.app/api/webhooks/payments
+Secret: your_payment_webhook_secret
+
+Marketplace Webhook URL: https://your-app.vercel.app/api/webhooks/marketplace
+Secret: your_base_webhook_secret
+Events: listing.updated, ticket.transferred
 ```
 
 ## Deployment Steps

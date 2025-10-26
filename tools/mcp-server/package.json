@@ -1,0 +1,36 @@
+{
+  "name": "@echain/coinbase-agentkit-mcp",
+  "version": "1.0.0",
+  "description": "Coinbase AgentKit MCP Server for Echain - Model Context Protocol integration with Coinbase AgentKit",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "mcp",
+    "coinbase",
+    "cdp",
+    "blockchain",
+    "web3",
+    "echain"
+  ],
+  "author": "Echain Team",
+  "license": "MIT",
+  "dependencies": {
+    "@coinbase/agentkit": "^0.2.3",
+    "@coinbase/agentkit-model-context-protocol": "^0.1.0",
+    "@modelcontextprotocol/sdk": "^1.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.1",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

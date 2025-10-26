@@ -67,9 +67,13 @@ const EventDetailPage: React.FC = () => {
       if (!event?.ticketContract) return 0;
 
       try {
-        // Use direct contract interaction
+        // Use direct contract interaction with the event's ticket contract
+        if (event.ticketContract === '0x0000000000000000000000000000000000000000') {
+          return 0;
+        }
+        
         const totalSold = await readContract(
-          'EventTicket',
+          event.ticketContract as `0x${string}`,
           'totalSold',
           []
         );
@@ -480,7 +484,6 @@ const EventDetailPage: React.FC = () => {
                     <div
                       ref={progressBarRef}
                       className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${(soldTickets / event.maxTickets) * 100}%` }}
                     />
                   </div>
                 </div>
@@ -526,13 +529,15 @@ const EventDetailPage: React.FC = () => {
                         <>
                           {/* Quantity Selector */}
                           <div>
-                            <label className="block text-sm text-slate-400 mb-2">Quantity</label>
+                            <label htmlFor="quantity" className="block text-sm text-slate-400 mb-2">Quantity</label>
                             <input
+                              id="quantity"
                               type="number"
                               min="1"
                               max={Math.min(10, event.maxTickets - soldTickets)}
                               value={quantity}
                               onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                              placeholder="1"
                               className="w-full bg-slate-800 text-white px-4 py-2 rounded-lg border border-slate-700 focus:border-cyan-500 focus:outline-none"
                             />
                           </div>

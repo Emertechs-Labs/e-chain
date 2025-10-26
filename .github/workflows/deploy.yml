@@ -1,0 +1,151 @@
+name: Deploy to Base
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: 'Network to deploy to'
+        required: true
+        default: 'testnet'
+        type: choice
+        options:
+        - testnet
+        - mainnet
+      contract:
+        description: 'Contract to deploy'
+        required: true
+        default: 'events'
+        type: choice
+        options:
+        - events
+        - voting
+  push:
+    branches: [ main ]
+    paths:
+      - 'blockchain/contracts/**'
+      - 'blockchain/scripts/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.network || 'testnet' }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install Foundry
+      uses: foundry-rs/foundry-toolchain@v1
+
+    - name: Install dependencies
+      run: cd blockchain && npm ci
+
+    - name: Setup environment
+      run: |
+        cd blockchain
+        cp .env.example .env
+        # Environment variables are set via GitHub secrets
+
+    - name: Run deployment configuration check
+      run: cd blockchain && npm run config:deployment
+      env:
+        BASE_MAINNET_RPC_URL: ${{ secrets.BASE_MAINNET_RPC_URL }}
+        BASE_TESTNET_RPC_URL: ${{ secrets.BASE_TESTNET_RPC_URL }}
+        BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
+
+    - name: Test node providers
+      run: cd blockchain && npm run test:node-providers
+      env:
+        BASE_MAINNET_RPC_URL: ${{ secrets.BASE_MAINNET_RPC_URL }}
+        BASE_TESTNET_RPC_URL: ${{ secrets.BASE_TESTNET_RPC_URL }}
+
+    - name: Run tests
+      run: cd blockchain && npm run test
+
+    - name: Deploy contracts
+      id: deploy
+      run: |
+        cd blockchain
+        if [ "${{ github.event.inputs.network }}" = "mainnet" ]; then
+          echo "Deploying to Base Mainnet..."
+          npm run deploy:events:mainnet
+        else
+          echo "Deploying to Base Testnet..."
+          npm run deploy:events:testnet
+        fi
+      env:
+        DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+        BASE_MAINNET_RPC_URL: ${{ secrets.BASE_MAINNET_RPC_URL }}
+        BASE_TESTNET_RPC_URL: ${{ secrets.BASE_TESTNET_RPC_URL }}
+        BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
+
+    - name: Extract contract addresses
+      id: addresses
+      run: |
+        cd blockchain
+        # Extract addresses from deployment output
+        EVENT_FACTORY=$(grep "EventFactory deployed to:" broadcast/DeployEventFactory.s.sol/*/run-latest.json | tail -1 | sed 's/.*EventFactory deployed to: //' | tr -d '"')
+        EVENT_TICKET=$(grep "EventTicket template deployed to:" broadcast/DeployEventFactory.s.sol/*/run-latest.json | tail -1 | sed 's/.*EventTicket template deployed to: //' | tr -d '"')
+
+        echo "event_factory=$EVENT_FACTORY" >> $GITHUB_OUTPUT
+        echo "event_ticket=$EVENT_TICKET" >> $GITHUB_OUTPUT
+
+        echo "EventFactory: $EVENT_FACTORY"
+        echo "EventTicket: $EVENT_TICKET"
+
+    - name: Update deployment records
+      run: |
+        cd blockchain
+        mkdir -p deployments
+        cat > deployments/base-${{ github.event.inputs.network || 'testnet' }}-deployment-$(date +%s).json << EOF
+        {
+          "network": "${{ github.event.inputs.network || 'testnet' }}",
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "commit": "${{ github.sha }}",
+          "contracts": {
+            "EventFactory": "${{ steps.addresses.outputs.event_factory }}",
+            "EventTicket": "${{ steps.addresses.outputs.event_ticket }}"
+          },
+          "explorer": "https://${{ github.event.inputs.network == 'mainnet' && 'base' || 'sepolia.' }}basescan.org",
+          "rpc": "${{ github.event.inputs.network == 'mainnet' && secrets.BASE_MAINNET_RPC_URL || secrets.BASE_TESTNET_RPC_URL }}"
+        }
+        EOF
+
+    - name: Verify contracts on BaseScan
+      run: |
+        cd blockchain
+        echo "Verifying contracts on BaseScan..."
+        # Verification happens automatically in deployment script
+
+    - name: Create deployment summary
+      run: |
+        echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Network:** ${{ github.event.inputs.network || 'testnet' }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
+        echo "**EventFactory:** [${{ steps.addresses.outputs.event_factory }}](https://${{ github.event.inputs.network == 'mainnet' && 'base' || 'sepolia.' }}basescan.org/address/${{ steps.addresses.outputs.event_factory }})" >> $GITHUB_STEP_SUMMARY
+        echo "**EventTicket:** [${{ steps.addresses.outputs.event_ticket }}](https://${{ github.event.inputs.network == 'mainnet' && 'sepolia.' }}basescan.org/address/${{ steps.addresses.outputs.event_ticket }})" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Timestamp:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
+
+    - name: Upload deployment artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: deployment-${{ github.event.inputs.network || 'testnet' }}-${{ github.run_id }}
+        path: |
+          blockchain/broadcast/
+          blockchain/deployments/
+        retention-days: 90
+
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "Deployment failed! Check the logs above for details."
+        # Add notification logic here (Slack, Discord, etc.)

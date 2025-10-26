@@ -5,13 +5,14 @@ import { Event } from '../../types/event';
 import { enrichEventsWithMetadata, enrichEventWithMetadata } from '../../lib/metadata';
 import { formatEther } from 'viem';
 import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from '../../lib/contracts';
+import { performanceMonitor, trackEventFetch, trackMetadataEnrichment } from '../../lib/performance-monitor';
 
 // Cache layer for events with TTL
 const eventCache = new Map<string, { data: any; timestamp: number; ttl: number }>();
-const CACHE_TTL_EVENTS = 5 * 60 * 1000; // 5 minutes
-const CACHE_TTL_METRICS = 2 * 60 * 1000; // 2 minutes
+const CACHE_TTL_EVENTS = 10 * 60 * 1000; // Increased to 10 minutes
+const CACHE_TTL_METRICS = 5 * 60 * 1000; // Increased to 5 minutes
 const MAX_RETRIES = 3;
-const RETRY_DELAY_BASE = 1000; // 1 second base delay
+const RETRY_DELAY_BASE = 500; // Reduced base delay
 
 // Enhanced caching utilities
 const getCachedData = <T>(key: string): T | null => {
@@ -56,7 +57,7 @@ const multicallContractReads = async (contractCalls: any[]): Promise<any[]> => {
     console.log(`[Multicall] Batching ${contractCalls.length} contract reads...`);
     
     // For now, we'll implement batching with controlled concurrency
-    const batchSize = 5; // Reduce batch size to avoid overwhelming RPC
+    const batchSize = 10; // Increased from 5 to 10 for better throughput
     const results: any[] = [];
     
     for (let i = 0; i < contractCalls.length; i += batchSize) {
@@ -64,6 +65,13 @@ const multicallContractReads = async (contractCalls: any[]): Promise<any[]> => {
       
       const batchPromises = batch.map(async (call, index) => {
         try {
+          // Skip calls to zero address contracts
+          if (call.contract === '0x0000000000000000000000000000000000000000' || 
+              call.contract === '0x0000000000000000000000000000000000000000') {
+            console.log(`[Multicall] Skipping zero address contract call for ${call.functionName}`);
+            return { success: false, error: 'Zero address contract', result: 0, index: i + index };
+          }
+          
           const result = await retryWithBackoff(() => 
             readContract(call.contract || 'EventFactory', call.functionName, call.args || [])
           );
@@ -77,9 +85,9 @@ const multicallContractReads = async (contractCalls: any[]): Promise<any[]> => {
       const batchResults = await Promise.all(batchPromises);
       results.push(...batchResults);
       
-      // Small delay between batches
+      // Smaller delay between batches for faster processing
       if (i + batchSize < contractCalls.length) {
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 100)); // Reduced from 200ms
       }
     }
     
@@ -95,10 +103,12 @@ const multicallContractReads = async (contractCalls: any[]): Promise<any[]> => {
  */
 export const discoverEventsFromBlockchain = async (): Promise<Event[]> => {
   const cacheKey = 'blockchain-events';
+  const tracker = trackEventFetch(0); // Will update with actual count later
 
   // Check cache first
   const cached = getCachedData<Event[]>(cacheKey);
   if (cached) {
+    tracker.end(true, { cached: true, eventCount: cached.length });
     return cached;
   }
 
@@ -112,6 +122,7 @@ export const discoverEventsFromBlockchain = async (): Promise<Event[]> => {
 
     if (totalEvents === 0) {
       setCachedData(cacheKey, [], CACHE_TTL_EVENTS);
+      tracker.end(true, { eventCount: 0 });
       return [];
     }
 
@@ -158,15 +169,18 @@ export const discoverEventsFromBlockchain = async (): Promise<Event[]> => {
 
     // Cache the results
     setCachedData(cacheKey, events, CACHE_TTL_EVENTS);
+    tracker.end(true, { eventCount: events.length, batchCalls: eventCalls.length });
     return events;
 
   } catch (error) {
     // Return cached data if available, even if expired
     const staleCache = eventCache.get(cacheKey);
     if (staleCache) {
+      tracker.end(true, { cached: true, stale: true, eventCount: staleCache.data.length });
       return staleCache.data as Event[];
     }
 
+    tracker.end(false, { error: error instanceof Error ? error.message : String(error) });
     return [];
   }
 };
@@ -181,7 +195,9 @@ export const useEvents = () => {
 
         if (blockchainEvents.length > 0) {
           // Enrich with metadata
+          const enrichmentTracker = trackMetadataEnrichment(blockchainEvents.length);
           const enrichedEvents = await enrichEventsWithMetadata(blockchainEvents);
+          enrichmentTracker.end(true, { enrichedCount: enrichedEvents.length });
           return enrichedEvents;
         }
 
@@ -191,8 +207,8 @@ export const useEvents = () => {
       }
     },
     // Increased stale time with optimized refetching
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 15 * 60 * 1000, // Increased to 15 minutes
+    gcTime: 45 * 60 * 1000, // Increased to 45 minutes
     // Enhanced retry logic
     retry: (failureCount, error) => {
       if (failureCount < 3) {
@@ -202,9 +218,7 @@ export const useEvents = () => {
       return false;
     },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    // Enable background refetching but reduce frequency
     refetchOnWindowFocus: false,
-    refetchInterval: 15 * 60 * 1000, // Refetch every 15 minutes in background
   });
 };
 
@@ -252,8 +266,8 @@ export const useEventsByOrganizer = (organizer?: string) => {
       }
     },
     enabled: !!targetOrganizer,
-    staleTime: 8 * 60 * 1000, // 8 minutes
-    gcTime: 20 * 60 * 1000, // 20 minutes
+    staleTime: 12 * 60 * 1000, // Increased to 12 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 10000),
   });
@@ -330,8 +344,8 @@ export const useEvent = (eventId: number) => {
       }
     },
     enabled: !!eventId,
-    staleTime: 8 * 60 * 1000, // 8 minutes
-    gcTime: 20 * 60 * 1000, // 20 minutes
+    staleTime: 12 * 60 * 1000, // Increased to 12 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1500 * 2 ** attemptIndex, 20000),
   });
@@ -449,8 +463,8 @@ export const useOrganizerMetrics = (organizer?: string) => {
       }
     },
     enabled: !!targetOrganizer,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 15 * 60 * 1000, // 15 minutes
+    staleTime: 8 * 60 * 1000, // Increased to 8 minutes
+    gcTime: 20 * 60 * 1000, // 20 minutes
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(3000 * 2 ** attemptIndex, 15000),
   });

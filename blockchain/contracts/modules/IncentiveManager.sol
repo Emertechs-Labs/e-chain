@@ -4,12 +4,8 @@ pragma solidity ^0.8.26;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
-
-interface IEventTicketForIncentives {
-    function balanceOf(address owner) external view returns (uint256);
-    function totalSold() external view returns (uint256);
-    function eventId() external view returns (uint256);
-}
+import {IEventFactory} from "../interfaces/IEventFactory.sol";
+import {IEventTicket} from "../interfaces/IEventTicket.sol";
 
 interface IPOAPAttendance {
     function balanceOf(address owner) external view returns (uint256);
@@ -74,15 +70,15 @@ contract IncentiveManager is ERC721, Ownable, Pausable {
     ) external whenNotPaused {
         require(!earlyBirdClaimed[eventId][msg.sender], "Already claimed");
         require(
-            IEventTicketForIncentives(ticketContract).eventId() == eventId,
+            IEventTicket(ticketContract).eventId() == eventId,
             "Invalid ticket contract"
         );
 
-        uint256 ticketCount = IEventTicketForIncentives(ticketContract)
+        uint256 ticketCount = IEventTicket(ticketContract)
             .balanceOf(msg.sender);
         require(ticketCount > 0, "No tickets purchased");
 
-        uint256 totalTickets = IEventTicketForIncentives(ticketContract)
+        uint256 totalTickets = IEventTicket(ticketContract)
             .totalSold();
         require(totalTickets <= earlyBirdLimit, "Early bird period ended");
 

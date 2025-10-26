@@ -20,9 +20,21 @@ remappings = [
 localhost = "http://127.0.0.1:8545"
 base_sepolia = "https://sepolia.base.org"
 
+# Premium Node Providers for Base Mainnet (with failover)
+base_mainnet_chainstack = "https://chainstack.com/your-endpoint-here"
+base_mainnet_spectrum = "https://spectrum-nodes.com/your-endpoint-here"
+base_mainnet_coinbase = "https://developer-access-mainnet.base.org"
+base_mainnet_public = "https://mainnet.base.org"
+
+# Testnet endpoints
+base_testnet_chainstack = "https://chainstack.com/your-testnet-endpoint-here"
+base_testnet_spectrum = "https://spectrum-nodes.com/your-testnet-endpoint-here"
+base_testnet_coinbase = "https://developer-access-testnet.base.org"
+
 # Etherscan API keys
 [etherscan]
 base_sepolia = { key = "${BASESCAN_API_KEY}" }
+base_mainnet = { key = "${BASESCAN_API_KEY}" }
 
 # Test settings
 [fmt]

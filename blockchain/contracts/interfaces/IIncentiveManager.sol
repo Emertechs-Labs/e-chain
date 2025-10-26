@@ -18,7 +18,7 @@ interface IIncentiveManager {
     function referralCodes(bytes32 code) external view returns (address);
     function referralRewards(address user) external view returns (uint256);
 
-    function claimEarlyBird(uint256 eventId) external;
+    function claimEarlyBird(uint256 eventId, address ticketContract, uint256 tokenId) external;
     function updateLoyaltyPoints(address user) external;
     function generateReferralCode(bytes32 code) external;
     function useReferralCode(bytes32 code, address invitee) external;
@@ -28,4 +28,6 @@ interface IIncentiveManager {
     function setEventFactory(address _eventFactory) external;
     function setEventTicket(address _eventTicket) external;
     function setPoapAttendance(address _poapAttendance) external;
+    function setEarlyBirdLimit(uint256 _limit) external;
+    function setEarlyBirdRequirements(uint256 minTicketPrice, uint256 minSupply) external;
 }

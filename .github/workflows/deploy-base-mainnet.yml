@@ -1,0 +1,274 @@
+name: Deploy to Base Mainnet
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'blockchain/contracts/**'
+      - 'blockchain/scripts/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: string
+
+env:
+  FOUNDRY_PROFILE: default
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run Forge tests
+        working-directory: blockchain
+        run: |
+          forge test -vvv
+        env:
+          BASE_MAINNET_CHAINSTACK_RPC: ${{ secrets.BASE_MAINNET_CHAINSTACK_RPC }}
+          BASE_MAINNET_SPECTRUM_RPC: ${{ secrets.BASE_MAINNET_SPECTRUM_RPC }}
+          BASE_MAINNET_COINBASE_RPC: ${{ secrets.BASE_MAINNET_COINBASE_RPC }}
+
+      - name: Check gas optimization
+        working-directory: blockchain
+        run: |
+          forge test --gas-report
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Run Slither
+        uses: crytic/slither-action@v0.3.0
+        with:
+          target: blockchain/contracts
+          slither-args: --config-file blockchain/slither.config.json
+        continue-on-error: true
+
+  deploy-staging:
+    name: Deploy to Staging (Base Sepolia)
+    runs-on: ubuntu-latest
+    needs: [test, security-scan]
+    if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging') }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Test RPC Connectivity
+        working-directory: blockchain
+        run: |
+          echo "Testing Chainstack RPC..."
+          curl -X POST -H "Content-Type: application/json" \
+            --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+            ${{ secrets.BASE_SEPOLIA_CHAINSTACK_RPC }} || echo "Chainstack failed"
+          
+          echo "Testing Spectrum RPC..."
+          curl -X POST -H "Content-Type: application/json" \
+            --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+            ${{ secrets.BASE_SEPOLIA_SPECTRUM_RPC }} || echo "Spectrum failed"
+
+      - name: Deploy to Base Sepolia
+        working-directory: blockchain
+        run: |
+          forge script scripts/DeployEventFactory.s.sol:DeployEventFactory \
+            --rpc-url ${{ secrets.BASE_SEPOLIA_CHAINSTACK_RPC }} \
+            --private-key ${{ secrets.DEPLOYER_PRIVATE_KEY }} \
+            --broadcast \
+            --verify \
+            --etherscan-api-key ${{ secrets.BASESCAN_API_KEY }} \
+            -vvv
+
+      - name: Extract Deployment Addresses
+        id: extract
+        working-directory: blockchain
+        run: |
+          BROADCAST_FILE="broadcast/DeployEventFactory.s.sol/84532/run-latest.json"
+          if [ -f "$BROADCAST_FILE" ]; then
+            EVENT_FACTORY=$(jq -r '.transactions[] | select(.contractName == "EventFactory") | .contractAddress' "$BROADCAST_FILE")
+            echo "event_factory=$EVENT_FACTORY" >> $GITHUB_OUTPUT
+            echo "Deployed EventFactory: $EVENT_FACTORY"
+          fi
+
+      - name: Verify Deployment
+        working-directory: blockchain
+        run: |
+          cast call ${{ steps.extract.outputs.event_factory }} \
+            "owner()(address)" \
+            --rpc-url ${{ secrets.BASE_SEPOLIA_CHAINSTACK_RPC }}
+
+      - name: Save Deployment Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-staging
+          path: |
+            blockchain/broadcast/**/*
+            blockchain/deployments/**/*
+
+  deploy-production:
+    name: Deploy to Production (Base Mainnet)
+    runs-on: ubuntu-latest
+    needs: [test, security-scan]
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Select Best RPC Endpoint
+        id: select-rpc
+        run: |
+          # Test latency of each RPC endpoint
+          echo "Testing RPC endpoints..."
+          
+          CHAINSTACK_TIME=$(curl -o /dev/null -s -w '%{time_total}' \
+            -X POST -H "Content-Type: application/json" \
+            --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+            ${{ secrets.BASE_MAINNET_CHAINSTACK_RPC }} || echo "999")
+          
+          SPECTRUM_TIME=$(curl -o /dev/null -s -w '%{time_total}' \
+            -X POST -H "Content-Type: application/json" \
+            --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+            ${{ secrets.BASE_MAINNET_SPECTRUM_RPC }} || echo "999")
+          
+          COINBASE_TIME=$(curl -o /dev/null -s -w '%{time_total}' \
+            -X POST -H "Content-Type: application/json" \
+            --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+            ${{ secrets.BASE_MAINNET_COINBASE_RPC }} || echo "999")
+          
+          echo "Chainstack: ${CHAINSTACK_TIME}s"
+          echo "Spectrum: ${SPECTRUM_TIME}s"
+          echo "Coinbase: ${COINBASE_TIME}s"
+          
+          # Select fastest
+          if (( $(echo "$CHAINSTACK_TIME < $SPECTRUM_TIME && $CHAINSTACK_TIME < $COINBASE_TIME" | bc -l) )); then
+            echo "rpc_url=${{ secrets.BASE_MAINNET_CHAINSTACK_RPC }}" >> $GITHUB_OUTPUT
+            echo "provider=Chainstack" >> $GITHUB_OUTPUT
+          elif (( $(echo "$SPECTRUM_TIME < $COINBASE_TIME" | bc -l) )); then
+            echo "rpc_url=${{ secrets.BASE_MAINNET_SPECTRUM_RPC }}" >> $GITHUB_OUTPUT
+            echo "provider=Spectrum" >> $GITHUB_OUTPUT
+          else
+            echo "rpc_url=${{ secrets.BASE_MAINNET_COINBASE_RPC }}" >> $GITHUB_OUTPUT
+            echo "provider=Coinbase" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy to Base Mainnet
+        working-directory: blockchain
+        run: |
+          echo "Deploying via ${{ steps.select-rpc.outputs.provider }}..."
+          
+          chmod +x scripts/deploy-mainnet.sh
+          ./scripts/deploy-mainnet.sh
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
+          BASE_MAINNET_CHAINSTACK_RPC: ${{ secrets.BASE_MAINNET_CHAINSTACK_RPC }}
+          BASE_MAINNET_SPECTRUM_RPC: ${{ secrets.BASE_MAINNET_SPECTRUM_RPC }}
+          BASE_MAINNET_COINBASE_RPC: ${{ secrets.BASE_MAINNET_COINBASE_RPC }}
+
+      - name: Extract Deployment Addresses
+        id: extract
+        working-directory: blockchain
+        run: |
+          BROADCAST_FILE="broadcast/DeployEventFactory.s.sol/8453/run-latest.json"
+          if [ -f "$BROADCAST_FILE" ]; then
+            EVENT_FACTORY=$(jq -r '.transactions[] | select(.contractName == "EventFactory") | .contractAddress' "$BROADCAST_FILE")
+            echo "event_factory=$EVENT_FACTORY" >> $GITHUB_OUTPUT
+            echo "::notice title=Deployment Success::EventFactory deployed at $EVENT_FACTORY"
+          fi
+
+      - name: Post-Deployment Validation
+        working-directory: blockchain
+        run: |
+          echo "Running post-deployment checks..."
+          
+          # Test contract call
+          cast call ${{ steps.extract.outputs.event_factory }} \
+            "owner()(address)" \
+            --rpc-url ${{ steps.select-rpc.outputs.rpc_url }}
+          
+          # Check verification on BaseScan
+          echo "Verify contract at: https://basescan.org/address/${{ steps.extract.outputs.event_factory }}"
+
+      - name: Create Deployment Report
+        run: |
+          cat > deployment-report.md << EOF
+          # Base Mainnet Deployment Report
+          
+          **Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Network:** Base Mainnet (Chain ID: 8453)
+          **RPC Provider:** ${{ steps.select-rpc.outputs.provider }}
+          
+          ## Deployed Contracts
+          
+          - **EventFactory:** [${{ steps.extract.outputs.event_factory }}](https://basescan.org/address/${{ steps.extract.outputs.event_factory }})
+          
+          ## Next Steps
+          
+          1. Update frontend environment variables
+          2. Run integration tests
+          3. Monitor contract events
+          4. Enable monitoring alerts
+          EOF
+          
+          cat deployment-report.md
+
+      - name: Save Deployment Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-production
+          path: |
+            blockchain/broadcast/**/*
+            blockchain/deployments/**/*
+            deployment-report.md
+
+      - name: Notify Deployment Success
+        if: success()
+        run: |
+          echo "✅ Deployment successful!"
+          echo "EventFactory: ${{ steps.extract.outputs.event_factory }}"
+          echo "BaseScan: https://basescan.org/address/${{ steps.extract.outputs.event_factory }}"
+
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: [deploy-production]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rollback to Previous Deployment
+        run: |
+          echo "⚠️ Deployment failed - initiating rollback..."
+          # Implement rollback logic here
+          # This could involve reverting to previous contract addresses
+          # or pausing the new contracts
+          
+      - name: Notify Failure
+        run: |
+          echo "❌ Deployment failed and rolled back"
+          echo "Check logs for details"

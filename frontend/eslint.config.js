@@ -1,5 +1,9 @@
 import { dirname } from "path";
 import { fileURLToPath } from "url";
+import typescriptEslint from "@typescript-eslint/eslint-plugin";
+import typescriptParser from "@typescript-eslint/parser";
+import reactPlugin from "eslint-plugin-react";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -20,7 +24,7 @@ const eslintConfig = [
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",
-      parser: "@typescript-eslint/parser",
+      parser: typescriptParser,
       parserOptions: {
         ecmaFeatures: {
           jsx: true,
@@ -28,7 +32,9 @@ const eslintConfig = [
       },
     },
     plugins: {
-      "@typescript-eslint": require("@typescript-eslint/eslint-plugin"),
+      "@typescript-eslint": typescriptEslint,
+      "react": reactPlugin,
+      "react-hooks": reactHooksPlugin,
     },
     rules: {
       // Add any custom rules here if needed

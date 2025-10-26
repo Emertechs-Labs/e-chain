@@ -172,8 +172,12 @@ contract Marketplace is Ownable, ReentrancyGuard, Pausable, ERC721Holder {
         listing.active = false;
 
         // Transfer payments
-        payable(treasury).transfer(fee);
-        payable(listing.seller).transfer(sellerAmount);
+        (bool feeSuccess, ) = payable(treasury).call{value: fee}("");
+        require(feeSuccess, "Treasury transfer failed");
+        (bool sellerSuccess, ) = payable(listing.seller).call{
+            value: sellerAmount
+        }("");
+        require(sellerSuccess, "Seller transfer failed");
 
         // Transfer ticket to buyer
         IERC721(listing.ticketContract).safeTransferFrom(
@@ -184,7 +188,10 @@ contract Marketplace is Ownable, ReentrancyGuard, Pausable, ERC721Holder {
 
         // Refund excess payment
         if (msg.value > listing.price) {
-            payable(msg.sender).transfer(msg.value - listing.price);
+            (bool refundSuccess, ) = payable(msg.sender).call{
+                value: msg.value - listing.price
+            }("");
+            require(refundSuccess, "Refund failed");
         }
 
         emit TicketSold(

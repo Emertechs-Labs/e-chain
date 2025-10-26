@@ -68,11 +68,16 @@
 - **[Production Testing](./status/PRODUCTION_TESTING_GUIDE.md)** - Production testing procedures
 - **[Product Market Fit Assessment](./status/PRODUCT_MARKET_FIT_ASSESSMENT.md)** - Comprehensive PMF analysis and competitor assessment vs Luma
 
-### 🎨 Frontend Development
-- **[Frontend Documentation](./frontend/README.md)** - Frontend-specific documentation
-- **[Frontend Audit & Fixes](./frontend/FRONTEND_AUDIT_AND_FIX.md)** - Frontend quality assessment
-- **[Frontend Fix Summary](./frontend/FRONTEND_FIX_SUMMARY.md)** - Frontend improvements summary
-- **[Frontend Status Analysis](./frontend/FRONTEND_STATUS_ANALYSIS.md)** - Current frontend status
+### 🎨 Design System
+- **[Design System Overview](./design/README.md)** - Apple-inspired design principles, mobile-first approach, Web3-specific components
+- **[Francis Trading Platform Guide](./design/FRANCIS_UI_UX_DESIGN_GUIDE.md)** - Specialized UI/UX guide for trading platform with risk management focus, Luma competitor analysis, East African fintech integration
+- **[Natasha Web3 Event Guide](./design/NATASHA_UI_UX_WEB3_GUIDE.md)** - Comprehensive Web3 event platform design guide with NFT ticketing, POAP integration, and blockchain UX patterns
+- **[Research Components](./design/research/README.md)** - 🆕 Modular research library with Luma analysis, Apple principles, East African fintech, Web3 UX patterns, and trading interfaces
+- **[Component Library](./design/COMPONENT_LIBRARY.md)** - Mobile-first component library with shadcn/ui and Radix UI
+- **[Color System](./design/COLOR_SYSTEM.md)** - Three-color gradient system with semantic colors
+- **[Design Tokens](./design/DESIGN_TOKENS.md)** - Mobile-enhanced design tokens and CSS custom properties
+- **[Accessibility Guidelines](./design/ACCESSIBILITY_GUIDELINES.md)** - WCAG 2.1 AA compliance guidelines
+- **[Sprint Plan](./design/SPRINT_PLAN.md)** - Mobile optimization sprint documentation
 
 ### 🧪 Quality Assurance
 - **[QA Documentation](./qa/README.md)** - Quality assurance and testing

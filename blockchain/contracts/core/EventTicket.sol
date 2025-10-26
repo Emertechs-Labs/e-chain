@@ -171,7 +171,8 @@ contract EventTicket is
 
             // Send platform fee to treasury immediately
             address treasury = factoryContract.treasury();
-            payable(treasury).transfer(platformFee);
+            (bool feeSuccess, ) = payable(treasury).call{value: platformFee}("");
+            require(feeSuccess, "Treasury transfer failed");
 
             // Track organizer revenue for withdrawal
             _organizerBalance += organizerRevenue;
@@ -206,7 +207,10 @@ contract EventTicket is
 
         // Refund excess payment
         if (msg.value > totalCost) {
-            payable(msg.sender).transfer(msg.value - totalCost);
+            (bool refundSuccess, ) = payable(msg.sender).call{
+                value: msg.value - totalCost
+            }("");
+            require(refundSuccess, "Refund failed");
         }
 
         return tokenIds;
@@ -258,7 +262,10 @@ contract EventTicket is
 
         // Refund excess payment
         if (msg.value > ticketPrice) {
-            payable(msg.sender).transfer(msg.value - ticketPrice);
+            (bool refundSuccess, ) = payable(msg.sender).call{
+                value: msg.value - ticketPrice
+            }("");
+            require(refundSuccess, "Refund failed");
         }
 
         return tokenId;
@@ -322,7 +329,10 @@ contract EventTicket is
 
         // Refund excess payment
         if (msg.value > totalCost) {
-            payable(msg.sender).transfer(msg.value - totalCost);
+            (bool refundSuccess, ) = payable(msg.sender).call{
+                value: msg.value - totalCost
+            }("");
+            require(refundSuccess, "Refund failed");
         }
 
         return tokenIds;

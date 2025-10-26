@@ -129,6 +129,16 @@ export const useEarlyBirdStatus = (eventId: number, ticketContract?: string) => 
         }
 
         // Check total tickets sold vs early bird limit
+        if (ticketContract === '0x0000000000000000000000000000000000000000') {
+          return {
+            canClaim: false,
+            hasClaimed: false,
+            isEligible: false,
+            totalSold: 0,
+            earlyBirdLimit: 10
+          };
+        }
+
         const totalSold = await readContract(
           ticketContract as `0x${string}`,
           'totalSold',

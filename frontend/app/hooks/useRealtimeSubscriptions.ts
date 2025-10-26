@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
-// We'll use a lightweight WebSocket JSON-RPC subscription to avoid heavy ethers imports
+import { Interface } from 'ethers';
+import { CONTRACT_ABIS, CONTRACT_ADDRESSES } from '../../lib/contracts';
+
 type JsonRpcLog = {
   address: string;
   topics: string[];
@@ -11,9 +13,55 @@ type JsonRpcLog = {
   blockNumber?: string;
   transactionHash?: string;
 };
-import { CONTRACT_ABIS, CONTRACT_ADDRESSES } from '../../lib/contracts';
-// Use a small ABI decoder. ethers is already a dependency; import only the Interface helper.
-import { Interface } from 'ethers';
+
+type RealtimeStatus = 'disabled' | 'connecting' | 'connected' | 'closed' | 'error';
+
+const STATUS_EVENT = 'echain:wsstatus';
+const STATUS_KEY = '__ECHAIN_WS_STATUS';
+const MAX_RECONNECT_ATTEMPTS = 12;
+const BASE_RECONNECT_DELAY_MS = 1000;
+
+const hasWindow = typeof window !== 'undefined';
+
+const sentryCapture = (message: string, level: 'info' | 'warning' | 'error', extra?: Record<string, unknown>) => {
+  try {
+    if (hasWindow && (window as any).Sentry?.captureMessage) {
+      (window as any).Sentry.captureMessage(message, {
+        level,
+        extra,
+      });
+    }
+  } catch (_) {
+    // ignore sentry failures
+  }
+};
+
+const emitStatus = (status: RealtimeStatus, meta?: Record<string, unknown>) => {
+  if (!hasWindow) return;
+  (window as any)[STATUS_KEY] = status;
+  if (meta) {
+    (window as any).__ECHAIN_WS_LAST_META = meta;
+  }
+  window.dispatchEvent(new CustomEvent(STATUS_EVENT, { detail: { status, meta } }));
+};
+
+const log = (level: 'info' | 'warn' | 'error', message: string, extra?: Record<string, unknown>) => {
+  const prefix = '[useRealtimeSubscriptions]';
+  if (level === 'info') {
+    console.info(prefix, message, extra ?? '');
+  } else if (level === 'warn') {
+    console.warn(prefix, message, extra ?? '');
+  } else {
+    console.error(prefix, message, extra ?? '');
+  }
+  sentryCapture(`${prefix} ${message}`, level === 'error' ? 'error' : level === 'warn' ? 'warning' : 'info', extra);
+};
+
+const computeBackoffDelay = (attempt: number) => {
+  const exponential = Math.min(30000, BASE_RECONNECT_DELAY_MS * Math.pow(2, attempt));
+  const jitter = 1 + Math.random() * 0.35; // add up to 35% jitter
+  return Math.floor(exponential * jitter);
+};
 
 /**
  * Realtime subscriptions via WebSocket provider (optimal path)
@@ -28,190 +76,198 @@ import { Interface } from 'ethers';
 export default function useRealtimeSubscriptions() {
   const qc = useQueryClient();
   const { address } = useAccount();
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const manualCloseRef = useRef(false);
 
   useEffect(() => {
-    const wsUrl = process.env.NEXT_PUBLIC_WS_PROVIDER || (typeof window !== 'undefined' && (window as any).__NEXT_PUBLIC_WS_PROVIDER);
+    const wsUrl = process.env.NEXT_PUBLIC_WS_PROVIDER;
+
     if (!wsUrl) {
-      console.debug('[useRealtimeSubscriptions] No WS provider configured - skipping realtime subscriptions');
+      emitStatus('disabled');
+      log('warn', 'No NEXT_PUBLIC_WS_PROVIDER configured; realtime subscriptions disabled');
       return;
     }
 
-    // JSON-RPC WebSocket with ABI-decoding and simple reconnect/backoff
-    let ws: WebSocket | null = null;
-    let subscriptionIds: string[] = [];
-    let reconnectAttempts = 0;
-    const maxReconnectAttempts = 8;
+    emitStatus('connecting', { endpoint: wsUrl });
 
-    // Prepare decoders from ABIs
+    let active = true;
+
     const factoryIface = new Interface(CONTRACT_ABIS.EventFactory as any);
     const ticketIface = new Interface(CONTRACT_ABIS.EventTicket as any);
 
-    const subscribeAll = () => {
-      if (!ws) return;
-      // Subscribe to EventFactory logs (all topics)
-      try {
-        const eventFactoryAddress = (CONTRACT_ADDRESSES as any).EventFactory;
-        if (eventFactoryAddress) {
-          const id = String(Date.now()) + '-eventfactory';
-          const payload = {
-            jsonrpc: '2.0',
-            id,
-            method: 'eth_subscribe',
-            params: [
-              'logs',
-              {
-                address: eventFactoryAddress,
-              },
-            ],
-          };
-          ws.send(JSON.stringify(payload));
-          subscriptionIds.push(id);
-        }
-      } catch (e) {
-        console.warn('[useRealtimeSubscriptions] subscribe eventFactory failed', e);
+    const clearReconnect = () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+    };
+
+    const scheduleReconnect = (reason: string) => {
+      if (!active) return;
+      if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+        emitStatus('error', { reason: 'max_retries', endpoint: wsUrl });
+        log('error', 'Max websocket reconnect attempts reached; giving up', { endpoint: wsUrl, reason });
+        return;
       }
 
-      // Subscribe to all Transfer logs (topic filter)
+      const attempt = reconnectAttemptsRef.current;
+      const delay = computeBackoffDelay(attempt);
+      reconnectAttemptsRef.current += 1;
+      emitStatus('connecting', { attempt: reconnectAttemptsRef.current, delay });
+      log('warn', 'Scheduling websocket reconnect', { attempt: reconnectAttemptsRef.current, delay, reason });
+
+      reconnectTimeoutRef.current = setTimeout(() => {
+        reconnectTimeoutRef.current = null;
+        connect();
+      }, delay);
+    };
+
+    const handleMessage = (factoryIfaceInstance: Interface, ticketIfaceInstance: Interface) => (ev: MessageEvent) => {
       try {
-        // keccak256("Transfer(address,address,uint256)")
-        const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a5c1e6f5';
-        const id2 = String(Date.now()) + '-transfer';
-        const payload2 = {
-          jsonrpc: '2.0',
-          id: id2,
-          method: 'eth_subscribe',
-          params: [
-            'logs',
-            {
-              topics: [transferTopic],
-            },
-          ],
-        };
-        ws.send(JSON.stringify(payload2));
-        subscriptionIds.push(id2);
-      } catch (e) {
-        console.warn('[useRealtimeSubscriptions] subscribe transfer failed', e);
+        const msg = JSON.parse(ev.data as string);
+        if (msg.method === 'eth_subscription' && msg.params) {
+          const logPayload: JsonRpcLog = msg.params.result as any;
+
+          const eventFactoryAddress = (CONTRACT_ADDRESSES as any).EventFactory;
+          if (eventFactoryAddress && logPayload.address?.toLowerCase() === eventFactoryAddress.toLowerCase()) {
+            try {
+              let parsed: any = null;
+              try {
+                parsed = factoryIfaceInstance.parseLog({ data: logPayload.data, topics: logPayload.topics as any });
+              } catch (_) {
+                parsed = null;
+              }
+
+              qc.invalidateQueries({ queryKey: ['events'] });
+              if (address) {
+                qc.invalidateQueries({ queryKey: ['events', 'organizer', address] });
+              }
+
+              if (parsed && parsed.name === 'EventCreated') {
+                const rawEventId = (parsed.args as any).eventId ?? (parsed.args as any)[0];
+                const eventId = typeof rawEventId === 'bigint' ? Number(rawEventId) : Number(rawEventId ?? -1);
+                if (!Number.isNaN(eventId) && eventId >= 0) {
+                  qc.invalidateQueries({ predicate: (query) => {
+                    const key = query.queryKey as any;
+                    return key && key[0] === 'event' && Number(key[1]) === eventId;
+                  } });
+                }
+              }
+            } catch (error) {
+              log('warn', 'Failed to handle EventFactory log', { error: (error as Error)?.message });
+            }
+          }
+
+          if (logPayload.topics && logPayload.topics.length >= 3) {
+            try {
+              let parsedTransfer: any = null;
+              try {
+                parsedTransfer = ticketIfaceInstance.parseLog({ data: logPayload.data, topics: logPayload.topics as any });
+              } catch (_) {
+                parsedTransfer = null;
+              }
+
+              const from = '0x' + logPayload.topics[1].slice(26);
+              const to = '0x' + logPayload.topics[2].slice(26);
+
+              if (address && (from.toLowerCase() === address.toLowerCase() || to.toLowerCase() === address.toLowerCase())) {
+                qc.invalidateQueries({ queryKey: ['user-tickets', address] });
+              }
+
+              if (parsedTransfer && parsedTransfer.name === 'Transfer') {
+                qc.invalidateQueries({ queryKey: ['events'] });
+                qc.invalidateQueries({ queryKey: ['marketplace'] });
+                qc.invalidateQueries({ predicate: (query) => String((query.queryKey as any)[0]) === 'event' });
+              } else {
+                qc.invalidateQueries({ queryKey: ['events'] });
+                qc.invalidateQueries({ queryKey: ['marketplace'] });
+              }
+            } catch (error) {
+              log('warn', 'Failed to handle Transfer log', { error: (error as Error)?.message });
+            }
+          }
+        }
+      } catch (error) {
+        log('warn', 'Failed to parse websocket message', { error: (error as Error)?.message });
       }
     };
 
     const connect = () => {
+      if (!active) return;
+
+      clearReconnect();
+
       try {
-        ws = new WebSocket(wsUrl as string);
-      } catch (e) {
-        console.warn('[useRealtimeSubscriptions] Failed to open WS', e);
+        emitStatus('connecting', { endpoint: wsUrl, attempt: reconnectAttemptsRef.current });
+        log('info', 'Opening websocket connection', { endpoint: wsUrl, attempt: reconnectAttemptsRef.current });
+        wsRef.current = new WebSocket(wsUrl);
+      } catch (error) {
+        log('error', 'Failed to instantiate websocket', { error: (error as Error)?.message, endpoint: wsUrl });
+        scheduleReconnect('instantiate_error');
         return;
       }
 
+      const ws = wsRef.current;
+      if (!ws) return;
+
       ws.onopen = () => {
-        console.debug('[useRealtimeSubscriptions] WS connected');
-        reconnectAttempts = 0;
-        subscribeAll();
+        reconnectAttemptsRef.current = 0;
+        emitStatus('connected', { endpoint: wsUrl });
+        log('info', 'Websocket connected', { endpoint: wsUrl });
+
         try {
-          (window as any).__ECHAIN_WS_STATUS = 'connected';
-          window.dispatchEvent(new Event('echain:wsstatus'));
-        } catch (e) { /* ignore */ }
-      };
-
-      ws.onmessage = (ev) => {
-        try {
-          const msg = JSON.parse(ev.data as string);
-          // Handle subscription event messages
-          if (msg.method === 'eth_subscription' && msg.params) {
-            const log: JsonRpcLog = msg.params.result as any;
-
-            const eventFactoryAddress = (CONTRACT_ADDRESSES as any).EventFactory;
-            try {
-              // If log is from EventFactory, try to decode the event using the factory ABI
-              if (eventFactoryAddress && log.address?.toLowerCase() === eventFactoryAddress.toLowerCase()) {
-                let parsed = null;
-                try {
-                  parsed = factoryIface.parseLog({ data: log.data, topics: log.topics as any });
-                } catch (e) {
-                  // parse may fail for non-indexed events or unknown signatures
-                  parsed = null;
-                }
-
-                // Invalidate global events list always
-                qc.invalidateQueries({ queryKey: ['events'] });
-                if (address) qc.invalidateQueries({ queryKey: ['events', 'organizer', address] });
-
-                if (parsed && parsed.name === 'EventCreated') {
-                  // Typical EventCreated signature: (uint256 eventId, address ticketContract, ...)
-                  const eventIdRaw = (parsed.args as any).eventId ?? (parsed.args as any)[0];
-                  const eventId = typeof eventIdRaw === 'bigint' ? Number(eventIdRaw) : Number(eventIdRaw || -1);
-                  if (!Number.isNaN(eventId) && eventId >= 0) {
-                    qc.invalidateQueries({ predicate: (q) => {
-                      const key = q.queryKey as any;
-                      return key && key[0] === 'event' && Number(key[1]) === eventId;
-                    } });
-                  }
-                }
-              }
-            } catch (e) {
-              console.warn('[useRealtimeSubscriptions] factory log handling failed', e);
-            }
-
-            // Handle Transfer logs - topics[1] = from, topics[2] = to (topics are hex strings)
-            if (log.topics && log.topics.length >= 3) {
-              try {
-                // Attempt to parse with EventTicket ABI if we can
-                let parsedTransfer = null;
-                try {
-                  parsedTransfer = ticketIface.parseLog({ data: log.data, topics: log.topics as any });
-                } catch (e) {
-                  parsedTransfer = null;
-                }
-
-                const from = '0x' + log.topics[1].slice(26);
-                const to = '0x' + log.topics[2].slice(26);
-
-                if (address && (from.toLowerCase() === address.toLowerCase() || to.toLowerCase() === address.toLowerCase())) {
-                  qc.invalidateQueries({ queryKey: ['user-tickets', address] });
-                }
-
-                // If parsedTransfer yields a tokenId we can try to invalidate specific event queries as well
-                if (parsedTransfer && parsedTransfer.name === 'Transfer') {
-                  const tokenIdRaw = (parsedTransfer.args as any).tokenId ?? (parsedTransfer.args as any)[2];
-                  // We don't necessarily know the event id from tokenId, so invalidate event lists and marketplace
-                  qc.invalidateQueries({ queryKey: ['events'] });
-                  qc.invalidateQueries({ queryKey: ['marketplace'] });
-                  qc.invalidateQueries({ predicate: (q) => String((q.queryKey as any)[0]) === 'event' });
-                } else {
-                  // Fallback: generic invalidations
-                  qc.invalidateQueries({ queryKey: ['events'] });
-                  qc.invalidateQueries({ queryKey: ['marketplace'] });
-                }
-              } catch (e) {
-                console.warn('[useRealtimeSubscriptions] transfer log handling failed', e);
-              }
-            }
+          const eventFactoryAddress = (CONTRACT_ADDRESSES as any).EventFactory;
+          if (eventFactoryAddress) {
+            ws.send(JSON.stringify({
+              jsonrpc: '2.0',
+              id: `${Date.now()}-eventfactory`,
+              method: 'eth_subscribe',
+              params: [
+                'logs',
+                {
+                  address: eventFactoryAddress,
+                },
+              ],
+            }));
           }
-        } catch (e) {
-          console.warn('[useRealtimeSubscriptions] ws message parse error', e);
+
+          const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a5c1e6f5';
+          ws.send(JSON.stringify({
+            jsonrpc: '2.0',
+            id: `${Date.now()}-transfer`,
+            method: 'eth_subscribe',
+            params: [
+              'logs',
+              {
+                topics: [transferTopic],
+              },
+            ],
+          }));
+        } catch (error) {
+          log('warn', 'Failed to send subscription payload', { error: (error as Error)?.message });
         }
       };
 
-      ws.onerror = (e) => {
-        console.warn('[useRealtimeSubscriptions] WS error', e);
+      ws.onmessage = handleMessage(factoryIface, ticketIface);
+
+      ws.onerror = (event) => {
+        emitStatus('error', { endpoint: wsUrl, event });
+        log('warn', 'Websocket encountered error', { endpoint: wsUrl, event });
       };
 
-      ws.onclose = () => {
-        console.debug('[useRealtimeSubscriptions] WS closed');
-        ws = null;
-        try {
-          (window as any).__ECHAIN_WS_STATUS = 'closed';
-          window.dispatchEvent(new Event('echain:wsstatus'));
-        } catch (e) { /* ignore */ }
-        
-        // try to reconnect with exponential backoff
-        if (reconnectAttempts < maxReconnectAttempts) {
-          const wait = Math.min(30000, 1000 * Math.pow(2, reconnectAttempts));
-          reconnectAttempts += 1;
-          console.debug(`[useRealtimeSubscriptions] reconnecting in ${wait}ms (attempt ${reconnectAttempts})`);
-          setTimeout(() => connect(), wait);
-        } else {
-          console.debug('[useRealtimeSubscriptions] max reconnect attempts reached, will stop trying');
+      ws.onclose = (event) => {
+        wsRef.current = null;
+        if (manualCloseRef.current || !active) {
+          emitStatus('closed', { code: event.code, reason: event.reason });
+          log('info', 'Websocket closed', { code: event.code, reason: event.reason });
+          return;
         }
+
+        emitStatus('closed', { code: event.code, reason: event.reason });
+        log('warn', 'Websocket closed unexpectedly', { code: event.code, reason: event.reason });
+        scheduleReconnect('socket_closed');
       };
     };
 
@@ -219,13 +275,19 @@ export default function useRealtimeSubscriptions() {
 
     // Cleanup
     return () => {
-      try {
-        if (ws) {
-          try { ws.close(); } catch (_) {}
+      active = false;
+      manualCloseRef.current = true;
+      clearReconnect();
+      const socket = wsRef.current;
+      if (socket) {
+        try {
+          socket.close();
+        } catch (_) {
+          // ignore
         }
-      } catch (e) {
-        // ignore
       }
+      wsRef.current = null;
+      emitStatus('closed');
     };
   }, [qc, address]);
 }

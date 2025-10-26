@@ -1,5 +1,6 @@
 // Utility for fetching and parsing event metadata from IPFS
 import { Event } from '../types/event';
+import { performanceMonitor, trackIpfsFetch } from './performance-monitor';
 
 export interface EventMetadata {
   name?: string;
@@ -60,18 +61,18 @@ export function ipfsToHttp(ipfsUri: string, gatewayIndex = 0): string {
 }
 
 /**
- * Fetch metadata from IPFS with fallback gateways and blob storage support
+ * Fetch metadata from IPFS with parallel gateway attempts for better performance
  */
 export async function fetchMetadataFromIPFS(
   metadataURI: string,
-  timeout = 5000, // Reduced timeout for faster fallback
+  timeout = 3000, // Reduced timeout for faster parallel attempts
   gatewayStartIndex = 0
 ): Promise<EventMetadata | null> {
   if (!metadataURI || metadataURI === 'ipfs://placeholder' || metadataURI.includes('placeholder')) {
     return null;
   }
 
-  // Check if it's a blob storage URL (Vercel Blob)
+  // Handle blob storage URLs first (fastest)
   if (metadataURI.includes('blob.vercel-storage.com') || metadataURI.includes('public.blob.vercel-storage.com')) {
     try {
       const response = await fetch(metadataURI, {
@@ -97,9 +98,12 @@ export async function fetchMetadataFromIPFS(
     }
   }
 
-  // Try each IPFS gateway until one works (starting from specified index)
-  for (let i = gatewayStartIndex; i < IPFS_GATEWAYS.length; i++) {
-    const url = ipfsToHttp(metadataURI, i);
+  // Try multiple IPFS gateways in parallel for better performance
+  const gatewaysToTry = IPFS_GATEWAYS.slice(gatewayStartIndex, gatewayStartIndex + 3); // Try first 3 gateways
+  const fetchPromises = gatewaysToTry.map(async (gateway, index) => {
+    const url = ipfsToHttp(metadataURI, gatewayStartIndex + index);
+    const tracker = trackIpfsFetch(gateway.replace('https://', '').replace('/ipfs/', ''));
+
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -117,24 +121,39 @@ export async function fetchMetadataFromIPFS(
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        continue;
+        tracker.end(false, { status: response.status, url });
+        return null;
       }
 
       const metadata = await response.json();
 
       // Validate the metadata has required fields
       if (!metadata || typeof metadata !== 'object') {
-        continue;
+        tracker.end(false, { reason: 'invalid_metadata', url });
+        return null;
       }
 
+      tracker.end(true, { url, metadataSize: JSON.stringify(metadata).length });
       return metadata as EventMetadata;
-    } catch {
-      // Silently continue to next gateway
-      // Add a small delay before trying the next gateway to avoid overwhelming servers
-      if (i < IPFS_GATEWAYS.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+    } catch (error) {
+      tracker.end(false, {
+        error: error instanceof Error ? error.message : String(error),
+        url
+      });
+      return null;
+    }
+  });
+
+  // Race the promises - return the first successful result
+  try {
+    const results = await Promise.allSettled(fetchPromises);
+    for (const result of results) {
+      if (result.status === 'fulfilled' && result.value) {
+        return result.value;
       }
     }
+  } catch {
+    // If all parallel attempts fail, continue to fallback
   }
 
   return null;
@@ -208,7 +227,7 @@ export async function enrichEventWithMetadata(event: Event): Promise<Event> {
         formattedStartDate,
         formattedEndDate,
         // Add any additional metadata as needed
-        image: metadata.image,
+        image: metadata.image ? ipfsToHttp(metadata.image) : event.image,
         organizer: event.organizer, // Keep the blockchain organizer address
       };
 
@@ -365,8 +384,8 @@ export function generateDefaultMetadata(event: Event): EventMetadata {
 export async function enrichEventsWithMetadata(events: Event[]): Promise<Event[]> {
   if (events.length === 0) return [];
 
-  // Process events in smaller batches to avoid overwhelming IPFS gateways
-  const batchSize = 3; // Process 3 events at a time for better throughput
+  // Process events in larger batches for better performance
+  const batchSize = 5; // Increased from 3 to 5
   const enrichedEvents: Event[] = [];
 
   for (let i = 0; i < events.length; i += batchSize) {
@@ -377,9 +396,9 @@ export async function enrichEventsWithMetadata(events: Event[]): Promise<Event[]
     );
     enrichedEvents.push(...enrichedBatch);
 
-    // Smaller delay between batches
+    // Reduced delay between batches for faster processing
     if (i + batchSize < events.length) {
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => setTimeout(resolve, 25)); // Reduced from 50ms
     }
   }
 

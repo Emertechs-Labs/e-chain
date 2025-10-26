@@ -1,28 +1,55 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { baseSepolia } from 'wagmi/chains';
-import { baseRPCManager } from './base-rpc-manager';
+import { baseSepolia, base } from 'wagmi/chains';
+import { http } from 'viem';
+import { getRPCProvider } from './providers/rpc-provider';
+
+// Determine active network from environment
+const activeNetwork = process.env.NEXT_PUBLIC_ACTIVE_NETWORK || 'sepolia';
+const isMainnet = activeNetwork === 'mainnet';
+
+// Initialize RPC provider with failover support
+const rpcProvider = getRPCProvider(isMainnet ? 'mainnet' : 'sepolia');
+const endpoints = rpcProvider.getEndpoints();
+
+// Build RPC URL list with priority order
+const rpcUrls = endpoints.map(e => e.url).filter(Boolean);
 
 // Custom Base Sepolia configuration with enhanced RPC management
 const baseSepoliaWithRPC = {
   ...baseSepolia,
   rpcUrls: {
     default: {
-      http: [baseRPCManager.getPublicClient().transport.url || 'https://sepolia.base.org'],
+      http: rpcUrls.length > 0 ? rpcUrls : ['https://sepolia.base.org'],
       webSocket: ['wss://sepolia.base.org/ws']
     },
     public: {
-      http: [baseRPCManager.getPublicClient().transport.url || 'https://sepolia.base.org'],
+      http: ['https://sepolia.base.org'],
       webSocket: ['wss://sepolia.base.org/ws']
+    }
+  }
+};
+
+// Custom Base Mainnet configuration with premium providers
+const baseMainnetWithRPC = {
+  ...base,
+  rpcUrls: {
+    default: {
+      http: rpcUrls.length > 0 ? rpcUrls : ['https://mainnet.base.org'],
+      webSocket: ['wss://mainnet.base.org/ws']
+    },
+    public: {
+      http: ['https://mainnet.base.org'],
+      webSocket: ['wss://mainnet.base.org/ws']
     }
   }
 };
 
 export const config = getDefaultConfig({
   appName: 'Echain Event Ticketing',
-  projectId: process.env.NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID || 'your-project-id',
-  chains: [baseSepoliaWithRPC],
+  projectId: process.env.NEXT_PUBLIC_REOWN_PROJECT_ID || '',
+  chains: [isMainnet ? baseMainnetWithRPC : baseSepoliaWithRPC],
   ssr: true,
 });
 
-export { baseSepolia as defaultChain };
-export { baseRPCManager };
+export const defaultChain = isMainnet ? baseMainnetWithRPC : baseSepoliaWithRPC;
+export { rpcProvider };

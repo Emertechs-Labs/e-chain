@@ -368,7 +368,7 @@ run_tests() {
         # Check if test script exists
         if grep -q '"test"' package.json; then
             log_info "Running frontend tests..."
-            if run_with_timeout 300 "npm test -- --watchAll=false --passWithNoTests" "Frontend tests"; then
+            if run_with_timeout 300 "cd frontend && npm run test:run" "Frontend tests"; then
                 log_success "Frontend tests passed"
             else
                 log_error "Frontend tests failed"

@@ -4,7 +4,7 @@ import { defaultChain } from '../../lib/wagmi';
 import { CONTRACT_ADDRESSES } from '../../lib/contracts';
 import { uploadTicketMetadata } from '../../lib/ipfs';
 import { ethers } from 'ethers';
-import { readContract, writeContract } from '../../lib/contract-wrapper';
+import { readContract, writeContract, getBalance } from '../../lib/contract-wrapper';
 import { addPendingTx } from './useChainWatcher';
 
 // Safe stringify that handles BigInt and circular refs for logging
@@ -558,6 +558,7 @@ export const useVerifyOrganizer = () => {
   const { address } = useAccount();
   const queryClient = useQueryClient();
   const { data: walletClient } = useWalletClient();
+  const chainId = useChainId();
 
   return useMutation({
     mutationFn: async () => {
@@ -567,13 +568,37 @@ export const useVerifyOrganizer = () => {
       console.debug('[useVerifyOrganizer] start', { traceId, address });
 
       try {
+        // Check if wallet client is available (from wagmi)
+        if (!walletClient) {
+          console.warn('[useVerifyOrganizer] Wagmi wallet client not available, but proceeding with direct client');
+        }
+
+        // Check current chain using wagmi's chainId hook
+        console.debug('[useVerifyOrganizer] current chain:', chainId);
+
+        if (chainId !== 84532) {
+          throw new Error('Please switch to Base Sepolia testnet before proceeding.');
+        }
+
+        // Check wallet balance using direct client
+        const balance = await getBalance(address, 84532);
+        const requiredAmount = BigInt('2000000000000000'); // 0.002 ETH
+        console.debug('[useVerifyOrganizer] wallet balance:', balance.toString());
+        console.debug('[useVerifyOrganizer] required amount:', requiredAmount.toString());
+
+        if (balance < requiredAmount) {
+          throw new Error(`Insufficient balance. You need at least 0.002 ETH, but only have ${Number(balance) / 1e18} ETH.`);
+        }
+
+        console.debug('[useVerifyOrganizer] calling writeContract');
+
         const txHash = await writeContract(
           'EventFactory',
           'selfVerifyOrganizer',
           [address],
           {
             account: address,
-            value: BigInt('2000000000000000'), // 0.002 ETH
+            value: requiredAmount,
             waitForConfirmation: true,
           }
         );

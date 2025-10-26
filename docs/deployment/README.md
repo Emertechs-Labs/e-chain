@@ -73,11 +73,48 @@ Cardano Wallet: For Cardano network interactions
 
 ### 1. Multi-Chain RPC Configuration
 
+#### Node Provider Selection for Production
+For optimal performance and reliability, we recommend using dedicated node providers instead of public RPC endpoints:
+
+##### Chainstack (https://chainstack.com/)
+- **Recommended for**: High-performance, global infrastructure
+- **Base Support**: Dedicated nodes with ultra-fast transactions (100% landing rate)
+- **Features**: 
+  - Global geo-balanced nodes
+  - Dedicated nodes with custom deployment
+  - Trader nodes for low-latency operations
+  - Unlimited RPS with flat-fee pricing
+- **Pricing**: Flexible plans, contact for enterprise pricing
+- **Uptime SLA**: 99.9%+
+- **Integration**: Direct replacement for public RPC URLs
+
+##### Spectrum Nodes (https://spectrumnodes.com/)
+- **Recommended for**: Cost-effective, multi-chain support
+- **Base Support**: Full RPC support with multi-region fallover
+- **Features**:
+  - 99.99% uptime SLA
+  - Super fast response times
+  - 24/7 support
+  - Multi-region fallover for reliability
+  - Private infrastructure
+- **Pricing Plans**:
+  - **Free**: 20 RPS, 25M credits/month, 3 networks
+  - **Developer**: $35/month, 50 RPS, 100M credits/month, 5 networks
+  - **Business**: $169/month, 200 RPS, 750M credits/month, All networks
+  - **Enterprise**: $459/month, 300 RPS, 3B credits/month, All networks, 24/7 support
+- **Integration**: Easy setup with existing RPC configurations
+
+##### Coinbase Base Node (https://www.coinbase.com/developer-platform/products/base-node)
+- **Recommended for**: Official Base ecosystem integration
+- **Features**: Official Base RPC endpoints, integrated with Coinbase services
+- **Note**: Access may be restricted; use Chainstack or Spectrum for production deployments
+
 #### Current Production Deployments
 ```yaml
 Base Sepolia Deployment:
-  RPC URL: https://sepolia.base.org
+  RPC URL: https://sepolia.base.org (Rate limited - use dedicated nodes for production)
   Chain ID: 84532
+  Recommended Provider: Chainstack Dedicated Node or Spectrum Business plan
   Status: Active with live contracts
   Explorer: https://sepolia.basescan.org
 

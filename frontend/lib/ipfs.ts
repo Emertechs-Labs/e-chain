@@ -3,10 +3,14 @@
 
 import { PinataSDK } from 'pinata-web3';
 import QRCode from 'qrcode';
+import { blobHelpers } from './blob';
 
 // Initialize Pinata SDK
 const PINATA_JWT = process.env.NEXT_PUBLIC_PINATA_JWT;
 const PINATA_GATEWAY_URL = process.env.NEXT_PUBLIC_PINATA_GATEWAY_URL || 'https://gateway.pinata.cloud';
+const PINATA_MAX_RETRIES = 3;
+const PINATA_RETRY_DELAY_MS = 500;
+const BLOB_FALLBACK_FOLDER = 'ipfs-fallback';
 
 let pinataSDK: PinataSDK | null = null;
 
@@ -30,6 +34,7 @@ export interface IPFSUploadResult {
   cid: string;
   url: string;
   success: boolean;
+  storage: 'ipfs' | 'blob';
   error?: string;
 }
 
@@ -48,50 +53,30 @@ export interface VerificationData {
  * Upload a file to IPFS via Pinata
  */
 export async function uploadToIPFS(file: File): Promise<IPFSUploadResult> {
-  try {
-    console.log('uploadToIPFS: Starting upload, PINATA_JWT present:', !!PINATA_JWT);
-    
-    if (!PINATA_JWT) {
-      return {
-        cid: '',
-        url: '',
-        success: false,
-        error: 'Pinata JWT not configured',
-      };
+  const pinataEnabled = Boolean(PINATA_JWT);
+  if (pinataEnabled) {
+    const pinataResult = await uploadFileWithPinataRetry(file, 'asset');
+    if (pinataResult.success) {
+      return pinataResult;
     }
-
-    const pinata = getPinataSDK();
-    if (!pinata) {
-      return {
-        cid: '',
-        url: '',
-        success: false,
-        error: 'Failed to initialize Pinata SDK',
-      };
-    }
-
-    console.log('uploadToIPFS: Uploading to Pinata...');
-    // Upload file to Pinata
-    const upload = await pinata.upload.file(file);
-    console.log('uploadToIPFS: Pinata upload successful:', upload);
-
-    return {
-      cid: upload.IpfsHash,
-      url: `https://gateway.pinata.cloud/ipfs/${upload.IpfsHash}`,
-      success: true,
-    };
-  } catch (error) {
-    console.error('IPFS upload error:', error);
-    return {
-      cid: '',
-      url: '',
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+    console.error('uploadToIPFS: Pinata upload failed, falling back to blob storage:', pinataResult.error);
+  } else {
+    console.warn('uploadToIPFS: Pinata not configured, using blob fallback');
   }
+
+  const fallbackResult = await uploadFileToBlob(file, 'event-assets');
+  if (fallbackResult.success) {
+    return fallbackResult;
+  }
+
+  return {
+    cid: '',
+    url: '',
+    success: false,
+    storage: 'blob',
+    error: fallbackResult.error || 'Unknown blob fallback error'
+  };
 }
-
-
 
 /**
  * Upload event metadata to IPFS
@@ -105,44 +90,21 @@ export async function uploadEventMetadata(metadata: {
     value: string;
   }>;
 }): Promise<IPFSUploadResult> {
-  try {
-    if (!PINATA_JWT) {
-      return {
-        cid: '',
-        url: '',
-        success: false,
-        error: 'Pinata JWT not configured',
-      };
+  const metadataFile = createJsonFile(metadata, 'event-metadata');
+  const pinataEnabled = Boolean(PINATA_JWT);
+
+  if (pinataEnabled) {
+    const pinataResult = await uploadFileWithPinataRetry(metadataFile, 'event-metadata');
+    if (pinataResult.success) {
+      return pinataResult;
     }
-
-    const pinata = getPinataSDK();
-
-    // Convert metadata to JSON blob and then to File
-    const metadataBlob = new Blob([JSON.stringify(metadata)], {
-      type: 'application/json',
-    });
-    const metadataFile = new File([metadataBlob], 'event-metadata.json', { type: 'application/json' });
-
-    // Upload JSON to Pinata
-    const upload = await pinata.upload.file(metadataFile);
-
-    return {
-      cid: upload.IpfsHash,
-      url: `https://gateway.pinata.cloud/ipfs/${upload.IpfsHash}`,
-      success: true,
-    };
-  } catch (error) {
-    console.error('Metadata upload error:', error);
-    return {
-      cid: '',
-      url: '',
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+    console.error('uploadEventMetadata: Pinata upload failed, using blob fallback:', pinataResult.error);
+  } else {
+    console.warn('uploadEventMetadata: Pinata not configured, using blob fallback');
   }
+
+  return await uploadFileToBlob(metadataFile, `${BLOB_FALLBACK_FOLDER}/metadata`);
 }
-
-
 
 /**
  * Upload ticket metadata to IPFS
@@ -161,82 +123,46 @@ export async function uploadTicketMetadata(metadata: {
     value: string | number;
   }>;
 }): Promise<IPFSUploadResult> {
-  try {
-    if (!PINATA_JWT) {
-      return {
-        cid: '',
-        url: '',
-        success: false,
-        error: 'Pinata JWT not configured',
-      };
+  const metadataFile = createJsonFile(metadata, 'ticket-metadata');
+  const pinataEnabled = Boolean(PINATA_JWT);
+
+  if (pinataEnabled) {
+    const pinataResult = await uploadFileWithPinataRetry(metadataFile, `ticket-${metadata.ticketId}`);
+    if (pinataResult.success) {
+      return pinataResult;
     }
-
-    const pinata = getPinataSDK();
-
-    // Convert metadata to JSON blob and then to File
-    const metadataBlob = new Blob([JSON.stringify(metadata)], {
-      type: 'application/json',
-    });
-    const metadataFile = new File([metadataBlob], 'ticket-metadata.json', { type: 'application/json' });
-
-    // Upload JSON to Pinata
-    const upload = await pinata.upload.file(metadataFile);
-
-    return {
-      cid: upload.IpfsHash,
-      url: `https://gateway.pinata.cloud/ipfs/${upload.IpfsHash}`,
-      success: true,
-    };
-  } catch (error) {
-    console.error('Ticket metadata upload error:', error);
-    return {
-      cid: '',
-      url: '',
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+    console.error('uploadTicketMetadata: Pinata upload failed, using blob fallback:', pinataResult.error);
+  } else {
+    console.warn('uploadTicketMetadata: Pinata not configured, using blob fallback');
   }
+
+  return await uploadFileToBlob(metadataFile, `${BLOB_FALLBACK_FOLDER}/tickets`);
 }
 
 /**
  * Upload verification data to IPFS
  */
 export async function uploadVerificationData(verificationData: VerificationData): Promise<IPFSUploadResult> {
-  try {
-    if (!PINATA_JWT) {
-      throw new Error('Pinata JWT not configured');
+  const verificationFile = createJsonFile({
+    ...verificationData,
+    verified: true,
+    verificationUrl: `https://basescan.org/tx/${verificationData.transactionHash}`,
+    ipfsTimestamp: Date.now(),
+  }, 'verification');
+
+  const pinataEnabled = Boolean(PINATA_JWT);
+
+  if (pinataEnabled) {
+    const pinataResult = await uploadFileWithPinataRetry(verificationFile, `verification-${verificationData.transactionHash}`);
+    if (pinataResult.success) {
+      return pinataResult;
     }
-
-    const pinata = getPinataSDK();
-
-    // Create verification data blob and convert to File
-    const verificationBlob = new Blob([JSON.stringify({
-      ...verificationData,
-      verified: true,
-      verificationUrl: `https://basescan.org/tx/${verificationData.transactionHash}`,
-      ipfsTimestamp: Date.now(),
-    })], {
-      type: 'application/json',
-    });
-    const verificationFile = new File([verificationBlob], 'verification.json', { type: 'application/json' });
-
-    // Upload JSON to Pinata
-    const upload = await pinata.upload.file(verificationFile);
-
-    return {
-      cid: upload.IpfsHash,
-      url: `https://gateway.pinata.cloud/ipfs/${upload.IpfsHash}`,
-      success: true,
-    };
-  } catch (error) {
-    console.error('Verification data upload error:', error);
-    return {
-      cid: '',
-      url: '',
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
+    console.error('uploadVerificationData: Pinata upload failed, using blob fallback:', pinataResult.error);
+  } else {
+    console.warn('uploadVerificationData: Pinata not configured, using blob fallback');
   }
+
+  return await uploadFileToBlob(verificationFile, `${BLOB_FALLBACK_FOLDER}/verification`);
 }
 
 /**
@@ -326,6 +252,8 @@ export async function generateEventPosterWithQR(
       if (imageResult.success) {
         imageUrl = imageResult.url;
         posterMetadata.image = imageUrl;
+      } else {
+        console.warn('generateEventPosterWithQR: Failed to upload poster image, proceeding without image');
       }
     }
 
@@ -337,18 +265,10 @@ export async function generateEventPosterWithQR(
       cid: '',
       url: '',
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      storage: 'blob',
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
-}
-
-/**
- * Alternative: Use a simple fallback that returns a placeholder
- * This can be used when IPFS services are not configured
- */
-export function getPlaceholderIPFSUrl(filename: string = 'event'): string {
-  // Return a placeholder IPFS URL for development
-  return `ipfs://placeholder-${filename}-${Date.now()}`;
 }
 
 /**
@@ -359,4 +279,83 @@ export function getVerificationUrl(transactionHash: string, ipfsCid?: string): s
     return `https://verify.echain.events/${ipfsCid}`;
   }
   return `https://basescan.org/tx/${transactionHash}`;
+}
+
+// ============ Internal helpers ============
+
+function createJsonFile(data: unknown, prefix: string): File {
+  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+  return new File([blob], `${prefix}-${Date.now()}.json`, { type: 'application/json' });
+}
+
+async function uploadFileWithPinataRetry(file: File, context: string): Promise<IPFSUploadResult> {
+  const pinata = getPinataSDK();
+  if (!pinata) {
+    return {
+      cid: '',
+      url: '',
+      success: false,
+      storage: 'ipfs',
+      error: 'Failed to initialize Pinata SDK'
+    };
+  }
+
+  for (let attempt = 0; attempt < PINATA_MAX_RETRIES; attempt++) {
+    try {
+      if (attempt > 0) {
+        const delay = PINATA_RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+
+      const upload = await pinata.upload.file(file);
+      return {
+        cid: upload.IpfsHash,
+        url: `${PINATA_GATEWAY_URL}/ipfs/${upload.IpfsHash}`,
+        success: true,
+        storage: 'ipfs'
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown Pinata error';
+      console.warn(`uploadFileWithPinataRetry: Attempt ${attempt + 1} failed for ${context}:`, message);
+      if (attempt === PINATA_MAX_RETRIES - 1) {
+        return {
+          cid: '',
+          url: '',
+          success: false,
+          storage: 'ipfs',
+          error: message
+        };
+      }
+    }
+  }
+
+  return {
+    cid: '',
+    url: '',
+    success: false,
+    storage: 'ipfs',
+    error: 'Unknown Pinata failure'
+  };
+}
+
+async function uploadFileToBlob(file: File, folder: string): Promise<IPFSUploadResult> {
+  try {
+    const result = await blobHelpers.uploadFile(file, folder || BLOB_FALLBACK_FOLDER);
+    return {
+      cid: '',
+      url: result.url,
+      success: true,
+      storage: 'blob'
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown blob error';
+    console.error('uploadFileToBlob: Failed to upload file to blob storage:', message);
+    return {
+      cid: '',
+      url: '',
+      success: false,
+      storage: 'blob',
+      error: message
+    };
+  }
 }

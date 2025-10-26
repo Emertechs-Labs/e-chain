@@ -1,1073 +1,220 @@
 # Documentation Update Report
 
-Generated automatically on 2025-10-25T14:52:48.725Z.
+Generated automatically on 2025-10-26T13:59:44.243Z.
 
 ## Repository Changes Since Last Doc Refresh
-- `M` .github/workflows/qa.yml
-- `M` .gitignore
-- `M` .gitleaks.toml
-- `M` .qa-config
-- `M` README.md
 - `M` blockchain/.env.example
-- `M` blockchain/.gitignore
-- `M` blockchain/.husky/pre-commit
-- `M` blockchain/BASE_TESTNET_DEPLOYMENT.md
-- `M` blockchain/BASE_TESTNET_DEPLOYMENT_COMPLETED.md
 - `M` blockchain/contracts/core/EventFactory.sol
 - `M` blockchain/contracts/core/EventTicket.sol
 - `M` blockchain/contracts/core/Marketplace.sol
-- `M` blockchain/contracts/interfaces/IEventFactory.sol
+- `M` blockchain/contracts/interfaces/IIncentiveManager.sol
 - `M` blockchain/contracts/modules/IncentiveManager.sol
-- `M` blockchain/contracts/modules/POAPAttendance.sol
+- `M` blockchain/eslint.config.js
 - `M` blockchain/foundry.toml
-- `M` blockchain/lib/forge-std/.gitattributes
-- `M` blockchain/lib/forge-std/.github/dependabot.yml
-- `M` blockchain/lib/forge-std/.github/workflows/ci.yml
-- `M` blockchain/lib/forge-std/.github/workflows/sync.yml
-- `M` blockchain/lib/forge-std/.gitignore
-- `M` blockchain/lib/forge-std/CONTRIBUTING.md
-- `M` blockchain/lib/forge-std/LICENSE-APACHE
-- `M` blockchain/lib/forge-std/LICENSE-MIT
-- `M` blockchain/lib/forge-std/README.md
-- `M` blockchain/lib/forge-std/RELEASE_CHECKLIST.md
-- `M` blockchain/lib/forge-std/foundry.toml
-- `M` blockchain/lib/forge-std/package.json
-- `M` blockchain/lib/forge-std/scripts/vm.py
-- `M` blockchain/lib/forge-std/src/Base.sol
-- `M` blockchain/lib/forge-std/src/Config.sol
-- `M` blockchain/lib/forge-std/src/LibVariable.sol
-- `M` blockchain/lib/forge-std/src/Script.sol
-- `M` blockchain/lib/forge-std/src/StdAssertions.sol
-- `M` blockchain/lib/forge-std/src/StdChains.sol
-- `M` blockchain/lib/forge-std/src/StdCheats.sol
-- `M` blockchain/lib/forge-std/src/StdConfig.sol
-- `M` blockchain/lib/forge-std/src/StdConstants.sol
-- `M` blockchain/lib/forge-std/src/StdError.sol
-- `M` blockchain/lib/forge-std/src/StdInvariant.sol
-- `M` blockchain/lib/forge-std/src/StdJson.sol
-- `M` blockchain/lib/forge-std/src/StdMath.sol
-- `M` blockchain/lib/forge-std/src/StdStorage.sol
-- `M` blockchain/lib/forge-std/src/StdStyle.sol
-- `M` blockchain/lib/forge-std/src/StdToml.sol
-- `M` blockchain/lib/forge-std/src/StdUtils.sol
-- `M` blockchain/lib/forge-std/src/Test.sol
-- `M` blockchain/lib/forge-std/src/Vm.sol
-- `M` blockchain/lib/forge-std/src/console.sol
-- `M` blockchain/lib/forge-std/src/console2.sol
-- `M` blockchain/lib/forge-std/src/interfaces/IERC1155.sol
-- `M` blockchain/lib/forge-std/src/interfaces/IERC165.sol
-- `M` blockchain/lib/forge-std/src/interfaces/IERC20.sol
-- `M` blockchain/lib/forge-std/src/interfaces/IERC4626.sol
-- `M` blockchain/lib/forge-std/src/interfaces/IERC6909.sol
-- `M` blockchain/lib/forge-std/src/interfaces/IERC721.sol
-- `M` blockchain/lib/forge-std/src/interfaces/IERC7540.sol
-- `M` blockchain/lib/forge-std/src/interfaces/IERC7575.sol
-- `M` blockchain/lib/forge-std/src/interfaces/IMulticall3.sol
-- `M` blockchain/lib/forge-std/src/safeconsole.sol
-- `M` blockchain/lib/forge-std/test/CommonBase.t.sol
-- `M` blockchain/lib/forge-std/test/Config.t.sol
-- `M` blockchain/lib/forge-std/test/LibVariable.t.sol
-- `M` blockchain/lib/forge-std/test/StdAssertions.t.sol
-- `M` blockchain/lib/forge-std/test/StdChains.t.sol
-- `M` blockchain/lib/forge-std/test/StdCheats.t.sol
-- `M` blockchain/lib/forge-std/test/StdConstants.t.sol
-- `M` blockchain/lib/forge-std/test/StdError.t.sol
-- `M` blockchain/lib/forge-std/test/StdJson.t.sol
-- `M` blockchain/lib/forge-std/test/StdMath.t.sol
-- `M` blockchain/lib/forge-std/test/StdStorage.t.sol
-- `M` blockchain/lib/forge-std/test/StdStyle.t.sol
-- `M` blockchain/lib/forge-std/test/StdToml.t.sol
-- `M` blockchain/lib/forge-std/test/StdUtils.t.sol
-- `M` blockchain/lib/forge-std/test/Vm.t.sol
-- `M` blockchain/lib/forge-std/test/compilation/CompilationScript.sol
-- `M` blockchain/lib/forge-std/test/compilation/CompilationScriptBase.sol
-- `M` blockchain/lib/forge-std/test/compilation/CompilationTest.sol
-- `M` blockchain/lib/forge-std/test/compilation/CompilationTestBase.sol
-- `M` blockchain/lib/forge-std/test/fixtures/broadcast.log.json
-- `M` blockchain/lib/forge-std/test/fixtures/config.toml
-- `M` blockchain/lib/forge-std/test/fixtures/test.json
-- `M` blockchain/lib/forge-std/test/fixtures/test.toml
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/afraid-chicken-attack.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/all-geese-stand.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/angry-waves-film.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/clear-tools-refuse.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/config.json
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/dull-students-eat.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/eight-radios-check.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/fast-beans-pull.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/funny-donuts-follow.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/itchy-turkeys-allow.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/loose-lamps-bake.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/major-feet-write.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/modern-moments-raise.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/new-days-tease.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/old-memes-dress.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/petite-seas-shake.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/plain-times-itch.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/public-crabs-heal.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/quick-pianos-press.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/rich-cows-repair.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/ripe-bears-hide.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/sharp-scissors-drum.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/shiny-dolphins-lick.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/silent-zebras-press.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/solid-cobras-talk.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/ten-steaks-try.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/tender-dolls-nail.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/three-parents-argue.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/violet-turtles-like.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/whole-cats-find.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/whole-plums-speak.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/wild-baths-buy.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/wise-webs-fly.md
-- `M` blockchain/lib/openzeppelin-contracts/.changeset/witty-hats-flow.md
-- `M` blockchain/lib/openzeppelin-contracts/.codecov.yml
-- `M` blockchain/lib/openzeppelin-contracts/.editorconfig
-- `M` blockchain/lib/openzeppelin-contracts/.gitattributes
-- `M` blockchain/lib/openzeppelin-contracts/.github/CODEOWNERS
-- `M` blockchain/lib/openzeppelin-contracts/.github/ISSUE_TEMPLATE/bug_report.md
-- `M` blockchain/lib/openzeppelin-contracts/.github/ISSUE_TEMPLATE/config.yml
-- `M` blockchain/lib/openzeppelin-contracts/.github/ISSUE_TEMPLATE/feature_request.md
-- `M` blockchain/lib/openzeppelin-contracts/.github/PULL_REQUEST_TEMPLATE.md
-- `M` blockchain/lib/openzeppelin-contracts/.github/actions/gas-compare/action.yml
-- `M` blockchain/lib/openzeppelin-contracts/.github/actions/setup/action.yml
-- `M` blockchain/lib/openzeppelin-contracts/.github/actions/storage-layout/action.yml
-- `M` blockchain/lib/openzeppelin-contracts/.github/workflows/actionlint.yml
-- `M` blockchain/lib/openzeppelin-contracts/.github/workflows/changeset.yml
-- `M` blockchain/lib/openzeppelin-contracts/.github/workflows/checks.yml
-- `M` blockchain/lib/openzeppelin-contracts/.github/workflows/docs.yml
-- `M` blockchain/lib/openzeppelin-contracts/.github/workflows/formal-verification.yml
-- `M` blockchain/lib/openzeppelin-contracts/.github/workflows/release-cycle.yml
-- `M` blockchain/lib/openzeppelin-contracts/.github/workflows/upgradeable.yml
-- `M` blockchain/lib/openzeppelin-contracts/.gitignore
-- `M` blockchain/lib/openzeppelin-contracts/.gitmodules
-- `M` blockchain/lib/openzeppelin-contracts/.husky/pre-commit
-- `M` blockchain/lib/openzeppelin-contracts/.mocharc.js
-- `M` blockchain/lib/openzeppelin-contracts/.prettierrc
-- `M` blockchain/lib/openzeppelin-contracts/.solcover.js
-- `M` blockchain/lib/openzeppelin-contracts/CHANGELOG.md
-- `M` blockchain/lib/openzeppelin-contracts/CODE_OF_CONDUCT.md
-- `M` blockchain/lib/openzeppelin-contracts/CONTRIBUTING.md
-- `M` blockchain/lib/openzeppelin-contracts/FUNDING.json
-- `M` blockchain/lib/openzeppelin-contracts/GUIDELINES.md
-- `M` blockchain/lib/openzeppelin-contracts/LICENSE
-- `M` blockchain/lib/openzeppelin-contracts/README.md
-- `M` blockchain/lib/openzeppelin-contracts/RELEASING.md
-- `M` blockchain/lib/openzeppelin-contracts/SECURITY.md
-- `M` blockchain/lib/openzeppelin-contracts/audits/2017-03.md
-- `M` blockchain/lib/openzeppelin-contracts/audits/README.md
-- `M` blockchain/lib/openzeppelin-contracts/certora/.gitignore
-- `M` blockchain/lib/openzeppelin-contracts/certora/Makefile
-- `M` blockchain/lib/openzeppelin-contracts/certora/README.md
-- `M` blockchain/lib/openzeppelin-contracts/certora/diff/access_manager_AccessManager.sol.patch
-- `M` blockchain/lib/openzeppelin-contracts/certora/diff/account_extensions_draft-AccountERC7579.sol.patch
-- `M` blockchain/lib/openzeppelin-contracts/certora/diff/token_ERC721_ERC721.sol.patch
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/AccessControlDefaultAdminRulesHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/AccessControlHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/AccessManagedHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/AccessManagerHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/AccountHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/DoubleEndedQueueHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/ERC20FlashMintHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/ERC20PermitHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/ERC20WrapperHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/ERC3156FlashBorrowerHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/ERC721Harness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/ERC721ReceiverHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/EnumerableMapHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/EnumerableSetHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/InitializableHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/NoncesHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/Ownable2StepHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/OwnableHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/PausableHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/harnesses/TimelockControllerHarness.sol
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/AccessControl.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/AccessControl.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/AccessControlDefaultAdminRules.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/AccessControlDefaultAdminRules.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/AccessManaged.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/AccessManaged.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/AccessManager.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/AccessManager.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/Account.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/Account.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/DoubleEndedQueue.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/DoubleEndedQueue.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/ERC20.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/ERC20.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/ERC20FlashMint.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/ERC20FlashMint.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/ERC20Wrapper.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/ERC20Wrapper.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/ERC721.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/ERC721.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/EnumerableMap.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/EnumerableMap.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/EnumerableSet.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/EnumerableSet.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/Initializable.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/Initializable.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/Nonces.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/Nonces.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/Ownable.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/Ownable.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/Ownable2Step.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/Ownable2Step.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/Pausable.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/Pausable.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/TimelockController.conf
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/TimelockController.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/helpers/helpers.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/methods/IAccessControl.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/methods/IAccessControlDefaultAdminRules.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/methods/IAccessManaged.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/methods/IAccessManager.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/methods/IAccount.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/methods/IERC20.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/methods/IERC2612.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/methods/IERC3156FlashBorrower.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/methods/IERC3156FlashLender.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/methods/IERC5313.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/methods/IERC721.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/methods/IERC721Receiver.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/methods/IOwnable.spec
-- `M` blockchain/lib/openzeppelin-contracts/certora/specs/methods/IOwnable2Step.spec
-- `M` blockchain/lib/openzeppelin-contracts/contracts/access/AccessControl.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/access/IAccessControl.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/access/Ownable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/access/Ownable2Step.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/access/README.adoc
-- `M` blockchain/lib/openzeppelin-contracts/contracts/access/extensions/AccessControlDefaultAdminRules.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/access/extensions/AccessControlEnumerable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/access/extensions/IAccessControlDefaultAdminRules.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/access/extensions/IAccessControlEnumerable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/access/manager/AccessManaged.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/access/manager/AccessManager.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/access/manager/AuthorityUtils.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/access/manager/IAccessManaged.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/access/manager/IAccessManager.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/access/manager/IAuthority.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/account/Account.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/account/README.adoc
-- `M` blockchain/lib/openzeppelin-contracts/contracts/account/extensions/draft-AccountERC7579.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/account/extensions/draft-AccountERC7579Hooked.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/account/extensions/draft-ERC7821.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/account/utils/EIP7702Utils.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/account/utils/draft-ERC4337Utils.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/account/utils/draft-ERC7579Utils.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/crosschain/ERC7786Recipient.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/crosschain/README.adoc
-- `M` blockchain/lib/openzeppelin-contracts/contracts/finance/README.adoc
-- `M` blockchain/lib/openzeppelin-contracts/contracts/finance/VestingWallet.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/finance/VestingWalletCliff.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/Governor.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/IGovernor.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/README.adoc
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/TimelockController.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorCountingFractional.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorCountingOverridable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorCountingSimple.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorNoncesKeyed.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorPreventLateQuorum.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorProposalGuardian.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorSequentialProposalId.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorSettings.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorStorage.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorSuperQuorum.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorTimelockAccess.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorTimelockCompound.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorTimelockControl.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorVotes.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorVotesQuorumFraction.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/extensions/GovernorVotesSuperQuorumFraction.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/utils/IVotes.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/utils/Votes.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/governance/utils/VotesExtended.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC1155.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC1155MetadataURI.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC1155Receiver.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC1271.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC1363.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC1363Receiver.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC1363Spender.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC1820Implementer.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC1820Registry.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC1967.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC20Metadata.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC2309.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC2612.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC2981.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC3156.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC3156FlashBorrower.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC3156FlashLender.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC4626.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC4906.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC5267.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC5313.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC5805.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC6372.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC6909.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC721.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC721Enumerable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC721Metadata.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC721Receiver.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC7751.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC777.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC777Recipient.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC777Sender.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/IERC7913.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/README.adoc
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/draft-IERC1822.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/draft-IERC4337.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/draft-IERC7579.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/draft-IERC7674.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/draft-IERC7786.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/draft-IERC7802.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/interfaces/draft-IERC7821.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/metatx/ERC2771Context.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/metatx/ERC2771Forwarder.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/metatx/README.adoc
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/AccessManagedTarget.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/AccessManagerMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/ArraysMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/AuthorityMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/Base64Dirty.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/BatchCaller.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/CallReceiverMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/ConstructorMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/ContextMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/DummyImplementation.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/EIP712Verifier.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/ERC1271WalletMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/ERC165Mock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/ERC2771ContextMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/ERC3156FlashBorrowerMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/EtherReceiverMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/InitializableMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/MerkleProofCustomHashMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/MerkleTreeMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/MulticallHelper.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/MultipleInheritanceInitializableMocks.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/PausableMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/ReentrancyAttack.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/ReentrancyMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/ReentrancyTransientMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/RegressionImplementation.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/SingleInheritanceInitializableMocks.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/Stateless.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/StorageSlotMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/TimelockReentrant.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/TransientSlotMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/UpgradeableBeaconMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/VotesExtendedMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/VotesMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/account/AccountMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/account/modules/ERC7579Mock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/account/utils/ERC7579UtilsMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/compound/CompTimelock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/crosschain/ERC7786GatewayMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/crosschain/ERC7786RecipientMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/ERC20WithAutoMinerReward.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/ERC4626Fees.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/MyNFT.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/access-control/AccessControlERC20MintBase.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/access-control/AccessControlERC20MintMissing.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/access-control/AccessControlERC20MintOnlyRole.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/access-control/AccessControlModified.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/access-control/AccessManagedERC20MintBase.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/access-control/MyContractOwnable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/account/MyAccountERC7702.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/account/MyFactoryAccount.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/governance/MyGovernor.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/governance/MyToken.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/governance/MyTokenTimestampBased.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/governance/MyTokenWrapped.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/token/ERC1155/GameItems.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/token/ERC1155/MyERC115HolderContract.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/token/ERC20/GLDToken.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/token/ERC6909/ERC6909GameItems.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/token/ERC721/GameItem.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/utilities/Base64NFT.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/docs/utilities/Multicall.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/governance/GovernorCountingOverridableMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/governance/GovernorFractionalMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/governance/GovernorMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/governance/GovernorNoncesKeyedMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/governance/GovernorPreventLateQuorumMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/governance/GovernorProposalGuardianMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/governance/GovernorSequentialProposalIdMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/governance/GovernorStorageMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/governance/GovernorSuperQuorumMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/governance/GovernorTimelockAccessMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/governance/GovernorTimelockCompoundMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/governance/GovernorTimelockControlMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/governance/GovernorVoteMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/governance/GovernorVotesSuperQuorumFractionMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/governance/GovernorWithParamsMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/proxy/BadBeacon.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/proxy/ClashingImplementation.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/proxy/UUPSUpgradeableMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC1155ReceiverMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC1363ForceApproveMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC1363NoReturnMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC1363ReceiverMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC1363ReturnFalseMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC1363SpenderMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC20ApprovalMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC20BridgeableMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC20DecimalsMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC20ExcessDecimalsMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC20FlashMintMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC20ForceApproveMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC20GetterHelper.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC20Mock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC20MulticallMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC20NoReturnMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC20Reentrant.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC20ReturnFalseMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC20VotesAdditionalCheckpointsMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC20VotesLegacyMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC20VotesTimestampMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC4626LimitsMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC4626Mock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC4626OffsetMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC4646FeesMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC721ConsecutiveEnumerableMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC721ConsecutiveMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC721ReceiverMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/token/ERC721URIStorageMock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/mocks/utils/cryptography/ERC7739Mock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/package.json
-- `M` blockchain/lib/openzeppelin-contracts/contracts/proxy/Clones.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Utils.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/proxy/Proxy.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/proxy/README.adoc
-- `M` blockchain/lib/openzeppelin-contracts/contracts/proxy/beacon/BeaconProxy.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/proxy/beacon/IBeacon.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/proxy/beacon/UpgradeableBeacon.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC1155/IERC1155Receiver.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC1155/README.adoc
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC1155/extensions/ERC1155Burnable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC1155/extensions/ERC1155Pausable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC1155/extensions/ERC1155Supply.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC1155/extensions/ERC1155URIStorage.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC1155/utils/ERC1155Holder.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC1155/utils/ERC1155Utils.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/README.adoc
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC1363.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Burnable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Capped.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20FlashMint.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Pausable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Permit.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Wrapper.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Permit.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/draft-ERC20Bridgeable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/draft-ERC20TemporaryApproval.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/utils/ERC1363Utils.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC6909/ERC6909.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC6909/README.adoc
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC6909/extensions/ERC6909ContentURI.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC6909/extensions/ERC6909Metadata.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC6909/extensions/ERC6909TokenSupply.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/README.adoc
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Burnable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Consecutive.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Pausable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Royalty.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721URIStorage.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Votes.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Wrapper.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Metadata.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/utils/ERC721Holder.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/ERC721/utils/ERC721Utils.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/common/ERC2981.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/token/common/README.adoc
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Address.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Arrays.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Base58.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Base64.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Blockhash.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Bytes.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/CAIP10.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/CAIP2.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Calldata.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Comparators.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Context.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Create2.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Errors.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/LowLevelCall.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Memory.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Multicall.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Nonces.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/NoncesKeyed.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Packing.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Panic.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Pausable.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/README.adoc
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/RLP.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/ReentrancyGuardTransient.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/RelayedCall.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/ShortStrings.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/SlotDerivation.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/StorageSlot.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/Strings.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/TransientSlot.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/Hashes.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/P256.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/README.adoc
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/RSA.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/SignatureChecker.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/WebAuthn.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/draft-ERC7739Utils.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/signers/AbstractSigner.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/signers/MultiSignerERC7913.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/signers/MultiSignerERC7913Weighted.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/signers/SignerECDSA.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/signers/SignerEIP7702.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/signers/SignerERC7913.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/signers/SignerP256.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/signers/SignerRSA.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/signers/SignerWebAuthn.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/signers/draft-ERC7739.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/verifiers/ERC7913P256Verifier.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/verifiers/ERC7913RSAVerifier.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/cryptography/verifiers/ERC7913WebAuthnVerifier.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/draft-InteroperableAddress.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/introspection/ERC165Checker.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/math/Math.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/math/SafeCast.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/math/SignedMath.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/structs/Accumulators.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/structs/BitMaps.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/structs/Checkpoints.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/structs/CircularBuffer.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/structs/DoubleEndedQueue.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/structs/EnumerableMap.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/structs/Heap.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/structs/MerkleTree.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/utils/types/Time.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/vendor/compound/ICompoundTimelock.sol
-- `M` blockchain/lib/openzeppelin-contracts/contracts/vendor/compound/LICENSE
-- `M` blockchain/lib/openzeppelin-contracts/docs/README.md
-- `M` blockchain/lib/openzeppelin-contracts/docs/antora.yml
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/images/access-control-multiple.svg
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/images/access-manager-functions.svg
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/images/access-manager.svg
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/nav.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/access-control.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/account-abstraction.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/accounts.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/backwards-compatibility.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/eoa-delegation.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/erc1155.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/erc20-supply.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/erc20.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/erc4626.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/erc6909.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/erc721.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/extending-contracts.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/faq.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/governance.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/index.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/multisig.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/tokens.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/upgradeable.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/utilities.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/modules/ROOT/pages/wizard.adoc
-- `M` blockchain/lib/openzeppelin-contracts/docs/templates/contract.hbs
-- `M` blockchain/lib/openzeppelin-contracts/docs/templates/page.hbs
-- `M` blockchain/lib/openzeppelin-contracts/eslint.config.mjs
-- `M` blockchain/lib/openzeppelin-contracts/foundry.toml
-- `M` blockchain/lib/openzeppelin-contracts/fv-requirements.txt
-- `M` blockchain/lib/openzeppelin-contracts/logo.svg
-- `M` blockchain/lib/openzeppelin-contracts/netlify.toml
-- `M` blockchain/lib/openzeppelin-contracts/package-lock.json
-- `M` blockchain/lib/openzeppelin-contracts/package.json
-- `M` blockchain/lib/openzeppelin-contracts/remappings.txt
-- `M` blockchain/lib/openzeppelin-contracts/renovate.json
-- `M` blockchain/lib/openzeppelin-contracts/scripts/checks/coverage.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/checks/generation.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/git-user-config.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/prepack.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/prepare-docs.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/release/version.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/release/workflow/exit-prerelease.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/release/workflow/integrity-check.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/release/workflow/pack.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/release/workflow/publish.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/release/workflow/start.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/set-max-old-space-size.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/solhint-custom/package.json
-- `M` blockchain/lib/openzeppelin-contracts/scripts/upgradeable/README.md
-- `M` blockchain/lib/openzeppelin-contracts/scripts/upgradeable/alias/Initializable.sol
-- `M` blockchain/lib/openzeppelin-contracts/scripts/upgradeable/alias/UUPSUpgradeable.sol
-- `M` blockchain/lib/openzeppelin-contracts/scripts/upgradeable/patch-apply.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/upgradeable/patch-save.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/upgradeable/transpile-onto.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/upgradeable/transpile.sh
-- `M` blockchain/lib/openzeppelin-contracts/scripts/upgradeable/upgradeable.patch
-- `M` blockchain/lib/openzeppelin-contracts/slither.config.json
-- `M` blockchain/lib/openzeppelin-contracts/test/TESTING.md
-- `M` blockchain/lib/openzeppelin-contracts/test/account/AccountERC7702.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/account/utils/draft-ERC7579Utils.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/governance/Governor.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/governance/extensions/GovernorSuperQuorumGreaterThanQuorum.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/metatx/ERC2771Forwarder.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/proxy/Clones.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/token/ERC20/extensions/ERC4626.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/token/ERC721/extensions/ERC721Consecutive.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/Arrays.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/Base58.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/Base64.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/Blockhash.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/Bytes.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/Create2.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/Memory.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/NoncesKeyed.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/Packing.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/RLP.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/ShortStrings.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/SlotDerivation.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/Strings.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/cryptography/MessageHashUtils.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/cryptography/P256.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/cryptography/SigVer15_186-3.rsp
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/cryptography/WebAuthn.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/cryptography/ecdsa_secp256r1_sha256_p1363_test.json
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/draft-InteroperableAddress.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/math/Math.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/math/SignedMath.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/structs/Accumulators.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/structs/Checkpoints.t.sol
-- `M` blockchain/lib/openzeppelin-contracts/test/utils/structs/Heap.t.sol
 - `M` blockchain/package.json
-- `M` blockchain/scripts/DeployEventFactory.s.sol
-- `M` blockchain/test/EventFactory.t.sol
-- `M` "comprehensive_test_20251025_102015.log\357\200\215\357\200\215"
-- `M` docs/api/README.md
-- `M` docs/architecture/README.md
-- `M` docs/audit/AUDIT_SUMMARY.md
-- `M` docs/audit/BETA_RELEASE_ASSESSMENT.md
-- `M` docs/audit/BETA_RELEASE_PLAN.md
-- `M` docs/audit/README.md
-- `M` docs/base-docs/BASE_ECOSYSTEM_TOOLS_POST_HACKATHON.md
-- `M` docs/base-docs/README.md
-- `M` docs/base-docs/backendintegration.md
-- `M` docs/base-docs/frontendintegration.md
-- `M` docs/base-docs/go-gasless.md
-- `M` docs/base-docs/minikit-add-frame-metadata.md
-- `M` docs/base-docs/minikit-add-minikit.md
-- `M` docs/base-docs/minikit-configure-environment.md
-- `M` docs/base-docs/minikit-create-manifest.md
-- `M` docs/base-docs/minikit-install.md
-- `M` docs/base-docs/minikit-manifest-cli.md
-- `M` docs/base-docs/minikit-test-and-deploy.md
-- `M` docs/base-docs/onboard-any-user.md
-- `M` docs/base-docs/onchain-social.md
-- `M` docs/base-docs/testing-onchain-apps.md
-- `M` docs/base-docs/typescriptsdk.md
-- `M` docs/base-docs/webhooks.md
-- `M` docs/bridge/CONTRIBUTING.md
-- `M` docs/bridge/README.md
-- `M` docs/bridge/adapters/PolkadotAdapter.md
-- `M` docs/bridge/adapters/README.md
-- `M` docs/bridge/apis/README.md
-- `M` docs/bridge/architecture.md
-- `M` docs/bridge/integration/README.md
-- `M` docs/bridge/security/README.md
+- `M` docs/INDEX.md
+- `M` docs/README.md
 - `M` docs/contracts/README.md
-- `M` docs/deployment/BASE_TESTNET_DEPLOYMENT_READY.md
-- `M` docs/deployment/DEPLOYMENT_CHECKLIST.md
-- `M` docs/deployment/DEPLOYMENT_COMPLETE.md
-- `M` docs/deployment/DEPLOYMENT_READY_SUMMARY.md
 - `M` docs/deployment/README.md
-- `M` docs/deployment/TESTING_DEPLOYMENT_GUIDE.md
 - `M` docs/deployment/VERCEL_DEPLOYMENT_GUIDE.md
-- `M` docs/design/ACCESSIBILITY_GUIDELINES.md
-- `M` docs/design/COLOR_SYSTEM.md
-- `M` docs/design/COMPONENT_LIBRARY.md
-- `M` docs/design/DESIGN_TOKENS.md
-- `M` docs/design/HERO_ANALYSIS.md
-- `M` docs/design/HERO_REDESIGN.md
-- `M` docs/design/README.md
-- `M` docs/design/SPRINT_PLAN.md
-- `M` docs/design/SPRINT_REVIEW.md
-- `M` docs/design/UI_ENHANCEMENT_SUMMARY.md
-- `M` docs/design/USER_FLOWS.md
-- `M` docs/development/DEVELOPMENT_GUIDE.md
-- `M` docs/examples/README.md
-- `M` docs/frontend/FRONTEND_AUDIT_AND_FIX.md
-- `M` docs/frontend/FRONTEND_FIX_SUMMARY.md
-- `M` docs/frontend/FRONTEND_STATUS_ANALYSIS.md
-- `M` docs/frontend/README.md
-- `M` docs/guides/README.md
-- `M` docs/integration/README.md
-- `M` docs/qa/FALLBACK_INTEGRATION_COMPLETE.md
-- `M` docs/qa/FALLBACK_TEST_REPORT.md
+- `D` docs/qa/FALLBACK_INTEGRATION_COMPLETE.md
+- `D` docs/qa/FALLBACK_TEST_REPORT.md
 - `M` docs/qa/README.md
-- `M` docs/qa/qalog.md
-- `M` docs/security/COMPREHENSIVE_BLOCKCHAIN_SECURITY_AUDIT.md
-- `M` docs/security/CRITICAL_VULNERABILITIES_FIXES.md
-- `M` docs/security/DEPLOYMENT_SECURITY_CHECKLIST.md
-- `M` docs/security/README.md
-- `M` docs/security/SECURITY_AUDIT_REPORT.md
-- `M` docs/security/SECURITY_AUDIT_REPORT_2025.md
-- `M` docs/security/SECURITY_IMPROVEMENTS.md
-- `M` docs/security/security-implementations/initialization-race-condition-fix.md
-- `M` docs/security/security-testing/vulnerability-test-suite.md
+- `D` docs/qa/qalog.md
+- `M` docs/qalog.md
 - `M` docs/status/ISSUE_FIXES_SUMMARY.md
-- `M` docs/status/NO_STATIC_DATA_IMPLEMENTATION.md
-- `M` docs/status/PRODUCTION_IMPLEMENTATION_SUMMARY.md
-- `M` docs/status/PRODUCTION_TESTING_GUIDE.md
-- `M` docs/status/PRODUCTION_TESTING_SUMMARY.md
 - `M` docs/status/README.md
-- `M` docs/status/TASK_COMPLETION_SUMMARY.md
-- `M` "docs/team/Daniel Full Stack Dev/BACKLOG.md"
-- `M` "docs/team/Daniel Full Stack Dev/TASKS.md"
-- `M` "docs/team/Natasha Frontend UI-UX/BACKLOG.md"
-- `M` "docs/team/Natasha Frontend UI-UX/TASKS.md"
-- `M` docs/team/Natasha/TASKS.md
-- `M` docs/team/README.md
-- `M` frontend/.gitignore
-- `M` frontend/README.md
-- `M` frontend/WALLET_INTEGRATION_GUIDE.md
-- `M` frontend/app/about/page.tsx
-- `M` frontend/app/api/auth/email/verify/route.ts
-- `M` frontend/app/api/auth/social/route.ts
-- `M` frontend/app/api/auth/wallet/create/route.ts
-- `M` frontend/app/api/contracts/ticket-sales/route.ts
-- `M` frontend/app/api/contracts/user-tickets/route.ts
-- `M` frontend/app/api/debug/env/route.ts
-- `M` frontend/app/api/debug/ticket-balance/route.ts
-- `M` frontend/app/api/eth-price/route.ts
-- `M` frontend/app/api/events/route.ts
-- `M` frontend/app/api/marketplace/route.ts
-- `M` frontend/app/api/poap/check-claim/route.ts
-- `M` frontend/app/api/poap/claim/route.ts
-- `M` frontend/app/api/storage-test/route.ts
-- `M` frontend/app/blog/page.tsx
-- `M` frontend/app/careers/page.tsx
-- `M` frontend/app/components/ChainWatcherClient.tsx
-- `M` frontend/app/components/EnhancedConnectButton.tsx
-- `M` frontend/app/components/ExampleComponent.tsx
-- `M` frontend/app/components/NetworkValidation.tsx
-- `M` frontend/app/components/RealtimeStatus.tsx
-- `M` frontend/app/components/RealtimeSubscriptionsClient.tsx
-- `M` frontend/app/components/TicketPurchaseSuccess.tsx
-- `M` frontend/app/components/TransactionStatus.tsx
-- `M` frontend/app/components/WalletTroubleshooting.tsx
-- `M` frontend/app/components/events/EventCard.tsx
-- `M` frontend/app/components/events/ModernEventCard.tsx
-- `M` frontend/app/components/layout/Footer.tsx
-- `M` frontend/app/components/layout/Header.tsx
-- `M` frontend/app/components/layout/ModernNavbar.tsx
-- `M` frontend/app/components/maps/EventLocationMap.tsx
-- `M` frontend/app/components/maps/GoogleMapsProvider.tsx
-- `M` frontend/app/components/maps/SimpleLocationPicker.tsx
-- `M` frontend/app/components/sections/BlockchainSection.tsx
-- `M` frontend/app/components/sections/CTASection.tsx
-- `M` frontend/app/components/sections/FAQSection.tsx
-- `M` frontend/app/components/sections/FeaturedEventsSection.tsx
-- `M` frontend/app/components/sections/FeaturesSection.tsx
-- `M` frontend/app/components/sections/FloatingActionButton.tsx
-- `M` frontend/app/components/sections/HeroSection.tsx
-- `M` frontend/app/components/sections/ModernHeroSection.tsx
-- `M` frontend/app/components/sections/StatsSection.tsx
-- `M` frontend/app/components/sections/TestimonialsSection.tsx
-- `M` frontend/app/components/ui/ModernButton.tsx
-- `M` frontend/app/components/ui/ModernCard.tsx
-- `M` frontend/app/components/ui/ModernInput.tsx
-- `M` frontend/app/contact/page.tsx
-- `M` frontend/app/cookies/page.tsx
-- `M` frontend/app/docs/page.tsx
-- `M` frontend/app/events/[id]/manage/page.module.css
-- `M` frontend/app/events/[id]/manage/page.tsx
-- `M` frontend/app/events/[id]/manage/styles.module.css
-- `M` frontend/app/events/[id]/manage/utils.ts
 - `M` frontend/app/events/[id]/page.tsx
-- `M` frontend/app/events/create/page.tsx
-- `M` frontend/app/events/page.tsx
-- `M` frontend/app/globals.css
-- `M` frontend/app/guides/page.tsx
-- `M` frontend/app/hooks/useChainWatcher.ts
-- `M` frontend/app/hooks/useCombinedEvent.ts
 - `M` frontend/app/hooks/useEvents.ts
 - `M` frontend/app/hooks/useIncentives.ts
-- `M` frontend/app/hooks/useMarketplace.ts
 - `M` frontend/app/hooks/useRealtimeSubscriptions.ts
-- `M` frontend/app/hooks/useRetry.ts
 - `M` frontend/app/hooks/useTickets.ts
 - `M` frontend/app/hooks/useTransactions.ts
-- `M` frontend/app/hooks/useTransactionsDirect.md
-- `M` frontend/app/hooks/useTransactionsDirect.ts
-- `M` frontend/app/hooks/useWalletHelpers.ts
 - `M` frontend/app/layout.tsx
-- `M` frontend/app/marketplace/create/page.tsx
-- `M` frontend/app/marketplace/my-listings/page.tsx
-- `M` frontend/app/marketplace/page.tsx
-- `M` frontend/app/my-events/page.tsx
-- `M` frontend/app/my-tickets/page.tsx
-- `M` frontend/app/organizer/approval/page.tsx
-- `M` frontend/app/page.tsx
-- `M` frontend/app/poaps/page.tsx
 - `M` frontend/app/pricing/page.tsx
-- `M` frontend/app/privacy/page.tsx
-- `M` frontend/app/providers.tsx
-- `M` frontend/app/rewards/page.tsx
-- `M` frontend/app/status/page.tsx
-- `M` frontend/app/storage/page.tsx
-- `M` frontend/app/styles/modern-ui.css
-- `M` frontend/app/support/page.tsx
-- `M` frontend/app/terms/page.tsx
-- `M` frontend/app/transparency/page.tsx
-- `M` frontend/app/verify/[cid]/page.tsx
-- `M` frontend/app/wallet-test/page.tsx.bak
-- `M` frontend/components.json
-- `M` frontend/components/QRCodeDisplay.module.css
-- `M` frontend/components/QRCodeDisplay.tsx
-- `M` frontend/components/SignAndSendUnsignedTx.module.css
-- `M` frontend/components/SignAndSendUnsignedTx.tsx
-- `M` frontend/components/analytics/UserFeedbackCollector.tsx
 - `M` frontend/components/organizer/OrganizerApprovalDashboard.tsx
-- `M` frontend/components/rewards/ReferralCodeGenerator.tsx
-- `M` frontend/components/rewards/RewardsDashboard.tsx
-- `M` frontend/components/ui/badge/index.tsx
-- `M` frontend/components/ui/breadcrumb/index.tsx
-- `M` frontend/components/ui/button/index.tsx
-- `M` frontend/components/ui/card/index.tsx
-- `M` frontend/components/ui/textarea/index.tsx
-- `M` frontend/components/ui/use-toast/index.tsx
-- `M` frontend/components/wallet/EnhancedConnectModal.tsx
-- `M` frontend/create-favicon.js
-- `M` frontend/docs/GOOGLE_MAPS_SETUP.md
-- `M` frontend/docs/VERCEL_ENV_VARS.md
 - `M` frontend/env.example
 - `M` frontend/eslint.config.js
-- `M` frontend/lib/auth/email-auth.ts
-- `M` frontend/lib/auth/social-auth.ts
 - `M` frontend/lib/base-rpc-manager.ts
-- `M` frontend/lib/base-state-sync.ts
-- `M` frontend/lib/base-wallet-manager.ts
 - `M` frontend/lib/blob.ts
-- `M` frontend/lib/contract-fallback.ts
-- `M` frontend/lib/contract-hooks.examples.tsx
-- `M` frontend/lib/contract-hooks.ts
-- `M` frontend/lib/contract-wrapper.ts
-- `M` frontend/lib/contracts.ts
-- `M` frontend/lib/edge-config.ts
-- `M` frontend/lib/hooks/useWalletConnection.ts
 - `M` frontend/lib/ipfs.ts
-- `M` frontend/lib/logger.ts
 - `M` frontend/lib/metadata.ts
 - `M` frontend/lib/mockEvents.ts
-- `M` frontend/lib/session/session-manager.ts
-- `M` frontend/lib/shims/async-storage.js
-- `M` frontend/lib/smart-wallet/smart-wallet-manager.ts
-- `M` frontend/lib/transaction-utils.ts
-- `M` frontend/lib/typechain-types/factories/contracts/core/EventFactory__factory.ts
-- `M` frontend/lib/typechain-types/factories/contracts/core/EventTicket__factory.ts
-- `M` frontend/lib/typechain-types/factories/contracts/core/Marketplace__factory.ts
-- `M` frontend/lib/typechain-types/factories/contracts/modules/IncentiveManager.sol/IncentiveManager__factory.ts
-- `M` frontend/lib/typechain-types/factories/contracts/modules/POAPAttendance__factory.ts
-- `M` frontend/lib/utils.ts
-- `M` frontend/lib/utils/index.ts
 - `M` frontend/lib/wagmi.ts
-- `M` frontend/middleware.ts
-- `M` frontend/next-env.d.ts
-- `M` frontend/optimize.sh
 - `M` frontend/package.json
-- `M` frontend/postcss.config.cjs
-- `M` frontend/public/robots.txt
-- `M` frontend/scripts/init-edge-config.ts
-- `M` frontend/scripts/run-integration-tests.js
-- `M` frontend/scripts/test-contract-wrapper.mjs
-- `M` frontend/scripts/test-ticket-purchase.mjs
-- `M` frontend/setup-google-maps.js
-- `M` frontend/tailwind.config.ts
-- `M` frontend/tests/contract-wrapper.test.mjs
-- `M` frontend/tests/integration.test.ts
-- `M` frontend/tsconfig.json
-- `M` frontend/types/declarations.d.ts
-- `M` frontend/types/event.ts
-- `M` frontend/types/minimatch.d.ts
-- `M` frontend/vercel.json
 - `M` package-lock.json
 - `M` package.json
-- `M` polkadot/consts.d.ts
-- `M` polkadot/errors.d.ts
-- `M` polkadot/events.d.ts
-- `M` polkadot/index.d.ts
-- `M` polkadot/json-rpc.d.ts
-- `M` polkadot/query.d.ts
-- `M` polkadot/runtime.d.ts
-- `M` polkadot/tx.d.ts
-- `M` polkadot/types.d.ts
-- `M` polkadot/view-functions.d.ts
-- `M` scripts/dev-qa.sh
-- `M` scripts/docker-qa.sh
-- `M` scripts/postinstall.js
+- `D` screenshots/homepage.png
 - `M` scripts/qa-agent.sh
-- `M` scripts/run_all_tests.sh
-- `M` scripts/test_poap.sh
-- `M` scripts/test_poap_production.sh
-- `M` scripts/update-docs.js
-- `M` test-qa/.qa-cache.json
-- `M` test-qa/docs/qalog.md
-- `M` test-qa/package.json
-- `??` builder.config.json
-- `??` "comprehensive_test_20251025_102015.log\r\r"
-- `??` docs/qalog.md
+- `??` .github/workflows/deploy-base-mainnet.yml
+- `??` .github/workflows/deploy.yml
+- `??` backend/.env.example
+- `??` backend/README.md
+- `??` backend/package-lock.json
+- `??` backend/package.json
+- `??` backend/prisma/schema.prisma
+- `??` backend/src/middleware/auth.ts
+- `??` backend/src/middleware/errorHandler.ts
+- `??` backend/src/middleware/rateLimiter.ts
+- `??` backend/src/routes/analytics.ts
+- `??` backend/src/routes/auth.ts
+- `??` backend/src/routes/events.ts
+- `??` backend/src/routes/tickets.ts
+- `??` backend/src/server.ts
+- `??` backend/src/utils/logger.ts
+- `??` backend/src/utils/prisma.ts
+- `??` backend/tests/api.test.ts
+- `??` backend/tsconfig.json
+- `??` blockchain/scripts/DeploymentConfig.s.sol
+- `??` blockchain/scripts/NodeProviderTest.s.sol
+- `??` blockchain/scripts/deploy-mainnet.sh
+- `??` blockchain/test/BaseForkTest.t.sol
+- `??` docs/BETA_READINESS_SUMMARY.md
+- `??` docs/BETA_RELEASE_CHECKLIST.md
+- `??` docs/BUGFIXES.md
+- `??` docs/CODEBASE_INDEX.md
+- `??` docs/COMPLETE_TASKS_SUMMARY.md
+- `??` docs/COMPREHENSIVE_DOCUMENTATION_INDEX.md
+- `??` docs/DIAGNOSTIC_FIXES.md
+- `??` docs/DOCUMENTATION_UPDATE_SUMMARY.md
+- `??` docs/ENVIRONMENT_SETUP_GUIDE.md
+- `??` docs/ENVIRONMENT_SETUP_SUMMARY.md
+- `??` docs/FINAL_COMPLETION_REPORT.md
+- `??` docs/MONITORING_ALERTING_COMPLETE.md
+- `??` docs/SESSION_SUMMARY.md
+- `??` docs/analysis/ANALYSIS_SUMMARY.md
+- `??` docs/analysis/README.md
+- `??` docs/analysis/STATIC_VS_DYNAMIC_DATA_REPORT.md
+- `??` docs/api/API_DOCUMENTATION.md
+- `??` docs/audit/COMPREHENSIVE_SECURITY_AUDIT.md
+- `??` docs/audit/ELASTIC_UPGRADE_STRATEGY.md
+- `??` docs/audit/SMART_CONTRACT_AUDIT_METADATA.md
+- `??` docs/base-docs/CONNECTING_TO_BASE.md
+- `??` docs/base-docs/MINI_APPS_FARCASTER_DISTRIBUTION.md
+- `??` docs/deployment/BASE_INTEGRATION_GUIDE.md
+- `??` docs/deployment/BASE_MAINNET_DEPLOYMENT_PLAN.md
+- `??` docs/deployment/BETA_RELEASE_READINESS.md
+- `??` docs/deployment/FARCASTER_ANALYTICS.md
+- `??` docs/deployment/FRAME_PERFORMANCE_OPTIMIZATION.md
+- `??` docs/deployment/NODE_PROVIDER_SETUP.md
+- `??` docs/design/FRANCIS_UI_UX_DESIGN_GUIDE.md
+- `??` docs/design/NATASHA_UI_UX_WEB3_GUIDE.md
+- `??` docs/design/research/README.md
+- `??` docs/design/research/apple_design_principles.md
+- `??` docs/design/research/east_african_fintech.md
+- `??` docs/design/research/luma_competitor_analysis.md
+- `??` docs/design/research/trading_ux_patterns.md
+- `??` docs/design/research/web3_ux_patterns.md
+- `??` docs/development/AGILE_SPRINT_PLAN_BETA.md
+- `??` docs/development/BETA_REALTIME_ROADMAP.md
+- `??` docs/development/WEBHOOK_OBSERVABILITY_DESIGN.md
+- `??` docs/fixes/TYPESCRIPT_ERROR_FIXES.md
+- `??` docs/frontend/ARCHITECTURE.md
+- `??` docs/guides/BETA_USER_ONBOARDING.md
+- `??` docs/implementation/DYNAMIC_DATA_COMPLETE.md
+- `??` docs/implementation/DYNAMIC_DATA_IMPLEMENTATION.md
+- `??` docs/implementation/IMPLEMENTATION_REPORT_FINAL.md
+- `??` docs/implementation/IMPLEMENTATION_SUMMARY.md
+- `??` docs/integration/FARCASTER_MINIAPPS_GUIDE.md
+- `??` docs/integration/NODE_PROVIDERS_BASE.md
+- `??` docs/integration/NODE_PROVIDERS_COMPARISON.md
+- `??` docs/integration/NODE_PROVIDER_BENCHMARKS.md
+- `??` docs/integration/RPC_LATENCY_TUNING.md
+- `??` docs/monitoring/.gitkeep
+- `??` docs/monitoring/COMPLETION_REPORT.md
+- `??` docs/monitoring/DASHBOARD_CONFIG.md
+- `??` docs/monitoring/ERROR_TRACKING_RULES.md
+- `??` docs/monitoring/HEALTH_CHECKS.md
+- `??` docs/monitoring/MONITORING_SETUP.md
+- `??` docs/monitoring/PERFORMANCE_ALERTS.md
+- `??` docs/monitoring/README.md
+- `??` docs/monitoring/SENTRY_CONFIGURATION.md
+- `??` docs/monitoring/STATUS_DASHBOARD.md
+- `??` docs/security/FRAME_SECURITY.md
+- `??` docs/security/INCIDENT_RESPONSE_PLAN.md
+- `??` docs/security/ORGANIZER_APPROVAL_SECURITY_AUDIT.md
+- `??` docs/status/BETA_REALTIME_AUDIT.md
+- `??` docs/status/LUMA_COMPETITIVE_ANALYSIS.md
+- `??` docs/status/PMF_ASSESSMENT.md
+- `??` docs/status/PRODUCT_MARKET_FIT_ASSESSMENT.md
+- `??` docs/status/SPRINT_2_COMPLETE.md
+- `??` docs/status/SPRINT_3_PLAN.md
+- `??` docs/team/AGILE_SPRINT_PLANNING.md
+- `??` docs/team/LUMA_COMPETITIVE_ANALYSIS.md
+- `??` frontend/.env.example
+- `??` frontend/__tests__/security/frame-security.test.ts
+- `??` frontend/__tests__/setup.ts
+- `??` frontend/app/analytics/page.tsx
+- `??` frontend/app/api/analytics/dashboard/route.ts
+- `??` frontend/app/api/analytics/track/route.ts
+- `??` frontend/app/api/analytics/web-vitals/route.ts
+- `??` frontend/app/api/experiments/[id]/route.ts
+- `??` frontend/app/api/faq/route.ts
+- `??` frontend/app/api/frames/events/[id]/route.ts
+- `??` frontend/app/api/health/.gitkeep
+- `??` frontend/app/api/health/route.ts
+- `??` frontend/app/api/og/event/[id]/route.tsx
+- `??` frontend/app/api/pricing/route.ts
+- `??` frontend/app/api/statistics/route.ts
+- `??` frontend/app/api/webhooks/marketplace/route.ts
+- `??` frontend/app/api/webhooks/payments/route.ts
+- `??` frontend/app/api/webhooks/pinata/route.ts
+- `??` frontend/app/frames/events/[id]/page.tsx
+- `??` frontend/app/pricing/components/PricingCards.tsx
+- `??` frontend/components/PerformanceDashboard.tsx
+- `??` frontend/components/analytics/AnalyticsDashboard.tsx
+- `??` frontend/components/frames/FrameEventPage.tsx
+- `??` frontend/components/frames/TicketPurchase.tsx
+- `??` frontend/components/providers/MiniAppProvider.tsx
+- `??` frontend/hooks/useABTest.ts
+- `??` frontend/hooks/useFarcasterFrame.ts
+- `??` frontend/hooks/useFramePerformance.ts
+- `??` frontend/hooks/useMiniKitWallet.ts
+- `??` frontend/hooks/useRPCMetrics.ts
+- `??` frontend/lib/database.ts
+- `??` frontend/lib/monitoring/.gitkeep
+- `??` frontend/lib/monitoring/error-rules.ts
+- `??` frontend/lib/monitoring/performance-alerts.ts
+- `??` frontend/lib/performance-monitor.ts
+- `??` frontend/lib/performance-test.ts
+- `??` frontend/lib/providers/rpc-provider.ts
+- `??` frontend/lib/security/headers.ts
+- `??` frontend/lib/security/rate-limiter.ts
+- `??` frontend/lib/security/validation.ts
+- `??` frontend/lib/sentry.config.ts
+- `??` frontend/lib/wallet-errors.ts
+- `??` frontend/lib/webhooks.ts
+- `??` frontend/playwright.config.ts
+- `??` frontend/scripts/beta-readiness-check.cjs
+- `??` frontend/scripts/validate-env.cjs
+- `??` frontend/sentry.client.config.ts
+- `??` frontend/sentry.edge.config.ts
+- `??` frontend/sentry.server.config.ts
+- `??` frontend/vitest.config.ts
+- `??` scripts/deploy.sh
+- `??` scripts/verify-dynamic-data.js
+- `??` setup-env.sh
+- `??` tools/mcp-server/.env.example
+- `??` tools/mcp-server/README.md
+- `??` tools/mcp-server/package-lock.json
+- `??` tools/mcp-server/package.json
+- `??` tools/mcp-server/src/index.ts
+- `??` tools/mcp-server/tsconfig.json
 
 ## New Documentation Files
-- Codebase Audit Summary - 2025-10-25 (audit/AUDIT_SUMMARY_20251025.md)
-- 🔍 Echain Codebase Audit Summary (audit/AUDIT_SUMMARY.md)
-- 🚀 Echain Beta Release Assessment (audit/BETA_RELEASE_ASSESSMENT.md)
-- Beta Release Readiness Plan (audit/BETA_RELEASE_PLAN.md)
-- 🔍 Audit Documentation (audit/README.md)
-- Multi-Chain Deployment Complete (deployment/DEPLOYMENT_COMPLETE.md)
-- 🛠️ Echain Development Guide (development/DEVELOPMENT_GUIDE.md)
-- Multi-Chain Frontend Data Flow Audit & Fix Plan (frontend/FRONTEND_AUDIT_AND_FIX.md)
-- Frontend Ticket Display Fix - Summary (frontend/FRONTEND_FIX_SUMMARY.md)
-- Frontend Status Analysis (frontend/FRONTEND_STATUS_ANALYSIS.md)
-- 🎨 Frontend Documentation (frontend/README.md)
-- 📚 Echain Documentation Index (INDEX.md)
-- Multi-Chain Integration Complete (qa/FALLBACK_INTEGRATION_COMPLETE.md)
-- Fallback System Test Report (qa/FALLBACK_TEST_REPORT.md)
-- 🛡️ Echain QA Agent Log (qa/qalog.md)
-- 🧪 Quality Assurance Documentation (qa/README.md)
-- Echain Issue Fixes Summary (status/ISSUE_FIXES_SUMMARY.md)
-- No Static Data Implementation - Complete Summary (status/NO_STATIC_DATA_IMPLEMENTATION.md)
-- Echain Multi-Chain Production Readiness Implementation Summary (status/PRODUCTION_IMPLEMENTATION_SUMMARY.md)
-- Multi-Chain Production Testing Guide for Echain DApp (status/PRODUCTION_TESTING_GUIDE.md)
-- Multi-Chain Beta Testing Summary (status/PRODUCTION_TESTING_SUMMARY.md)
-- 📊 Project Status Documentation (status/README.md)
-- 🚀 ENHANCED MVP DEVELOPMENT STATUS: Multi-Chain Beta Testing Preparation (status/TASK_COMPLETION_SUMMARY.md)
-- Backlog — Ancestor (Lead Engineer) (team/Ancestor Koiyaki Lead Engineer/BACKLOG.md)
-- Issues Log — Ancestor (Lead Engineer) (team/Ancestor Koiyaki Lead Engineer/ISSUES.md)
-- Lead Engineering Audit Summary — Ancestor (team/Ancestor Koiyaki Lead Engineer/LEAD_ENGINEER_AUDIT.md)
-- Activity Log — Ancestor (Lead Engineer) (team/Ancestor Koiyaki Lead Engineer/LOG.md)
-- Task Board — Ancestor (Lead Engineer) (team/Ancestor Koiyaki Lead Engineer/TASKS.md)
-- Backlog — Daniel (Full Stack Dev) (team/Daniel Full Stack Dev/BACKLOG.md)
-- Urgent Audit Findings & Next Steps (team/Daniel Full Stack Dev/FULL_STACK_AUDIT.md)
-- Issues Log — Daniel (Full Stack Dev) (team/Daniel Full Stack Dev/ISSUES.md)
-- Activity Log — Daniel (Full Stack Dev) (team/Daniel Full Stack Dev/LOG.md)
-- Task Board — Daniel (Full Stack Dev) (team/Daniel Full Stack Dev/TASKS.md)
-- Backlog — Natasha (Frontend UI/UX) (team/Natasha Frontend UI-UX/BACKLOG.md)
-- Issues Log — Natasha (Frontend UI/UX) (team/Natasha Frontend UI-UX/ISSUES.md)
-- Activity Log — Natasha (Frontend UI/UX) (team/Natasha Frontend UI-UX/LOG.md)
-- Task Board — Natasha (Frontend UI/UX) (team/Natasha Frontend UI-UX/TASKS.md)
-- UI/UX Audit Summary — Natasha (team/Natasha Frontend UI-UX/UX_AUDIT_SUMMARY.md)
-- Natasha's Tasks (team/Natasha/TASKS.md)
-- Smart Contract Audit Summary — Peter (team/Peter Smart Contract Dev/AUDIT_SUMMARY.md)
-- Backlog — Peter (Smart Contract Dev) (team/Peter Smart Contract Dev/BACKLOG.md)
-- Issues Log — Peter (Smart Contract Dev) (team/Peter Smart Contract Dev/ISSUES.md)
-- Activity Log — Peter (Smart Contract Dev) (team/Peter Smart Contract Dev/LOG.md)
-- Task Board — Peter (Smart Contract Dev) (team/Peter Smart Contract Dev/TASKS.md)
-- 👥 Echain Development Team Documentation (team/README.md)
+- 🎯 FRANCIS_UI_UX_DESIGN_GUIDE.md (design/FRANCIS_UI_UX_DESIGN_GUIDE.md)
+- 🌟 NATASHA_UI_UX_WEB3_GUIDE.md (design/NATASHA_UI_UX_WEB3_GUIDE.md)
+- Apple Design Principles Research Component (design/research/apple_design_principles.md)
+- East African Fintech Research Component (design/research/east_african_fintech.md)
+- Luma Competitor Analysis Research Component (design/research/luma_competitor_analysis.md)
+- Research Components Index (design/research/README.md)
+- Trading UX Patterns Research Component (design/research/trading_ux_patterns.md)
+- Web3 UX Patterns Research Component (design/research/web3_ux_patterns.md)
 
 ## Updated Documentation Files
-- 🔌 Echain API Documentation (api/README.md)
-- 🏛️ Echain Platform Architecture (architecture/README.md)
-- Build an App on Base (base-docs/backendintegration.md)
-- Base Ecosystem Tools - Post-Hackathon Infrastructure (base-docs/BASE_ECOSYSTEM_TOOLS_POST_HACKATHON.md)
-- Wagmi & Viem Integration (base-docs/frontendintegration.md)
-- Gasless Transactions on Base using a Paymaster (base-docs/go-gasless.md)
-- Add Frame Metadata (base-docs/minikit-add-frame-metadata.md)
-- Add MiniKit (base-docs/minikit-add-minikit.md)
-- Configure Environment (base-docs/minikit-configure-environment.md)
-- Create Manifest (base-docs/minikit-create-manifest.md)
-- Install (base-docs/minikit-install.md)
-- Manifest (CLI) (base-docs/minikit-manifest-cli.md)
-- Test & Deploy (base-docs/minikit-test-and-deploy.md)
-- Onboard Any User (base-docs/onboard-any-user.md)
-- Onchain Social (base-docs/onchain-social.md)
-- Base Documentation (base-docs/README.md)
-- Writing Tests (base-docs/testing-onchain-apps.md)
-- OnchainKit API Reference & Smart Wallets (base-docs/typescriptsdk.md)
-- Mini Apps & Tools (base-docs/webhooks.md)
-- Polkadot Adapter Implementation (bridge/adapters/PolkadotAdapter.md)
-- Bridge Adapters (bridge/adapters/README.md)
-- Bridge API Reference (bridge/apis/README.md)
-- Custom Bridge Architecture for Echain: Universal Blockchain Interoperability (bridge/architecture.md)
-- Contributing to Echain Bridge (bridge/CONTRIBUTING.md)
-- Bridge Integration Guide (bridge/integration/README.md)
-- Echain Bridge Documentation (bridge/README.md)
-- Bridge Security Documentation (bridge/security/README.md)
-- 🏗️ Smart Contracts Documentation (contracts/README.md)
-- ✅ BASE TESTNET DEPLOYMENT SETUP COMPLETE (deployment/BASE_TESTNET_DEPLOYMENT_READY.md)
-- Pre-Deployment Security Checklist (deployment/DEPLOYMENT_CHECKLIST.md)
-- Echain Smart Contract Audit & Deployment - FINAL SUMMARY (deployment/DEPLOYMENT_READY_SUMMARY.md)
-- 🚀 Echain Multi-Chain Deployment Guide (deployment/README.md)
-- Echain Smart Contract Testing & Deployment Guide (deployment/TESTING_DEPLOYMENT_GUIDE.md)
-- 🚀 Vercel Deployment Guide for Echain (deployment/VERCEL_DEPLOYMENT_GUIDE.md)
-- ♿ Accessibility Guidelines (design/ACCESSIBILITY_GUIDELINES.md)
-- 🎨 Echain Color System (design/COLOR_SYSTEM.md)
-- 🧩 Component Library - Mobile-First Enhanced (design/COMPONENT_LIBRARY.md)
-- 🎨 Design Tokens - Mobile-First Enhanced (design/DESIGN_TOKENS.md)
-- Hero Design Analysis (design/HERO_ANALYSIS.md)
-- Hero Section Redesign (design/HERO_REDESIGN.md)
-- 🎨 Echain Design System & Documentation (design/README.md)
-- 🚀 Echain Design System Mobile Optimization Sprint (design/SPRINT_PLAN.md)
-- Sprint Review: Mobile-First Design System Optimization (design/SPRINT_REVIEW.md)
-- UI Enhancement Summary (design/UI_ENHANCEMENT_SUMMARY.md)
-- 👥 User Flows & Journey Mapping (design/USER_FLOWS.md)
-- 💡 Echain Examples & Use Cases (examples/README.md)
-- 📚 Echain User & Developer Guides (guides/README.md)
-- 🔗 Multi-Chain Integration Documentation (integration/README.md)
-- 🛡️ QA Session: QA_20251025_175214 (qalog.md)
+- 📚 Echain Documentation Index (INDEX.md)
+- Quality Assurance Log (qalog.md)
 - 📖 Echain Documentation (README.md)
-- Comprehensive Blockchain Security Audit Report (security/COMPREHENSIVE_BLOCKCHAIN_SECURITY_AUDIT.md)
-- Critical Vulnerabilities Fixes Implementation Guide (security/CRITICAL_VULNERABILITIES_FIXES.md)
-- Deployment Security Checklist (security/DEPLOYMENT_SECURITY_CHECKLIST.md)
-- 🔒 Echain Security Documentation (security/README.md)
-- 🔒 Security Audit Report - Echain Platform (security/SECURITY_AUDIT_REPORT_2025.md)
-- Echain Smart Contract Security Audit Report (security/SECURITY_AUDIT_REPORT.md)
-- 🔒 Security Improvements & Best Practices Implementation (security/SECURITY_IMPROVEMENTS.md)
-- Initialization Race Condition Fix Implementation (security/security-implementations/initialization-race-condition-fix.md)
-- Comprehensive Vulnerability Test Suite (security/security-testing/vulnerability-test-suite.md)
 
 ## Removed Documentation Files
-- Multi-Chain Deployment Complete (DEPLOYMENT_COMPLETE.md)
-- Multi-Chain Integration Complete (FALLBACK_INTEGRATION_COMPLETE.md)
-- Fallback System Test Report (FALLBACK_TEST_REPORT.md)
-- Multi-Chain Frontend Data Flow Audit & Fix Plan (FRONTEND_AUDIT_AND_FIX.md)
-- Frontend Ticket Display Fix - Summary (FRONTEND_FIX_SUMMARY.md)
-- Frontend Status Analysis (FRONTEND_STATUS_ANALYSIS.md)
-- Echain Issue Fixes Summary (ISSUE_FIXES_SUMMARY.md)
-- No Static Data Implementation - Complete Summary (NO_STATIC_DATA_IMPLEMENTATION.md)
-- Echain Multi-Chain Production Readiness Implementation Summary (PRODUCTION_IMPLEMENTATION_SUMMARY.md)
-- Multi-Chain Production Testing Guide for Echain DApp (PRODUCTION_TESTING_GUIDE.md)
-- Multi-Chain Beta Testing Summary (PRODUCTION_TESTING_SUMMARY.md)
-- 🚀 ENHANCED MVP DEVELOPMENT STATUS: Multi-Chain Beta Testing Preparation (TASK_COMPLETION_SUMMARY.md)
+- No documentation files removed.

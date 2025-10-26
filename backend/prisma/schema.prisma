@@ -1,0 +1,230 @@
+// Prisma Schema for Event Management
+// PostgreSQL database with full event lifecycle support
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model - supports both organizers and attendees
+model User {
+  id        String   @id @default(cuid())
+  address   String   @unique // Ethereum wallet address
+  email     String?  @unique
+  username  String?
+  role      Role     @default(ATTENDEE)
+  
+  // Relations
+  organizedEvents Event[]  @relation("Organizer")
+  tickets         Ticket[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([address])
+  @@index([role])
+}
+
+enum Role {
+  ATTENDEE
+  ORGANIZER
+  ADMIN
+}
+
+// Event model - core entity for event management
+model Event {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @db.Text
+  startDate   DateTime
+  endDate     DateTime
+  location    String
+  imageUrl    String?
+  
+  // Pricing and capacity
+  price       Decimal  @db.Decimal(18, 18) // Support up to 18 decimals for ETH
+  maxCapacity Int
+  ticketsSold Int      @default(0)
+  
+  // Blockchain integration
+  contractEventId BigInt?  @unique // Event ID in smart contract
+  contractAddress String?  // Optional: Per-event contract
+  
+  // Status and visibility
+  status      EventStatus @default(DRAFT)
+  visibility  Visibility  @default(PUBLIC)
+  
+  // Organizer
+  organizerId String
+  organizer   User     @relation("Organizer", fields: [organizerId], references: [id])
+  
+  // Relations
+  tickets     Ticket[]
+  
+  // Metadata
+  tags        String[]
+  category    String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([organizerId])
+  @@index([status])
+  @@index([startDate])
+  @@index([category])
+}
+
+enum EventStatus {
+  DRAFT      // Not published
+  PUBLISHED  // Live and accepting tickets
+  SOLD_OUT   // All tickets sold
+  CANCELLED  // Event cancelled
+  COMPLETED  // Event has ended
+}
+
+enum Visibility {
+  PUBLIC     // Visible to everyone
+  UNLISTED   // Only accessible via link
+  PRIVATE    // Invite-only
+}
+
+// Ticket model - represents NFT tickets
+model Ticket {
+  id        String   @id @default(cuid())
+  
+  // Event relation
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  // Owner relation
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  // Blockchain data
+  tokenId   BigInt?   @unique // NFT token ID
+  txHash    String?   @unique // Minting transaction hash
+  
+  // Metadata
+  tokenUri  String?  // IPFS or API URL for ticket metadata
+  
+  // Status
+  status    TicketStatus @default(ACTIVE)
+  
+  // Transfer tracking
+  transferredTo   String? // New owner address if transferred
+  transferredAt   DateTime?
+  transferTxHash  String?
+  
+  // Check-in tracking
+  checkedIn       Boolean  @default(false)
+  checkedInAt     DateTime?
+  checkedInBy     String?  // Organizer who checked in the attendee
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
+  @@index([userId])
+  @@index([tokenId])
+  @@index([status])
+}
+
+enum TicketStatus {
+  ACTIVE       // Valid ticket
+  TRANSFERRED  // Transferred to new owner
+  REFUNDED     // Refunded and invalidated
+  CANCELLED    // Cancelled by organizer
+}
+
+// Payment tracking model
+model Payment {
+  id          String   @id @default(cuid())
+  
+  // User and event
+  userId      String
+  eventId     String
+  
+  // Amount details
+  quantity    Int
+  totalAmount Decimal  @db.Decimal(18, 18)
+  platformFee Decimal  @db.Decimal(18, 18)
+  organizerAmount Decimal @db.Decimal(18, 18)
+  
+  // Blockchain transaction
+  txHash      String   @unique
+  blockNumber BigInt?
+  gasUsed     BigInt?
+  
+  // Status tracking
+  status      PaymentStatus @default(PENDING)
+  
+  // Refund tracking
+  refundTxHash    String?
+  refundedAt      DateTime?
+  refundReason    String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([eventId])
+  @@index([status])
+  @@index([txHash])
+}
+
+enum PaymentStatus {
+  PENDING    // Transaction submitted
+  CONFIRMED  // Transaction confirmed on-chain
+  FAILED     // Transaction failed
+  REFUNDED   // Payment refunded
+}
+
+// Analytics model - track event metrics
+model EventAnalytics {
+  id              String   @id @default(cuid())
+  eventId         String   @unique
+  
+  // View metrics
+  pageViews       Int      @default(0)
+  uniqueVisitors  Int      @default(0)
+  
+  // Conversion funnel
+  frameViews      Int      @default(0)
+  frameEngages    Int      @default(0)
+  walletConnects  Int      @default(0)
+  ticketPurchases Int      @default(0)
+  socialShares    Int      @default(0)
+  
+  // Revenue metrics
+  totalRevenue    Decimal  @db.Decimal(18, 18) @default(0)
+  
+  // Referral tracking
+  topReferrers    Json?    // { fid: number, count: number }[]
+  
+  // Viral metrics
+  viralCoefficient Decimal @db.Decimal(10, 4) @default(0)
+  
+  updatedAt       DateTime @updatedAt
+}
+
+// Session model for JWT token management
+model Session {
+  id          String   @id @default(cuid())
+  userId      String
+  token       String   @unique
+  expiresAt   DateTime
+  
+  // Device tracking
+  userAgent   String?
+  ipAddress   String?
+  
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}

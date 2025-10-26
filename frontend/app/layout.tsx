@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import './styles/modern-ui.css';
 import { Providers } from './providers';
+import { MiniAppProvider } from '@/components/providers/MiniAppProvider';
 import Header from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -46,18 +47,20 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.variable}>
         <Providers>
-          <ChainWatcherClient />
-          <RealtimeSubscriptionsClient />
-          <RealtimeStatus />
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1 pt-16">
-              <ErrorBoundary>
-                {children}
-              </ErrorBoundary>
-            </main>
-            <Footer />
-          </div>
+          <MiniAppProvider>
+            <ChainWatcherClient />
+            <RealtimeSubscriptionsClient />
+            <RealtimeStatus />
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-1 pt-16">
+                <ErrorBoundary>
+                  {children}
+                </ErrorBoundary>
+              </main>
+              <Footer />
+            </div>
+          </MiniAppProvider>
         </Providers>
         <Analytics />
       </body>

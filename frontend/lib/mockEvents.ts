@@ -20,7 +20,7 @@ export const kenyaTechEvents: Partial<Event>[] = [
     tags: ["Web3", "Blockchain", "Innovation"],
     isLive: true,
     attendees: 234,
-    image: "/placeholder-hackathon.jpg",
+    image: "ipfs://QmPlaceholderHackathonImage123456789012345678901234567890",
     // Additional details
     details: {
       about: "Join us for a week-long global hackathon focused on enhancing beneficial projects using AI and ASI technologies. Hosted by BGI and partners, this event empowers developers to build without borders, protect their IP, and collaborate across continents.",

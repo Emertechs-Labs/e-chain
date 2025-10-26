@@ -198,7 +198,7 @@ export const useEventTicketsSold = (eventId: number, ticketContract?: string) =>
 
       try {
         // Try contract-based totalSold (most accurate)
-        if (ticketContract) {
+        if (ticketContract && ticketContract !== '0x0000000000000000000000000000000000000000') {
           try {
             if (process.env.NODE_ENV === 'development') {
               console.log(`[useEventTicketsSold] Checking contract ${ticketContract} for event ${eventId}`);

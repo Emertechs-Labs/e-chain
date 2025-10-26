@@ -520,12 +520,13 @@ Network: Base Sepolia (Chain ID: 84532)
 Block Explorer: https://sepolia.basescan.org/
 
 Deployed Contracts:
-  EventFactory: 0x1234567890123456789012345678901234567890
-  EventTicket_1: 0xabcdef1234567890abcdef1234567890abcdef12
-  POAP_1: 0x0987654321098765432109876543210987654321
-  IncentiveManager: 0xfedcba0987654321fedcba0987654321fedcba09
+  EventFactory: 0xA97cB40548905B05A67fCD4765438aFBEA4030fc
+  EventTicket Template: 0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C
+  POAPAttendance: 0x08344CfBfB3afB2e114A0dbABbaF40e7eB62FD33
+  IncentiveManager: 0x1cfDae689817B954b72512bC82f23F35B997617D
+  Marketplace: 0xD061393A54784da5Fea48CC845163aBc2B11537A
 
-Deployment Method: Forge scripted deployment (broadcast via Foundry)
+Deployment Method: Foundry scripted deployment (broadcast via Foundry)
 Security: OpenZeppelin contracts with custom audits
 ```
 

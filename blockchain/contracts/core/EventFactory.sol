@@ -498,13 +498,17 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
         verifiedOrganizers[organizer] = true;
 
         // Transfer fee to treasury
-        payable(treasury).transfer(ORGANIZER_VERIFICATION_FEE);
+        (bool feeTransferSuccess, ) = payable(treasury).call{
+            value: ORGANIZER_VERIFICATION_FEE
+        }("");
+        require(feeTransferSuccess, "Treasury transfer failed");
 
         // Refund excess payment
         if (msg.value > ORGANIZER_VERIFICATION_FEE) {
-            payable(msg.sender).transfer(
-                msg.value - ORGANIZER_VERIFICATION_FEE
-            );
+            (bool refundSuccess, ) = payable(msg.sender).call{
+                value: msg.value - ORGANIZER_VERIFICATION_FEE
+            }("");
+            require(refundSuccess, "Refund failed");
         }
 
         emit OrganizerVerified(organizer);
@@ -579,9 +583,7 @@ contract EventFactory is IEventFactory, Ownable, ReentrancyGuard, Pausable {
      * @param newTreasury New treasury address
      */
     function setTreasury(address newTreasury) external onlyOwner {
-        require(newTreasury != address(0), "Invalid treasury");
-        treasury = newTreasury;
-        emit TreasuryUpdated(newTreasury);
+        revert("Timelock required for treasury update");
     }
 
     /**

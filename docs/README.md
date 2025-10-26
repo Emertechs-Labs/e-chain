@@ -251,7 +251,6 @@ Agile sprint planning for beta to mainnet:
 ### 🎨 [Design System](./design/README.md)
 Comprehensive UI/UX design system and guidelines:
 - **[Design System Overview](./design/README.md)** - Apple-inspired design principles, mobile-first approach, Web3-specific components
-- **[Francis Trading Platform Guide](./design/FRANCIS_UI_UX_DESIGN_GUIDE.md)** - Specialized UI/UX guide for trading platform with risk management focus, Luma competitor analysis, East African fintech integration
 - **[Natasha Web3 Event Guide](./design/NATASHA_UI_UX_WEB3_GUIDE.md)** - Comprehensive Web3 event platform design guide with NFT ticketing, POAP integration, and blockchain UX patterns
 - **[Component Library](./design/COMPONENT_LIBRARY.md)** - Mobile-first component library with shadcn/ui and Radix UI
 - **[Color System](./design/COLOR_SYSTEM.md)** - Three-color gradient system with semantic colors

@@ -70,7 +70,6 @@
 
 ### 🎨 Design System
 - **[Design System Overview](./design/README.md)** - Apple-inspired design principles, mobile-first approach, Web3-specific components
-- **[Francis Trading Platform Guide](./design/FRANCIS_UI_UX_DESIGN_GUIDE.md)** - Specialized UI/UX guide for trading platform with risk management focus, Luma competitor analysis, East African fintech integration
 - **[Natasha Web3 Event Guide](./design/NATASHA_UI_UX_WEB3_GUIDE.md)** - Comprehensive Web3 event platform design guide with NFT ticketing, POAP integration, and blockchain UX patterns
 - **[Research Components](./design/research/README.md)** - 🆕 Modular research library with Luma analysis, Apple principles, East African fintech, Web3 UX patterns, and trading interfaces
 - **[Component Library](./design/COMPONENT_LIBRARY.md)** - Mobile-first component library with shadcn/ui and Radix UI

@@ -34,21 +34,6 @@ This directory contains modular research components that can be referenced and i
 - Accessibility compliance
 - High-performance user interfaces
 
-### [East African Fintech](east_african_fintech.md)
-**Focus**: Mobile money systems and fintech adoption in East Africa
-**Key Topics**:
-- Regional market characteristics and mobile money systems
-- Fintech platforms and trading exchanges
-- User experience patterns for emerging markets
-- Web3 adoption and regulatory landscape
-- Cultural and behavioral insights
-
-**Use Cases**:
-- Emerging market platform design
-- Mobile-first financial applications
-- Cross-cultural user experience design
-- Regulatory-compliant fintech interfaces
-
 ### [Web3 UX Patterns](web3_ux_patterns.md)
 **Focus**: Decentralized application user experience and blockchain interactions
 **Key Topics**:
@@ -63,21 +48,6 @@ This directory contains modular research components that can be referenced and i
 - Blockchain-based platform interfaces
 - NFT marketplace and token interfaces
 - DAO and governance platform design
-
-### [Trading UX Patterns](trading_ux_patterns.md)
-**Focus**: Financial trading platform interfaces and market data visualization
-**Key Topics**:
-- Chart interfaces and order entry systems
-- Portfolio management and risk indicators
-- Mobile trading patterns and real-time updates
-- Advanced trading features and algorithmic interfaces
-- Regulatory compliance and accessibility
-
-**Use Cases**:
-- Financial trading platform design
-- Market data visualization
-- Risk management interfaces
-- Mobile trading applications
 
 ## How to Use Research Components
 
@@ -99,8 +69,7 @@ Components are structured with clear sections that can be extracted for specific
 ### Cross-Referencing
 Components reference each other where relevant:
 - Web3 patterns reference Apple principles for consistency
-- Trading patterns incorporate Web3 elements for hybrid platforms
-- East African fintech includes Web3 adoption insights
+- Luma analysis incorporates Web3 elements for event platforms
 
 ## Research Methodology
 
@@ -126,7 +95,7 @@ All components are based on:
 
 ## Integration with Echain Project
 
-These research components were created specifically to support the Echain project's design guides, providing:
+These research components were created specifically to support the Echain project's Web3 event platform design, providing:
 - **Reusable insights** for consistent design decisions
 - **Evidence-based recommendations** grounded in user research
 - **Scalable knowledge base** for team expansion

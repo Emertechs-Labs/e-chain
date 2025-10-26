@@ -1,6 +1,6 @@
 # Documentation Index
 
-Generated automatically on 2025-10-26T13:59:43.506Z.
+Generated automatically on 2025-10-26T14:14:38.032Z.
 
 ## Analysis
 - [✅ Static vs Dynamic Data Analysis - COMPLETE](analysis/ANALYSIS_SUMMARY.md)
@@ -83,18 +83,15 @@ Generated automatically on 2025-10-26T13:59:43.506Z.
 - [🎨 Design Tokens - Mobile-First Enhanced](design/DESIGN_TOKENS.md)
 - [🎨 Echain Color System](design/COLOR_SYSTEM.md)
 - [🎨 Echain Design System & Documentation](design/README.md)
-- [🎯 FRANCIS_UI_UX_DESIGN_GUIDE.md](design/FRANCIS_UI_UX_DESIGN_GUIDE.md)
 - [👥 User Flows & Journey Mapping](design/USER_FLOWS.md)
 - [🧩 Component Library - Mobile-First Enhanced](design/COMPONENT_LIBRARY.md)
 - [🚀 Echain Design System Mobile Optimization Sprint](design/SPRINT_PLAN.md)
 - [Apple Design Principles Research Component](design/research/apple_design_principles.md)
-- [East African Fintech Research Component](design/research/east_african_fintech.md)
 - [Hero Design Analysis](design/HERO_ANALYSIS.md)
 - [Hero Section Redesign](design/HERO_REDESIGN.md)
 - [Luma Competitor Analysis Research Component](design/research/luma_competitor_analysis.md)
 - [Research Components Index](design/research/README.md)
 - [Sprint Review: Mobile-First Design System Optimization](design/SPRINT_REVIEW.md)
-- [Trading UX Patterns Research Component](design/research/trading_ux_patterns.md)
 - [UI Enhancement Summary](design/UI_ENHANCEMENT_SUMMARY.md)
 - [Web3 UX Patterns Research Component](design/research/web3_ux_patterns.md)
 

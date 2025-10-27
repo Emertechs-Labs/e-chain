@@ -1,7 +1,7 @@
 # 🔀 Echain Branching Strategy
 
 **Last Updated**: October 26, 2025
-**Version**: 1.0.0
+**Version**: 2.0.0 - Updated for Beta Launch
 
 ---
 
@@ -12,6 +12,28 @@ The Echain platform uses a structured branching strategy to manage different sta
 ---
 
 ## 🌿 Branch Structure
+
+### **dev** - Active Development Branch
+**Purpose**: Primary branch for all active development work and getting hands dirty.
+
+**Characteristics**:
+- 🛠️ **Active Development**: All new features, bug fixes, and experiments
+- 🔄 **Fast Iteration**: Quick commits and frequent pushes
+- 🧪 **Experimental**: Safe space for testing new ideas and approaches
+- 📝 **Free Form**: No strict rules - keep it loose for easy development
+- 🚀 **Feature Integration**: Merge completed features to preview for testing
+
+**Deployment**:
+- Not deployed automatically
+- Used for local development and feature testing
+- Source for all new development work
+
+**Protection Rules**:
+- No strict protections - keep development agile
+- Basic CI checks encouraged but not mandatory
+- Allow direct commits for rapid development
+
+---
 
 ### **main** - Stable Release & Backup Branch
 **Purpose**: Contains stable, production-ready code that has been thoroughly tested and approved for release.
@@ -86,7 +108,7 @@ The Echain platform uses a structured branching strategy to manage different sta
 
 ### **Development Flow**
 ```
-feature-branch → preview → main → production
+dev → preview → main → production
 ```
 
 ### **Hotfix Flow**
@@ -105,18 +127,27 @@ production-emergency → main (rollback target)
 
 ### **Creating Feature Branches**
 ```bash
-# Always branch from preview for new features
-git checkout preview
-git pull origin preview
+# Always branch from dev for new features
+git checkout dev
+git pull origin dev
 git checkout -b feature/new-feature-name
 ```
 
-### **Merging to Preview (Beta)**
+### **Merging to Dev**
 ```bash
 # From feature branch
+git checkout dev
+git pull origin dev
+git merge feature/new-feature-name --no-ff
+git push origin dev
+```
+
+### **Promoting to Preview (Beta)**
+```bash
+# When features are ready for beta testing
 git checkout preview
 git pull origin preview
-git merge feature/new-feature-name --no-ff
+git merge dev --no-ff
 git push origin preview
 ```
 
@@ -136,6 +167,28 @@ git push origin main --tags
 git checkout production
 git cherry-pick <commit-hash-from-main>
 git push origin production
+```
+
+---
+
+## 🧹 Branch Cleanup Policy
+
+### **Temporary Branches**
+- Feature branches should be deleted after merging
+- Hotfix branches should be deleted after resolution
+- Only `dev`, `preview`, `main`, and `production` persist on remote
+- Local branches can exist for personal workflow
+
+### **Cleanup Commands**
+```bash
+# Delete merged local branches
+git branch --merged dev | grep -v dev | xargs git branch -d
+
+# Delete remote feature branches (after merge)
+git push origin --delete feature-branch-name
+
+# Prune remote tracking branches
+git remote prune origin
 ```
 
 ---
@@ -181,6 +234,7 @@ git push origin production
 ## 📊 Branch Status Monitoring
 
 ### **Daily Health Checks**
+- [ ] Dev branch builds successfully
 - [ ] Preview branch builds successfully
 - [ ] Main branch passes all tests
 - [ ] Production branch deploys without issues
@@ -251,6 +305,16 @@ required_pull_request_reviews:
     allow_force_pushes: false
     allow_deletions: false
   # Additional: Require security review
+```
+
+#### **dev Branch**
+```yaml
+# Minimal protections for agile development
+required_status_checks:
+  - build  # Optional but encouraged
+restrictions:
+  allow_force_pushes: true  # Allow rapid development
+  allow_deletions: false
 ```
 
 ---
@@ -356,15 +420,27 @@ required_pull_request_reviews:
 
 ---
 
+## ✅ Current Branch Status
+
+**Active Branches:**
+- `dev` - Active development (loose rules, agile workflow)
+- `preview` - Beta releases (moderate protection)
+- `main` - Stable releases (strict protection)
+- `production` - Live deployment (maximum protection)
+
+**Clean Remote Repository:**
+- Removed old feature branches: `blockchain`, `frontend-maps`, `frontend-modification`, `polkadot&bridge`, `pre-fix`
+- Only permanent branches remain on remote
+
 **This branching strategy ensures stable, secure, and efficient development workflow while maintaining the highest standards of production reliability and user experience.**
 
 <div align="center">
 
-**🔄 Branch Flow**: `feature → preview → main → production`
+**🔄 Branch Flow**: `dev → preview → main → production`
 
-**🛡️ Protection Level**: `preview < main < production`
+**🛡️ Protection Level**: `dev < preview < main < production`
 
-**🚀 Deployment Risk**: `preview > main > production`
+**🚀 Deployment Risk**: `dev > preview > main > production`
 
-</div></content>
+</div>
 <parameter name="filePath">e:\Polymath Universata\Projects\Echain\docs\BRANCHING_STRATEGY.md

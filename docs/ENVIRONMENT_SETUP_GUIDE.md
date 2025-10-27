@@ -1,6 +1,6 @@
-# Echain Environment Setup Guide
+# Echain Environment Setup Guide - Beta Launch
 **Date:** October 26, 2025
-**Status:** Production Environment Configuration
+**Status:** Beta Environment Configuration (Base Sepolia Testnet)
 
 ---
 
@@ -8,102 +8,122 @@
 
 Complete these steps in order:
 
-### **Phase 1: RPC Providers (30 minutes)**
-1. [Chainstack Setup](#chainstack-setup)
-2. [Spectrum Nodes Setup](#spectrum-nodes-setup)
-3. [Coinbase Node Setup](#coinbase-node-setup)
-
-### **Phase 2: Monitoring (20 minutes)**
+### **Phase 1: Core Services (30 minutes)** - REQUIRED FOR BETA
+1. [Reown (WalletConnect) Setup](#reown-walletconnect-setup)
+2. [Vercel Blob Setup](#vercel-blob-setup)
+3. [Security Keys Generation](#security-keys-generation)
 4. [Sentry Setup](#sentry-setup)
-5. [Slack Webhook Setup](#slack-webhook-setup)
+
+### **Phase 2: Optional Services (20 minutes)** - RECOMMENDED
+5. [Premium RPC Setup](#premium-rpc-setup)
+6. [Email Service Setup](#email-service-setup)
 
 ### **Phase 3: Vercel Deployment (15 minutes)**
-6. [Vercel Environment Variables](#vercel-environment-variables)
-7. [Validation](#validation)
+7. [Vercel Environment Variables](#vercel-environment-variables)
+8. [Validation](#validation)
+
+---
+
+## 🔑 **Required Environment Variables for Beta**
+
+| Variable | Status | Source | Priority |
+|----------|--------|--------|----------|
+| `NEXT_PUBLIC_REOWN_PROJECT_ID` | 🔴 Setup Required | Reown Cloud | Critical |
+| `BLOB_READ_WRITE_TOKEN` | 🔴 Setup Required | Vercel Blob | Critical |
+| `ADMIN_API_KEY` | 🔴 Setup Required | Generate | Critical |
+| `JWT_SECRET` | 🔴 Setup Required | Generate | Critical |
+| `NEXT_PUBLIC_SENTRY_DSN` | 🔴 Setup Required | Sentry | Critical |
+| `NEXT_PUBLIC_BASE_SEPOLIA_CHAINSTACK_RPC` | 🟡 Optional | Chainstack | Recommended |
+| `NEXT_PUBLIC_BASE_SEPOLIA_SPECTRUM_RPC` | 🟡 Optional | Spectrum | Recommended |
+| `NEXT_PUBLIC_BASE_SEPOLIA_COINBASE_RPC` | 🟡 Optional | Coinbase | Recommended |
+| `SENDGRID_API_KEY` | 🟡 Optional | SendGrid | Optional |
 
 ---
 
 ## 🔗 **Detailed Setup Instructions**
 
-### **1. Chainstack Setup** ⏱️ 10 minutes
+### **1. Reown (WalletConnect) Setup** ⏱️ 5 minutes - REQUIRED
 
-**Chainstack** provides enterprise-grade RPC infrastructure.
+**Reown** (formerly WalletConnect) enables wallet connections.
 
 1. **Create Account:**
-   - Visit: https://chainstack.com/
+   - Visit: https://cloud.reown.com/
    - Sign up for a free account
    - Verify your email
 
-2. **Create Base Network Project:**
-   - Click "Create Project" → "Base"
-   - Select "Mainnet" network
-   - Choose "HTTPS" endpoint type
-
-3. **Get RPC URL:**
-   - Copy the HTTPS endpoint URL
-   - Format: `https://base-mainnet.core.chainstack.com/YOUR_API_KEY`
-
-4. **Update Environment:**
-   ```bash
-   BASE_MAINNET_CHAINSTACK_RPC=https://base-mainnet.core.chainstack.com/YOUR_API_KEY
-   ```
-
-**Cost:** Free tier available, paid plans start at $19/month
-
----
-
-### **2. Spectrum Nodes Setup** ⏱️ 10 minutes
-
-**Spectrum Nodes** offers decentralized RPC infrastructure.
-
-1. **Access Service:**
-   - Visit: https://spectrumnodes.com/?sPartner=gsd
-   - Connect your wallet (MetaMask recommended)
-
-2. **Select Network:**
-   - Choose "Base" from network dropdown
-   - Select "Mainnet" environment
-
-3. **Get RPC URL:**
-   - Copy the provided RPC endpoint
-   - Format: `https://base-mainnet.g.alchemy.com/v2/YOUR_API_KEY`
-
-4. **Update Environment:**
-   ```bash
-   BASE_MAINNET_SPECTRUM_RPC=https://base-mainnet.g.alchemy.com/v2/YOUR_API_KEY
-   ```
-
-**Cost:** Free tier available
-
----
-
-### **3. Coinbase Node Setup** ⏱️ 10 minutes
-
-**Coinbase Node** provides direct access to Base infrastructure.
-
-1. **Access Developer Platform:**
-   - Visit: https://www.coinbase.com/developer-platform/products/base-node
-   - Sign in with Coinbase account
-
 2. **Create Project:**
    - Click "Create Project"
-   - Enable "Base API"
-   - Generate API credentials
+   - Name: "Echain Beta"
+   - Description: "Web3 Event Ticketing Platform"
+   - Select networks: Base Sepolia
 
-3. **Get RPC URL:**
-   - Use the provided endpoint
-   - Format: `https://api.developer.coinbase.com/rpc/v1/base/YOUR_PROJECT_ID`
+3. **Get Project ID:**
+   - Copy the Project ID from dashboard
+   - Format: `abc123...` (32 characters)
 
 4. **Update Environment:**
    ```bash
-   BASE_MAINNET_COINBASE_RPC=https://api.developer.coinbase.com/rpc/v1/base/YOUR_PROJECT_ID
+   NEXT_PUBLIC_REOWN_PROJECT_ID=your_project_id_here
+   ```
+
+**Cost:** Free
+
+---
+
+### **2. Vercel Blob Setup** ⏱️ 5 minutes - REQUIRED
+
+**Vercel Blob** provides file storage for event assets.
+
+1. **Access Vercel Dashboard:**
+   - Visit: https://vercel.com/dashboard
+   - Select your Echain project
+
+2. **Create Blob Store:**
+   - Go to Storage tab
+   - Click "Blob" → "Create Database"
+   - Name: "echain-beta-assets"
+   - Region: "Washington D.C (IAD)"
+
+3. **Get Token:**
+   - Copy the "BLOB_READ_WRITE_TOKEN"
+   - Format: `vercel_blob_...`
+
+4. **Update Environment:**
+   ```bash
+   BLOB_READ_WRITE_TOKEN=vercel_blob_your_token_here
    ```
 
 **Cost:** Free tier available
 
 ---
 
-### **4. Sentry Setup** ⏱️ 10 minutes
+### **3. Security Keys Generation** ⏱️ 5 minutes - REQUIRED
+
+Generate secure random keys for authentication.
+
+1. **Generate Admin API Key:**
+   ```bash
+   # 32-character hex string
+   openssl rand -hex 32
+   # Example output: a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890
+   ```
+
+2. **Generate JWT Secret:**
+   ```bash
+   # 64-character hex string
+   openssl rand -hex 64
+   # Example output: a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890abcdef1234567890abcdef1234567890abcdef
+   ```
+
+3. **Update Environment:**
+   ```bash
+   ADMIN_API_KEY=your_generated_admin_key
+   JWT_SECRET=your_generated_jwt_secret
+   ```
+
+---
+
+### **4. Sentry Setup** ⏱️ 10 minutes - REQUIRED
 
 **Sentry** provides error tracking and performance monitoring.
 
@@ -113,7 +133,7 @@ Complete these steps in order:
    - Choose "Next.js" as your platform
 
 2. **Create Project:**
-   - Project name: "Echain Production"
+   - Project name: "Echain Beta"
    - Platform: "Next.js"
    - Alert settings: Enable all
 
@@ -131,47 +151,86 @@ Complete these steps in order:
 
 ---
 
-### **5. Slack Webhook Setup** ⏱️ 10 minutes
+### **5. Premium RPC Setup** ⏱️ 10 minutes - OPTIONAL
 
-**Slack** will receive beta feedback and system alerts.
+Add premium RPC providers for better performance.
 
-1. **Create Slack App:**
-   - Visit: https://api.slack.com/apps
-   - Click "Create New App" → "From scratch"
-   - Name: "Echain Beta Feedback"
-   - Select your workspace
+#### **Chainstack Setup:**
+1. Visit: https://chainstack.com/
+2. Create Base Sepolia project
+3. Copy HTTPS endpoint
+4. Set: `NEXT_PUBLIC_BASE_SEPOLIA_CHAINSTACK_RPC=https://...`
 
-2. **Add Webhook:**
-   - Go to "Incoming Webhooks" → "Add New Webhook"
-   - Select channel: #beta-feedback (create if needed)
-   - Copy the Webhook URL
+#### **Spectrum Nodes Setup:**
+1. Visit: https://spectrumnodes.com/
+2. Select Base Sepolia
+3. Copy RPC endpoint
+4. Set: `NEXT_PUBLIC_BASE_SEPOLIA_SPECTRUM_RPC=https://...`
 
-3. **Update Environment:**
-   ```bash
-   SLACK_FEEDBACK_WEBHOOK_URL=YOUR_SLACK_WEBHOOK_URL_HERE
-   ```
-
-**Cost:** Free
+#### **Coinbase Node Setup:**
+1. Visit: https://www.coinbase.com/developer-platform/products/base-node
+2. Create project for Base Sepolia
+3. Copy endpoint
+4. Set: `NEXT_PUBLIC_BASE_SEPOLIA_COINBASE_RPC=https://...`
 
 ---
 
-### **6. Vercel Environment Variables** ⏱️ 15 minutes
+### **6. Email Service Setup** ⏱️ 5 minutes - OPTIONAL
 
-**Vercel** hosts your production application.
+**SendGrid** handles transactional emails.
+
+1. **Create Account:**
+   - Visit: https://sendgrid.com/
+   - Sign up for free account
+
+2. **Generate API Key:**
+   - Go to Settings → API Keys
+   - Create "Echain Beta" API key
+   - Copy the key
+
+3. **Update Environment:**
+   ```bash
+   SENDGRID_API_KEY=SG.your_sendgrid_key_here
+   SENDGRID_FROM_EMAIL=noreply@echain.app
+   ```
+
+**Cost:** Free tier (100 emails/day)
+
+---
+
+### **7. Vercel Environment Variables** ⏱️ 15 minutes
+
+**Configure production environment variables in Vercel.**
+
+#### **Option A: Vercel Dashboard (Recommended)**
 
 1. **Access Dashboard:**
    - Visit: https://vercel.com/dashboard
    - Select your Echain project
 
-2. **Add Environment Variables:**
-   - Go to Project Settings → Environment Variables
+2. **Add Variables:**
+   - Go to Settings → Environment Variables
    - Environment: "Production"
-   - Add each variable from `.env.production`
+   - Add each required variable
 
-3. **Bulk Import (Recommended):**
-   - Copy contents of `.env.production`
-   - Paste into Vercel's bulk import feature
-   - Review and save all variables
+3. **Bulk Setup:**
+   ```bash
+   # Copy these values to Vercel dashboard
+   NEXT_PUBLIC_REOWN_PROJECT_ID=your_reown_project_id
+   BLOB_READ_WRITE_TOKEN=your_blob_token
+   ADMIN_API_KEY=your_admin_key
+   JWT_SECRET=your_jwt_secret
+   NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn
+   ```
+
+#### **Option B: Vercel CLI (If Available)**
+   ```bash
+   vercel env add NEXT_PUBLIC_REOWN_PROJECT_ID production
+   vercel env add BLOB_READ_WRITE_TOKEN production
+   vercel env add ADMIN_API_KEY production
+   vercel env add JWT_SECRET production
+   vercel env add NEXT_PUBLIC_SENTRY_DSN production
+   ```
 
 4. **Trigger Redeploy:**
    - Go to Deployments tab
@@ -180,7 +239,7 @@ Complete these steps in order:
 
 ---
 
-### **7. Validation** ⏱️ 5 minutes
+### **8. Validation** ⏱️ 5 minutes
 
 **Test your configuration:**
 
@@ -193,12 +252,11 @@ Complete these steps in order:
 2. **Check Vercel Deployment:**
    - Visit your production URL
    - Check browser console for errors
-   - Test basic functionality
+   - Test wallet connection
 
 3. **Verify Monitoring:**
    - Trigger a test error in your app
    - Check if it appears in Sentry
-   - Send a test message to Slack webhook
 
 ---
 
@@ -214,62 +272,54 @@ Complete these steps in order:
 - ✅ Limit Vercel environment access
 - ✅ Use least-privilege for API keys
 - ✅ Enable 2FA on all accounts
-- ✅ Regular security audits
 
 ---
 
 ## 🚨 **Common Issues & Solutions**
 
-### **RPC Connection Issues:**
-- Check API key validity
-- Verify network selection (Mainnet vs Testnet)
-- Test endpoints in browser
+### **Wallet Connection Issues:**
+- Verify Reown Project ID is correct
+- Check if Base Sepolia is enabled in project
+- Test with MetaMask mobile app
+
+### **Blob Storage Issues:**
+- Verify Vercel Blob token format
+- Check Vercel project permissions
+- Ensure blob store is created
 
 ### **Sentry Not Receiving Errors:**
 - Verify DSN format
-- Check CORS settings
-- Ensure proper error boundaries
-
-### **Slack Webhook Not Working:**
-- Verify webhook URL format
-- Check channel permissions
-- Test with curl: `curl -X POST -H 'Content-type: application/json' --data '{"text":"Test"}' YOUR_WEBHOOK_URL`
+- Check if Sentry is enabled in `next.config.mjs`
+- Test with manual error trigger
 
 ---
 
-## 📞 **Support & Resources**
+## ✅ **Beta Launch Checklist**
 
-### **Documentation:**
-- [Base Network Docs](https://docs.base.org/)
-- [Vercel Environment Variables](https://vercel.com/docs/concepts/projects/environment-variables)
-- [Sentry Next.js Setup](https://docs.sentry.io/platforms/javascript/guides/nextjs/)
-
-### **Support Channels:**
-- Chainstack: support@chainstack.com
-- Coinbase: developer-platform@coinbase.com
-- Vercel: support@vercel.com
-- Sentry: support@sentry.io
-
----
-
-## ✅ **Completion Checklist**
-
-- [ ] Chainstack RPC configured
-- [ ] Spectrum Nodes RPC configured
-- [ ] Coinbase RPC configured
-- [ ] Sentry DSN obtained
-- [ ] Slack webhook created
-- [ ] Vercel variables set
-- [ ] Validation passed
+- [ ] Reown Project ID configured
+- [ ] Vercel Blob token obtained
+- [ ] Security keys generated
+- [ ] Sentry DSN set up
+- [ ] Vercel environment variables configured
+- [ ] Validation script passes
 - [ ] Production deployment successful
+- [ ] Wallet connection tested
+- [ ] Error monitoring verified
 
 ---
 
-**Next Step After Completion:** Set up monitoring and alerting infrastructure.
+## 🎯 **Next Steps After Environment Setup**
 
-**Need Help?** Contact the development team or open a GitHub issue.
+1. ✅ **Environment Setup** - Complete
+2. 🔄 **Beta Feedback System** - Next Priority
+3. 🔄 **Monitoring Setup** - Configure alerts
+4. 🔄 **Beta User Management** - User registration
+
+Your Echain platform is now ready for beta deployment! 🚀
 
 ---
+
+**Need Help?** Check the troubleshooting section above or contact the development team.
 
 **Generated:** October 26, 2025
-**Version:** 1.0
+**Version:** 2.0 - Beta Launch Edition

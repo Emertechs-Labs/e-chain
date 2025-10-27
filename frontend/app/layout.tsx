@@ -36,6 +36,9 @@ export const metadata: Metadata = {
     title: 'Echain Events',
     description: 'Blockchain-powered event ticketing platform',
   },
+  other: {
+    'google-fonts': 'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap',
+  },
 };
 
 export default function RootLayout({
@@ -45,6 +48,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+        />
+      </head>
       <body className={inter.variable}>
         <Providers>
           <MiniAppProvider>

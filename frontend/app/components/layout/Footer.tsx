@@ -127,10 +127,35 @@ export function Footer() {
                 />
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     if (email) {
-                      console.log('Feedback submitted with email:', email);
-                      // Add your feedback submission logic here
+                      try {
+                        const response = await fetch('/api/feedback', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json'
+                          },
+                          body: JSON.stringify({
+                            rating: 5, // Default positive rating for newsletter signup
+                            category: 'general',
+                            message: `Newsletter subscription request from: ${email}`,
+                            email: email,
+                            url: window.location.href,
+                            sessionId: `newsletter_${Date.now()}`
+                          })
+                        })
+
+                        if (response.ok) {
+                          console.log('Newsletter feedback submitted successfully');
+                          alert('Thank you for subscribing! We\'ll keep you updated.');
+                          setEmail('');
+                        } else {
+                          throw new Error('Failed to submit');
+                        }
+                      } catch (error) {
+                        console.error('Error submitting newsletter feedback:', error);
+                        alert('Failed to subscribe. Please try again.');
+                      }
                     }
                   }}
                   className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-medium rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 whitespace-nowrap"

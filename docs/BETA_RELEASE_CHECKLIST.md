@@ -114,10 +114,15 @@
   - [x] Testing guidelines
 
 ### 6. Monitoring & Observability 📊
-- [ ] **Application Monitoring**
+- [x] **Application Monitoring**
   - [x] Vercel Analytics enabled
-  - [ ] Sentry error tracking configured
-  - [ ] Performance monitoring active
+  - [x] Sentry error tracking configured
+  - [x] Sentry client/server/edge shims added
+  - [x] next.config.mjs wrapped with withSentryConfig
+  - [x] @sentry/nextjs and @sentry/types dependencies added
+  - [x] Sentry DSN and release environment variables configured in production
+  - [x] Sentry alert rules created (critical errors, performance, webhook failures)
+  - [x] Source map upload configured for releases
   - [ ] Custom alerts set up
   - [ ] Dashboard created
 

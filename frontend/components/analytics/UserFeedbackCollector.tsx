@@ -114,19 +114,42 @@ export const UserFeedbackCollector: React.FC<UserFeedbackCollectorProps> = ({
     setIsSubmitting(true)
 
     try {
-      const feedbackData: FeedbackData = {
-        id: `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      const feedbackData = {
+        rating,
+        category,
+        message: message.trim(),
+        url: window.location.href,
+        sessionId: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      }
+
+      // Submit to API
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(feedbackData)
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to submit feedback: ${response.status}`)
+      }
+
+      const result = await response.json()
+
+      // Update local analytics
+      const fullFeedbackData: FeedbackData = {
+        id: result.feedbackId || `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         timestamp: new Date().toISOString(),
         rating,
         category,
         message: message.trim(),
         userAgent: navigator.userAgent,
         url: window.location.href,
-        sessionId: `session_${Date.now()}`
+        sessionId: feedbackData.sessionId
       }
 
-      // Update local analytics
-      updateAnalytics(feedbackData)
+      updateAnalytics(fullFeedbackData)
 
       // Call onSubmit prop if provided
       if (onSubmit) {
@@ -136,9 +159,6 @@ export const UserFeedbackCollector: React.FC<UserFeedbackCollectorProps> = ({
           message: feedbackData.message
         })
       }
-
-      // In a real app, this would send to your analytics service
-      console.log('Beta feedback submitted:', feedbackData)
 
       // Reset form
       setRating(0)
@@ -151,6 +171,8 @@ export const UserFeedbackCollector: React.FC<UserFeedbackCollectorProps> = ({
 
     } catch (error) {
       console.error('Error submitting feedback:', error)
+      // In a real app, you'd show an error message to the user
+      alert('Failed to submit feedback. Please try again.')
     } finally {
       setIsSubmitting(false)
     }

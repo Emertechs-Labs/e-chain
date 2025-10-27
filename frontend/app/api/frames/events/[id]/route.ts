@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getFrameMetadata } from '@coinbase/onchainkit/frame';
+// import { getFrameMetadata } from '@coinbase/onchainkit/frame';
 import { frameCache, CacheKeys, CacheTTL } from '@/lib/cache/frame-cache';
 import { withRateLimit, RateLimitConfigs } from '@/lib/security/rate-limiter';
 import { validateEventId, sanitizeHtml, validateQuantity, validateButtonIndex, ValidationError } from '@/lib/security/validation';
@@ -61,7 +61,7 @@ export async function GET(
       const safeDescription = sanitizeHtml(event.description || 'Get your NFT ticket on Echain');
 
       // Generate frame metadata
-      const frameMetadata = getFrameMetadata({
+      const frameMetadata = generateFrameMetadata({
         buttons: [
           {
             label: `Get Ticket - ${event.price} ETH`,
@@ -291,4 +291,49 @@ async function getDefaultFrame(eventId: string) {
       },
     ],
   };
+}
+
+/**
+ * Generate Farcaster Frame metadata
+ */
+function generateFrameMetadata(frameConfig: {
+  buttons: Array<{
+    label: string;
+    action: 'post' | 'link';
+    target: string;
+  }>;
+  image: {
+    src: string;
+    aspectRatio?: string;
+  };
+  input?: {
+    text: string;
+  };
+  postUrl?: string;
+}) {
+  const metadata: Record<string, string> = {
+    'fc:frame': 'vNext',
+    'fc:frame:image': frameConfig.image.src,
+  };
+
+  if (frameConfig.image.aspectRatio) {
+    metadata['fc:frame:image:aspect_ratio'] = frameConfig.image.aspectRatio;
+  }
+
+  if (frameConfig.input) {
+    metadata['fc:frame:input:text'] = frameConfig.input.text;
+  }
+
+  if (frameConfig.postUrl) {
+    metadata['fc:frame:post_url'] = frameConfig.postUrl;
+  }
+
+  frameConfig.buttons.forEach((button, index) => {
+    const buttonIndex = index + 1;
+    metadata[`fc:frame:button:${buttonIndex}`] = button.label;
+    metadata[`fc:frame:button:${buttonIndex}:action`] = button.action;
+    metadata[`fc:frame:button:${buttonIndex}:target`] = button.target;
+  });
+
+  return metadata;
 }

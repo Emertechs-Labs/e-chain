@@ -70,6 +70,7 @@
 
 ### 🎨 Design System
 - **[Design System Overview](./design/README.md)** - Apple-inspired design principles, mobile-first approach, Web3-specific components
+- **[Material Design 3 Integration](./design/MATERIAL_DESIGN_3_INTEGRATION.md)** - 🆕 Google Material Design 3 implementation guide with M3 Expressive components
 - **[Natasha Web3 Event Guide](./design/NATASHA_UI_UX_WEB3_GUIDE.md)** - Comprehensive Web3 event platform design guide with NFT ticketing, POAP integration, and blockchain UX patterns
 - **[Research Components](./design/research/README.md)** - 🆕 Modular research library with Luma analysis, Apple principles, East African fintech, Web3 UX patterns, and trading interfaces
 - **[Component Library](./design/COMPONENT_LIBRARY.md)** - Mobile-first component library with shadcn/ui and Radix UI

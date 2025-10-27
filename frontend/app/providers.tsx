@@ -6,7 +6,7 @@ import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { defaultChain } from '../lib/wagmi';
 import { Toaster } from 'sonner';
 import { config } from '../lib/wagmi';
-import { ThemeProvider } from '../lib/theme-provider';
+import { ThemeProvider } from '../components/providers/ThemeProvider';
 import { GoogleMapsProvider } from './components/maps/GoogleMapsProvider';
 import { useState } from 'react';
 import '@rainbow-me/rainbowkit/styles.css';
@@ -23,7 +23,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }));
 
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="echain-theme">
+    <ThemeProvider>
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider

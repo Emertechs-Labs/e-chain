@@ -10,13 +10,35 @@ import DOMPurify from 'dompurify';
  */
 export function sanitizeHtml(dirty: string): string {
   if (typeof DOMPurify.sanitize === 'function') {
-    return DOMPurify.sanitize(dirty, {
+    // First sanitize as HTML
+    let sanitized = DOMPurify.sanitize(dirty, {
       ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br'],
       ALLOWED_ATTR: ['href', 'target', 'rel'],
+      ALLOWED_PROTOCOLS: ['http', 'https'],
     });
+
+    // Additionally sanitize dangerous protocols and function calls in plain text
+    sanitized = sanitized.replace(/javascript:/gi, '');
+    sanitized = sanitized.replace(/data:/gi, '');
+    sanitized = sanitized.replace(/vbscript:/gi, '');
+
+    // Remove common dangerous function calls that might appear in plain text
+    sanitized = sanitized.replace(/\balert\s*\(/gi, '');
+    sanitized = sanitized.replace(/\beval\s*\(/gi, '');
+    sanitized = sanitized.replace(/\bconfirm\s*\(/gi, '');
+    sanitized = sanitized.replace(/\bprompt\s*\(/gi, '');
+
+    return sanitized;
   }
   // Fallback if sanitize is not available
-  return dirty.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  return dirty.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+              .replace(/javascript:/gi, '')
+              .replace(/data:/gi, '')
+              .replace(/vbscript:/gi, '')
+              .replace(/\balert\s*\(/gi, '')
+              .replace(/\beval\s*\(/gi, '')
+              .replace(/\bconfirm\s*\(/gi, '')
+              .replace(/\bprompt\s*\(/gi, '');
 }
 
 /**

@@ -54,13 +54,15 @@ const nextConfig = {
   }
 };
 
-export default withSentryConfig(nextConfig, {
-  silent: true,
-  org: 'echain',
-  project: 'echain-frontend',
-  widenClientFileUpload: true,
-  transpileClientSDK: true,
-  tunnelRoute: '/monitoring',
-  hideSourceMaps: true,
-  disableLogger: true,
-});
+export default process.env.SENTRY_DSN && process.env.SENTRY_DSN !== 'https://your-sentry-dsn@sentry.io/project-id'
+  ? withSentryConfig(nextConfig, {
+      silent: true,
+      org: 'echain',
+      project: 'echain-frontend',
+      widenClientFileUpload: true,
+      transpileClientSDK: true,
+      tunnelRoute: '/monitoring',
+      hideSourceMaps: true,
+      disableLogger: true,
+    })
+  : nextConfig;

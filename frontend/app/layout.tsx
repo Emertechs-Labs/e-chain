@@ -10,6 +10,7 @@ import ChainWatcherClient from './components/ChainWatcherClient';
 import RealtimeSubscriptionsClient from './components/RealtimeSubscriptionsClient';
 import RealtimeStatus from './components/RealtimeStatus';
 import { Analytics } from '@vercel/analytics/next';
+import { FeedbackWidget } from '@/components/feedback/FeedbackWidget';
 
 // Use system font stack to avoid remote Google Fonts fetch during dev/build
 // Keep a CSS variable for compatibility with existing styles
@@ -69,6 +70,7 @@ export default function RootLayout({
               </main>
               <Footer />
             </div>
+            <FeedbackWidget />
           </MiniAppProvider>
         </Providers>
         <Analytics />

@@ -1,10 +1,9 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui'
 import {
   MessageSquare,
   Star,
@@ -29,12 +28,23 @@ interface FeedbackItem {
   email?: string
 }
 
-interface FeedbackAnalytics {
+interface BetaAnalytics {
   totalFeedback: number
   averageRating: number
   categories: Record<string, number>
   recentFeedback: FeedbackItem[]
   lastUpdated: string
+  systemHealth?: {
+    status: "healthy" | "degraded" | "unhealthy";
+    uptime: number;
+    responseTime: number;
+  } | null;
+  betaUsers?: {
+    total: number;
+    pending: number;
+    approved: number;
+    recent: any[];
+  } | null;
 }
 
 const categoryConfig = {
@@ -45,7 +55,7 @@ const categoryConfig = {
 }
 
 export default function BetaFeedbackDashboard() {
-  const [analytics, setAnalytics] = useState<FeedbackAnalytics | null>(null)
+  const [analytics, setAnalytics] = useState<BetaAnalytics | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
@@ -57,7 +67,8 @@ export default function BetaFeedbackDashboard() {
       // Get admin token from environment (in production, this would be from secure auth)
       const adminToken = process.env.NEXT_PUBLIC_ADMIN_API_KEY || 'demo-token'
 
-      const response = await fetch('/api/feedback', {
+      // Fetch feedback analytics
+      const feedbackResponse = await fetch('/api/feedback', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${adminToken}`,
@@ -65,17 +76,70 @@ export default function BetaFeedbackDashboard() {
         }
       })
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch analytics: ${response.status}`)
+      let feedbackData = {
+        totalFeedback: 0,
+        averageRating: 0,
+        categories: {},
+        recentFeedback: [],
+        lastUpdated: new Date().toISOString()
       }
 
-      const data = await response.json()
-      setAnalytics(data)
+      if (feedbackResponse.ok) {
+        feedbackData = await feedbackResponse.json()
+      }
+
+      // Fetch system health
+      let systemHealth = null
+      try {
+        const healthResponse = await fetch('/api/health')
+        if (healthResponse.ok) {
+          const healthData = await healthResponse.json()
+          systemHealth = {
+            status: healthData.status,
+            uptime: healthData.uptime,
+            responseTime: parseInt(healthResponse.headers.get('x-response-time') || '0')
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to fetch system health:', error)
+      }
+
+      // Fetch beta users analytics
+      let betaUsers = null
+      try {
+        const usersResponse = await fetch('/api/beta-users', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (usersResponse.ok) {
+          const usersData = await usersResponse.json()
+          betaUsers = {
+            total: usersData.analytics?.totalUsers || 0,
+            pending: usersData.analytics?.pendingUsers || 0,
+            approved: usersData.analytics?.approvedUsers || 0,
+            recent: usersData.analytics?.recentUsers || []
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to fetch beta users:', error)
+      }
+
+      const combinedAnalytics: BetaAnalytics = {
+        ...feedbackData,
+        systemHealth,
+        betaUsers
+      }
+
+      setAnalytics(combinedAnalytics)
       setError(null)
     } catch (err) {
       console.error('Error fetching analytics:', err)
       // Fallback to mock data for development
-      const mockAnalytics: FeedbackAnalytics = {
+      const mockAnalytics: BetaAnalytics = {
         totalFeedback: 24,
         averageRating: 4.2,
         categories: {
@@ -118,7 +182,18 @@ export default function BetaFeedbackDashboard() {
             email: 'user2@example.com'
           }
         ],
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
+        systemHealth: {
+          status: 'healthy',
+          uptime: 3600,
+          responseTime: 45
+        },
+        betaUsers: {
+          total: 47,
+          pending: 12,
+          approved: 35,
+          recent: []
+        }
       }
 
       setAnalytics(mockAnalytics)
@@ -185,7 +260,7 @@ export default function BetaFeedbackDashboard() {
             <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-white mb-2">Error Loading Analytics</h2>
             <p className="text-slate-400 mb-4">{error}</p>
-            <Button onClick={fetchAnalytics} variant="outline">
+            <Button onClick={fetchAnalytics} variant="outlined">
               Try Again
             </Button>
           </div>
@@ -207,7 +282,7 @@ export default function BetaFeedbackDashboard() {
             <Button
               onClick={fetchAnalytics}
               disabled={refreshing}
-              variant="outline"
+              variant="outlined"
               className="border-slate-600 text-slate-300 hover:bg-slate-800"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
@@ -242,27 +317,30 @@ export default function BetaFeedbackDashboard() {
 
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-300">Top Category</CardTitle>
-              <BarChart3 className="h-4 w-4 text-slate-400" />
+              <CardTitle className="text-sm font-medium text-slate-300">System Health</CardTitle>
+              <div className={`w-3 h-3 rounded-full ${
+                analytics?.systemHealth?.status === 'healthy' ? 'bg-green-500' :
+                analytics?.systemHealth?.status === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'
+              }`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
-                {analytics?.categories ? Object.entries(analytics.categories).sort(([,a], [,b]) => b - a)[0]?.[0] : 'None'}
-              </div>
-              <p className="text-xs text-slate-400">Most feedback type</p>
+              <div className="text-2xl font-bold text-white capitalize">{analytics?.systemHealth?.status || 'Unknown'}</div>
+              <p className="text-xs text-slate-400">
+                {analytics?.systemHealth?.responseTime ? `${analytics.systemHealth.responseTime}ms` : 'N/A'}
+              </p>
             </CardContent>
           </Card>
 
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-300">Last Updated</CardTitle>
-              <TrendingUp className="h-4 w-4 text-slate-400" />
+              <CardTitle className="text-sm font-medium text-slate-300">Beta Users</CardTitle>
+              <Users className="h-4 w-4 text-slate-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-sm font-bold text-white">
-                {analytics?.lastUpdated ? formatTimeAgo(analytics.lastUpdated) : 'Never'}
-              </div>
-              <p className="text-xs text-slate-400">Auto-refresh</p>
+              <div className="text-2xl font-bold text-white">{analytics?.betaUsers?.total || 0}</div>
+              <p className="text-xs text-slate-400">
+                {analytics?.betaUsers?.approved || 0} approved, {analytics?.betaUsers?.pending || 0} pending
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -340,6 +418,54 @@ export default function BetaFeedbackDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Beta Users Management */}
+        {analytics?.betaUsers && (
+          <Card className="bg-slate-800/50 border-slate-700 mt-8">
+            <CardHeader>
+              <CardTitle className="text-white">Beta Users</CardTitle>
+              <CardDescription>Manage beta tester registrations and approvals</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-white">{analytics.betaUsers.total}</div>
+                  <div className="text-sm text-slate-400">Total Registered</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-400">{analytics.betaUsers.approved}</div>
+                  <div className="text-sm text-slate-400">Approved</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-400">{analytics.betaUsers.pending}</div>
+                  <div className="text-sm text-slate-400">Pending Review</div>
+                </div>
+              </div>
+
+              {analytics.betaUsers.recent && analytics.betaUsers.recent.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-white mb-3">Recent Registrations</h4>
+                  <div className="space-y-2">
+                    {analytics.betaUsers.recent.slice(0, 5).map((user: any) => (
+                      <div key={user.id} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg">
+                        <div>
+                          <div className="text-sm font-medium text-white">{user.email}</div>
+                          <div className="text-xs text-slate-400">
+                            {user.name && `${user.name} • `}
+                            {user.walletAddress ? `${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}` : 'No wallet'}
+                          </div>
+                        </div>
+                        <Badge variant={user.status === 'approved' ? 'default' : 'secondary'}>
+                          {user.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )

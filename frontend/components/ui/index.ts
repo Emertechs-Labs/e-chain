@@ -1,6 +1,6 @@
 // Material Design 3 Components
 export { Button } from './Button';
-export { Card, CardContent, CardActions } from './Card';
+export { Card, CardContent, CardActions, CardHeader, CardTitle, CardDescription, CardFooter } from './Card';
 export { ThemeToggle } from './ThemeToggle';
 
 // Re-export theme utilities

@@ -167,7 +167,8 @@ class PerformanceTester {
 
       // Test with first few events
       const testEvents = events.slice(0, Math.min(3, events.length));
-      const tracker = trackMetadataEnrichment(testEvents.length);
+      let tracker: any;
+      tracker = trackMetadataEnrichment(testEvents.length);
       const startTime = performance.now();
 
       // Import the enrichment function

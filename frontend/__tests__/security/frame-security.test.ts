@@ -151,6 +151,7 @@ describe('XSS Protection', () => {
 describe('Rate Limiting', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    RateLimiter.clearStore();
   });
 
   it('should allow requests within rate limit', async () => {

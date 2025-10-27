@@ -55,6 +55,24 @@ Echain transforms traditional events into blockchain-powered experiences with NF
 
 **Current Status**: Production-ready on Base Sepolia testnet
 
+## 🔐 Security Notice
+
+**This repository is PUBLIC on GitHub.** 
+
+### Critical Security Guidelines:
+- 🚨 **NEVER commit API keys, secrets, or `.env` files containing real credentials**
+- ✅ **Use `.env.example` as a template for environment variables**
+- ✅ **Set environment variables in your deployment platform (Vercel, Netlify, etc.)**
+- ✅ **Use `.env.local` for local development (automatically excluded from git)**
+
+**If you accidentally commit secrets:**
+1. Immediately rotate all affected API keys
+2. Remove from git history using `git filter-branch`
+3. Update deployment platform variables
+4. Notify the development team
+
+See [Environment Setup Guide](./docs/ENVIRONMENT_SETUP_GUIDE.md) for secure configuration instructions.
+
 ## Technology Stack
 
 ### Blockchain Layer
@@ -143,8 +161,9 @@ Explore the full documentation set:
 
 3. **Configure environment**
    ```bash
-   cp frontend/.env.example frontend/.env.local
-   nano frontend/.env.local
+   cp .env.example .env.local
+   # Edit .env.local with your development keys
+   # NEVER commit .env.local to the repository
    ```
 
 4. **Start development services**
@@ -164,27 +183,15 @@ Explore the full documentation set:
 
 ### Environment Configuration
 
-Create `.env.local` in the frontend directory:
+Copy `.env.example` to `.env.local` for local development:
 
 ```bash
-# Wallet integration
-NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=your_reown_project_id
-
-# Network configuration
-NEXT_PUBLIC_CHAIN_ID=84532
-NEXT_PUBLIC_RPC_URL=https://sepolia.base.org
-
-# Contract addresses (Base Sepolia)
-NEXT_PUBLIC_EVENT_FACTORY_ADDRESS=0xA97cB40548905B05A67fCD4765438aFBEA4030fc
-NEXT_PUBLIC_EVENT_TICKET_ADDRESS=0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C
-NEXT_PUBLIC_POAP_ADDRESS=0x08344CfBfB3afB2e114A0dbABbaF40e7eB62FD33
-NEXT_PUBLIC_INCENTIVE_ADDRESS=0x1cfDae689817B954b72512bC82f23F35B997617D
-NEXT_PUBLIC_MARKETPLACE_ADDRESS=0xD061393A54784da5Fea48CC845163aBc2B11537A
-
-# Optional: IPFS/Pinata
-NEXT_PUBLIC_PINATA_JWT=your_pinata_jwt
-NEXT_PUBLIC_PINATA_GATEWAY=your_gateway_url
+cp .env.example .env.local
 ```
+
+Then edit `.env.local` with your actual development credentials. See the [Environment Setup Guide](./docs/ENVIRONMENT_SETUP_GUIDE.md) for detailed instructions on obtaining and configuring all required API keys and services.
+
+**⚠️ Never commit `.env.local` or any file containing real API keys to the repository.**
 
 ## Available Scripts
 

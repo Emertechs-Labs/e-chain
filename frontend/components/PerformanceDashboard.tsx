@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { performanceMonitor, usePerformanceTracking } from '../../lib/performance-monitor';
+import { performanceMonitor, usePerformanceTracking } from '../lib/performance-monitor';
 
 interface PerformanceStats {
   totalOperations: number;

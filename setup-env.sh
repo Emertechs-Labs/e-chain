@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Echain Environment Setup Script
-# Run this script to set up production environment variables
+# Run this script to set up LOCAL production environment variables
 # Usage: ./setup-env.sh
 
 set -e
@@ -9,11 +9,16 @@ set -e
 echo "🚀 Echain Production Environment Setup"
 echo "======================================"
 echo ""
+echo "⚠️  SECURITY WARNING: This repository is PUBLIC on GitHub!"
+echo "   This script creates .env.production for LOCAL use only."
+echo "   NEVER commit .env.production or any file with real secrets!"
+echo "   Set environment variables in your deployment platform (Vercel, etc.)"
+echo ""
 
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
+YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
@@ -55,80 +60,139 @@ echo ""
 echo -e "${BLUE}📋 Setting up environment variables...${NC}"
 echo ""
 
-# RPC Providers
-echo -e "${YELLOW}🔗 RPC Provider Setup${NC}"
-echo "You'll need to sign up for these services:"
-echo "1. Chainstack: https://chainstack.com/"
-echo "2. Spectrum Nodes: https://spectrumnodes.com/"
-echo "3. Coinbase Developer Platform: https://www.coinbase.com/developer-platform/"
+# Base Network Configuration
+echo -e "${YELLOW}🌐 Base Network Configuration${NC}"
+echo "Base Sepolia testnet settings:"
+echo "RPC URL: https://sepolia.base.org"
+echo "Chain ID: 84532"
 echo ""
 
-if prompt "CHAINSTACK_RPC" "Chainstack Base Mainnet RPC URL" ""; then
-    echo "BASE_MAINNET_CHAINSTACK_RPC=$CHAINSTACK_RPC" >> .env.production
-fi
+# Wallet Integration
+echo -e "${YELLOW}🔗 Wallet Integration Setup${NC}"
+echo "Sign up at: https://cloud.walletconnect.com/"
+echo ""
 
-if prompt "SPECTRUM_RPC" "Spectrum Nodes Base Mainnet RPC URL" ""; then
-    echo "BASE_MAINNET_SPECTRUM_RPC=$SPECTRUM_RPC" >> .env.production
-fi
-
-if prompt "COINBASE_RPC" "Coinbase Base Mainnet RPC URL" ""; then
-    echo "BASE_MAINNET_COINBASE_RPC=$COINBASE_RPC" >> .env.production
+if prompt "WALLETCONNECT_ID" "WalletConnect Project ID" ""; then
+    echo "NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=$WALLETCONNECT_ID" >> .env.production
+    echo "NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=$WALLETCONNECT_ID" >> .env.production
 fi
 
 echo ""
 
-# Monitoring
-echo -e "${YELLOW}📊 Monitoring Setup${NC}"
-echo "Sign up at: https://sentry.io/"
+# Coinbase OnchainKit
+echo -e "${YELLOW}💰 Coinbase OnchainKit Setup${NC}"
+echo "Get API key at: https://www.coinbase.com/developer-platform"
 echo ""
 
-if prompt "SENTRY_DSN" "Sentry DSN (Data Source Name)" ""; then
-    echo "NEXT_PUBLIC_SENTRY_DSN=$SENTRY_DSN" >> .env.production
+if prompt "ONCHAINKIT_KEY" "Coinbase OnchainKit API Key" ""; then
+    echo "NEXT_PUBLIC_ONCHAINKIT_API_KEY=$ONCHAINKIT_KEY" >> .env.production
 fi
 
 echo ""
 
-# Slack
-echo -e "${YELLOW}💬 Slack Integration${NC}"
-echo "Create webhook at: https://api.slack.com/apps"
+# Database
+echo -e "${YELLOW}🗄️  Database Setup${NC}"
+echo "Recommended: Supabase (https://supabase.com/)"
+echo "Alternatives: PlanetScale, Railway"
 echo ""
 
-if prompt "SLACK_WEBHOOK" "Slack Feedback Webhook URL" ""; then
-    echo "SLACK_FEEDBACK_WEBHOOK_URL=$SLACK_WEBHOOK" >> .env.production
+if prompt "DATABASE_URL" "Database Connection URL" ""; then
+    echo "DATABASE_URL=$DATABASE_URL" >> .env.production
 fi
 
 echo ""
 
-# Security
-echo -e "${YELLOW}🔐 Security Setup${NC}"
+# Security Keys
+echo -e "${YELLOW}🔐 Security Keys Setup${NC}"
 
-if prompt "ADMIN_API_KEY" "Admin API Key (generate a secure random string)" ""; then
-    echo "ADMIN_API_KEY=$ADMIN_API_KEY" >> .env.production
+if prompt "NEXTAUTH_SECRET" "NextAuth Secret (generate with: openssl rand -hex 32)" ""; then
+    echo "NEXTAUTH_SECRET=$NEXTAUTH_SECRET" >> .env.production
 fi
 
-if prompt "JWT_SECRET" "JWT Secret (generate a secure random string)" ""; then
+if prompt "JWT_SECRET" "JWT Secret (generate with: openssl rand -hex 64)" ""; then
     echo "JWT_SECRET=$JWT_SECRET" >> .env.production
 fi
 
 echo ""
 
-# Storage
-echo -e "${YELLOW}💾 Storage Setup${NC}"
+# Sentry
+echo -e "${YELLOW}📊 Sentry Monitoring Setup${NC}"
+echo "Sign up at: https://sentry.io/"
+echo ""
 
-if prompt "BLOB_TOKEN" "Vercel Blob Read/Write Token" ""; then
-    echo "BLOB_READ_WRITE_TOKEN=$BLOB_TOKEN" >> .env.production
+if prompt "SENTRY_DSN" "Sentry DSN (Data Source Name)" ""; then
+    echo "NEXT_PUBLIC_SENTRY_DSN=$SENTRY_DSN" >> .env.production
+    echo "SENTRY_DSN=$SENTRY_DSN" >> .env.production
 fi
 
 echo ""
 
-# Database (optional for now)
-echo -e "${YELLOW}🗄️  Database Setup (Optional)${NC}"
-echo "You can set this up later with Supabase, Railway, or PlanetScale"
+# Email Service
+echo -e "${YELLOW}📧 Email Service Setup (Optional)${NC}"
+echo "Recommended: Resend (https://resend.com/)"
+echo "Alternative: SendGrid (https://sendgrid.com/)"
 echo ""
 
-if prompt "DATABASE_URL" "Database URL (optional - press Enter to skip)" ""; then
-    if [ -n "$DATABASE_URL" ]; then
-        echo "DATABASE_URL=$DATABASE_URL" >> .env.production
+if prompt "EMAIL_API_KEY" "Email API Key (optional - press Enter to skip)" ""; then
+    if [ -n "$EMAIL_API_KEY" ]; then
+        echo "RESEND_API_KEY=$EMAIL_API_KEY" >> .env.production
+        echo "RESEND_FROM_EMAIL=noreply@echain.app" >> .env.production
+    fi
+fi
+
+echo ""
+
+# RPC Providers
+echo -e "${YELLOW}🔗 Premium RPC Providers (Optional)${NC}"
+echo "Recommended providers:"
+echo "1. Chainstack: https://chainstack.com/"
+echo "2. Coinbase: https://www.coinbase.com/developer-platform/"
+echo "3. Spectrum: https://spectrumnodes.com/"
+echo ""
+
+if prompt "CHAINSTACK_RPC" "Chainstack Base Sepolia RPC URL (optional)" ""; then
+    if [ -n "$CHAINSTACK_RPC" ]; then
+        echo "NEXT_PUBLIC_CHAINSTACK_RPC_URL=$CHAINSTACK_RPC" >> .env.production
+    fi
+fi
+
+if prompt "COINBASE_RPC" "Coinbase Base Sepolia RPC URL (optional)" ""; then
+    if [ -n "$COINBASE_RPC" ]; then
+        echo "NEXT_PUBLIC_COINBASE_RPC_URL=$COINBASE_RPC" >> .env.production
+    fi
+fi
+
+if prompt "SPECTRUM_RPC" "Spectrum Base Sepolia RPC URL (optional)" ""; then
+    if [ -n "$SPECTRUM_RPC" ]; then
+        echo "NEXT_PUBLIC_SPECTRUM_RPC_URL=$SPECTRUM_RPC" >> .env.production
+    fi
+fi
+
+echo ""
+
+# Social Authentication (Optional)
+echo -e "${YELLOW}🔑 Social Authentication (Optional)${NC}"
+echo "Configure social login providers:"
+echo ""
+
+if prompt "GOOGLE_CLIENT_ID" "Google OAuth Client ID (optional)" ""; then
+    if [ -n "$GOOGLE_CLIENT_ID" ]; then
+        echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> .env.production
+        if prompt "GOOGLE_CLIENT_SECRET" "Google OAuth Client Secret" ""; then
+            echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> .env.production
+        fi
+    fi
+fi
+
+if prompt "DISCORD_CLIENT_ID" "Discord OAuth Client ID (optional)" ""; then
+    if [ -n "$DISCORD_CLIENT_ID" ]; then
+        echo "DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID" >> .env.production
+        if prompt "DISCORD_CLIENT_SECRET" "Discord OAuth Client Secret" ""; then
+            echo "DISCORD_CLIENT_SECRET=$DISCORD_CLIENT_SECRET" >> .env.production
+        fi
+        if prompt "DISCORD_WEBHOOK" "Discord Webhook URL for feedback" ""; then
+            echo "DISCORD_WEBHOOK_URL=$DISCORD_WEBHOOK" >> .env.production
+        fi
     fi
 fi
 
@@ -137,10 +201,16 @@ echo ""
 # Summary
 echo -e "${GREEN}✅ Environment setup complete!${NC}"
 echo ""
+echo -e "${RED}� CRITICAL SECURITY REMINDER:${NC}"
+echo "   - .env.production is for LOCAL testing only"
+echo "   - NEVER commit .env.production to the PUBLIC repository"
+echo "   - Set these variables in your deployment platform (Vercel)"
+echo "   - Use .env.example as a template for deployment setup"
+echo ""
 echo -e "${BLUE}📋 Next steps:${NC}"
-echo "1. Review .env.production file"
-echo "2. Add variables to Vercel dashboard"
-echo "3. Run validation: npm run validate:env"
+echo "1. Test locally with: npm run validate:env"
+echo "2. Copy values to your deployment platform"
+echo "3. Delete .env.production after testing"
 echo "4. Deploy to production"
 echo ""
 echo -e "${YELLOW}📖 See docs/ENVIRONMENT_SETUP_GUIDE.md for detailed instructions${NC}"

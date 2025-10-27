@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { UserFeedbackCollector } from '@/components/analytics/UserFeedbackCollector'
 import { MessageSquare, Bug, Lightbulb } from 'lucide-react'
@@ -24,7 +24,6 @@ export const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
           <DialogTrigger asChild>
             <Button
               className={`fixed bottom-6 right-6 z-50 rounded-full w-14 h-14 shadow-lg hover:shadow-xl transition-all duration-200 ${className}`}
-              size="icon"
             >
               <MessageSquare className="w-6 h-6" />
               <span className="sr-only">Give Feedback</span>
@@ -73,8 +72,8 @@ export const BugReportWidget: React.FC<BugReportWidgetProps> = ({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
-          variant="outline"
-          size="sm"
+          variant="outlined"
+          size="small"
           className={`border-red-500/20 text-red-400 hover:bg-red-500/10 hover:border-red-500/40 ${className}`}
         >
           <Bug className="w-4 h-4 mr-2" />
@@ -113,8 +112,8 @@ export const FeatureRequestWidget: React.FC<FeatureRequestWidgetProps> = ({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
-          variant="outline"
-          size="sm"
+          variant="outlined"
+          size="small"
           className={`border-green-500/20 text-green-400 hover:bg-green-500/10 hover:border-green-500/40 ${className}`}
         >
           <Lightbulb className="w-4 h-4 mr-2" />

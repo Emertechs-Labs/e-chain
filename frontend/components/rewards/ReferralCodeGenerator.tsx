@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useGenerateReferralCode } from '@/app/hooks/useTransactions';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui';
 import { toast } from 'sonner';
 
 interface ReferralCodeGeneratorProps {

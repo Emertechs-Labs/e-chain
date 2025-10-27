@@ -63,6 +63,9 @@ export class RateLimiter {
       };
     }
 
+    // Calculate remaining before incrementing (requests left after this one)
+    const remaining = Math.max(0, this.config.maxRequests - entry.count - 1);
+
     // Increment counter
     entry.count++;
     rateLimitStore.set(key, entry);
@@ -70,9 +73,16 @@ export class RateLimiter {
     return {
       success: true,
       limit: this.config.maxRequests,
-      remaining: this.config.maxRequests - entry.count,
+      remaining,
       reset: entry.resetTime,
     };
+  }
+
+  /**
+   * Clear the rate limit store (for testing)
+   */
+  static clearStore(): void {
+    rateLimitStore.clear();
   }
 
   /**

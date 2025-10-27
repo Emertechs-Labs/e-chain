@@ -9,93 +9,7 @@
  * - Referral system
  */
 
-// Simple test framework
-interface TestResult {
-  name: string;
-  passed: boolean;
-  error?: string;
-  duration: number;
-}
-
-class TestRunner {
-  private results: TestResult[] = [];
-  private currentTest: string = '';
-
-  test(name: string, fn: () => void | Promise<void>) {
-    this.currentTest = name;
-    const start = Date.now();
-
-    try {
-      const result = fn();
-      if (result instanceof Promise) {
-        return result
-          .then(() => {
-            const duration = Date.now() - start;
-            this.results.push({ name, passed: true, duration });
-            console.log(`✅ ${name} (${duration}ms)`);
-          })
-          .catch((error) => {
-            const duration = Date.now() - start;
-            this.results.push({ name, passed: false, error: error.message, duration });
-            console.log(`❌ ${name}: ${error.message} (${duration}ms)`);
-          });
-      } else {
-        const duration = Date.now() - start;
-        this.results.push({ name, passed: true, duration });
-        console.log(`✅ ${name} (${duration}ms)`);
-      }
-    } catch (error: any) {
-      const duration = Date.now() - start;
-      this.results.push({ name, passed: false, error: error.message, duration });
-      console.log(`❌ ${name}: ${error.message} (${duration}ms)`);
-    }
-  }
-
-  describe(name: string, fn: () => void) {
-    console.log(`\n📋 ${name}`);
-    console.log('─'.repeat(50));
-    fn();
-  }
-
-  assert(condition: boolean, message: string = 'Assertion failed') {
-    if (!condition) {
-      throw new Error(message);
-    }
-  }
-
-  assertEqual<T>(actual: T, expected: T, message?: string) {
-    if (actual !== expected) {
-      throw new Error(message || `Expected ${expected}, but got ${actual}`);
-    }
-  }
-
-  getResults() {
-    return this.results;
-  }
-
-  printSummary() {
-    const passed = this.results.filter(r => r.passed).length;
-    const failed = this.results.filter(r => !r.passed).length;
-    const total = this.results.length;
-    const totalDuration = this.results.reduce((sum, r) => sum + r.duration, 0);
-
-    console.log('\n' + '='.repeat(50));
-    console.log('📊 Test Results Summary');
-    console.log(`Total Tests: ${total}`);
-    console.log(`Passed: ${passed}`);
-    console.log(`Failed: ${failed}`);
-    console.log(`Duration: ${totalDuration}ms`);
-
-    if (failed > 0) {
-      console.log('\n❌ Failed Tests:');
-      this.results.filter(r => !r.passed).forEach(r => {
-        console.log(`  - ${r.name}: ${r.error}`);
-      });
-    }
-
-    return failed === 0;
-  }
-}
+import { describe, it, expect } from 'vitest';
 
 // Mock the blockchain interactions for testing
 const mockContractWrapper = {
@@ -112,12 +26,8 @@ const mockContracts = {
   },
 };
 
-// Test runner instance
-const runner = new TestRunner();
-
-// Test suites
-runner.describe('Event Creation Flow', () => {
-  runner.test('should create an event successfully', async () => {
+describe('Event Creation Flow', () => {
+  it('should create an event successfully', async () => {
     // Test event creation with valid parameters
     const eventData = {
       name: 'Test Event',
@@ -132,12 +42,12 @@ runner.describe('Event Creation Flow', () => {
     const result = await mockContractWrapper.writeContract();
 
     // Verify the result
-    runner.assert(result === '0xmock_tx_hash', 'Should return transaction hash');
-    runner.assert(eventData.name.length > 0, 'Event name should be valid');
-    runner.assert(eventData.maxTickets > 0, 'Max tickets should be positive');
+    expect(result).toBe('0xmock_tx_hash');
+    expect(eventData.name.length).toBeGreaterThan(0);
+    expect(eventData.maxTickets).toBeGreaterThan(0);
   });
 
-  runner.test('should validate event parameters', () => {
+  it('should validate event parameters', () => {
     // Test parameter validation
     const validEvent = {
       name: 'Valid Event',
@@ -158,27 +68,27 @@ runner.describe('Event Creation Flow', () => {
     };
 
     // Valid event should pass basic validation
-    runner.assert(validEvent.name.length > 0, 'Valid name should pass');
-    runner.assert(validEvent.maxTickets > 0, 'Valid max tickets should pass');
+    expect(validEvent.name.length).toBeGreaterThan(0);
+    expect(validEvent.maxTickets).toBeGreaterThan(0);
 
     // Invalid event should fail validation
-    runner.assert(invalidEvent.name.length === 0, 'Empty name should fail');
-    runner.assert(invalidEvent.maxTickets < 0, 'Negative max tickets should fail');
+    expect(invalidEvent.name.length).toBe(0);
+    expect(invalidEvent.maxTickets).toBeLessThan(0);
   });
 
-  runner.test('should handle event creation errors', async () => {
+  it('should handle event creation errors', async () => {
     // Test error handling
     try {
       // Simulate an error condition
       throw new Error('Contract call failed');
     } catch (error: any) {
-      runner.assert(error.message === 'Contract call failed', 'Should catch contract errors');
+      expect(error.message).toBe('Contract call failed');
     }
   });
 });
 
-runner.describe('Ticket Purchase Flow', () => {
-  runner.test('should purchase tickets successfully', async () => {
+describe('Ticket Purchase Flow', () => {
+  it('should purchase tickets successfully', async () => {
     // Test ticket purchase with valid wallet connection
     const purchaseData = {
       eventId: 1,
@@ -188,11 +98,11 @@ runner.describe('Ticket Purchase Flow', () => {
 
     const result = await mockContractWrapper.writeContract();
 
-    runner.assert(result === '0xmock_tx_hash', 'Should return transaction hash');
-    runner.assert(purchaseData.quantity > 0, 'Quantity should be positive');
+    expect(result).toBe('0xmock_tx_hash');
+    expect(purchaseData.quantity).toBeGreaterThan(0);
   });
 
-  runner.test('should update user ticket list after purchase', () => {
+  it('should update user ticket list after purchase', () => {
     // Test that purchased tickets appear in user's collection
     const userTickets = [1, 2, 3]; // Mock ticket IDs
     const newTicketId = 4;
@@ -200,21 +110,21 @@ runner.describe('Ticket Purchase Flow', () => {
     // Simulate adding a new ticket
     userTickets.push(newTicketId);
 
-    runner.assert(userTickets.includes(newTicketId), 'New ticket should be in user collection');
-    runner.assert(userTickets.length === 4, 'Should have correct number of tickets');
+    expect(userTickets).toContain(newTicketId);
+    expect(userTickets).toHaveLength(4);
   });
 
-  runner.test('should handle insufficient funds', () => {
+  it('should handle insufficient funds', () => {
     // Test error handling for insufficient balance
     const userBalance = '0.005';
     const ticketPrice = '0.01';
 
     const hasEnoughFunds = parseFloat(userBalance) >= parseFloat(ticketPrice);
 
-    runner.assert(!hasEnoughFunds, 'Should detect insufficient funds');
+    expect(hasEnoughFunds).toBe(false);
   });
 
-  runner.test('should prevent overselling', () => {
+  it('should prevent overselling', () => {
     // Test that tickets can't be purchased beyond max supply
     const maxTickets = 100;
     const soldTickets = 95;
@@ -222,12 +132,12 @@ runner.describe('Ticket Purchase Flow', () => {
 
     const canPurchase = (soldTickets + requestedTickets) <= maxTickets;
 
-    runner.assert(!canPurchase, 'Should prevent overselling');
+    expect(canPurchase).toBe(false);
   });
 });
 
-runner.describe('POAP Claiming Flow', () => {
-  runner.test('should allow valid ticket holders to claim POAP', async () => {
+describe('POAP Claiming Flow', () => {
+  it('should allow valid ticket holders to claim POAP', async () => {
     // Test POAP claiming for users with valid tickets
     const claimData = {
       eventId: 1,
@@ -240,27 +150,27 @@ runner.describe('POAP Claiming Flow', () => {
 
     const canClaim = ticketBalance === 'mock_result' && !hasClaimed;
 
-    runner.assert(canClaim, 'Valid ticket holder should be able to claim POAP');
+    expect(canClaim).toBe(true);
   });
 
-  runner.test('should prevent duplicate POAP claims', () => {
+  it('should prevent duplicate POAP claims', () => {
     // Test that users can't claim POAP twice for same event
     const hasClaimed = true;
 
-    runner.assert(hasClaimed, 'Should prevent duplicate claims');
+    expect(hasClaimed).toBe(true);
   });
 
-  runner.test('should validate ticket ownership', async () => {
+  it('should validate ticket ownership', async () => {
     // Test that only ticket holders can claim POAP
     const ticketBalance = await mockContractWrapper.readContract();
     const ownsTickets = ticketBalance !== '0';
 
-    runner.assert(ownsTickets, 'Should validate ticket ownership');
+    expect(ownsTickets).toBe(true);
   });
 });
 
-runner.describe('Rewards System', () => {
-  runner.test('should award early bird rewards correctly', async () => {
+describe('Rewards System', () => {
+  it('should award early bird rewards correctly', async () => {
     // Test early bird reward claiming
     const eventId = 1;
     const ticketContract = '0x456...';
@@ -269,43 +179,43 @@ runner.describe('Rewards System', () => {
 
     const canClaimEarlyBird = totalSold <= earlyBirdLimit;
 
-    runner.assert(canClaimEarlyBird, 'Should allow early bird claims within limit');
+    expect(canClaimEarlyBird).toBe(true);
 
     const result = await mockContractWrapper.writeContract();
-    runner.assert(result === '0xmock_tx_hash', 'Should return transaction hash for reward claim');
+    expect(result).toBe('0xmock_tx_hash');
   });
 
-  runner.test('should calculate loyalty points accurately', () => {
+  it('should calculate loyalty points accurately', () => {
     // Test loyalty point calculation based on POAP count
     const poapCount = 5;
     const expectedPoints = poapCount; // 1 point per POAP
 
-    runner.assertEqual(expectedPoints, 5, 'Should calculate points correctly');
+    expect(expectedPoints).toBe(5);
   });
 
-  runner.test('should process referral rewards', async () => {
+  it('should process referral rewards', async () => {
     // Test referral code generation and reward claiming
     const referralCode = 'TEST123';
     const inviteeCount = 3;
 
     const result = await mockContractWrapper.writeContract();
-    runner.assert(result === '0xmock_tx_hash', 'Should generate referral code');
+    expect(result).toBe('0xmock_tx_hash');
 
-    runner.assert(inviteeCount > 0, 'Should track successful referrals');
+    expect(inviteeCount).toBeGreaterThan(0);
   });
 });
 
-runner.describe('Referral System', () => {
-  runner.test('should generate unique referral codes', async () => {
+describe('Referral System', () => {
+  it('should generate unique referral codes', async () => {
     // Test referral code generation
     const codes = ['CODE1', 'CODE2', 'CODE3'];
     const uniqueCodes = new Set(codes);
 
-    runner.assert(uniqueCodes.size === codes.length, 'All codes should be unique');
-    runner.assert(codes.every(code => code.length > 0), 'All codes should not be empty');
+    expect(uniqueCodes.size).toBe(codes.length);
+    expect(codes.every(code => code.length > 0)).toBe(true);
   });
 
-  runner.test('should track referral usage', () => {
+  it('should track referral usage', () => {
     // Test that referrals are properly tracked
     const referralData = {
       inviter: '0x123...',
@@ -313,93 +223,67 @@ runner.describe('Referral System', () => {
       code: 'TEST123',
     };
 
-    runner.assert(referralData.inviter !== referralData.invitee, 'Inviter and invitee should be different');
-    runner.assert(referralData.code.length > 0, 'Referral code should be valid');
+    expect(referralData.inviter).not.toBe(referralData.invitee);
+    expect(referralData.code.length).toBeGreaterThan(0);
   });
 
-  runner.test('should award referral bonuses', () => {
+  it('should award referral bonuses', () => {
     // Test referral reward distribution
     const successfulReferrals = 3;
     const pointsPerReferral = 10;
     const totalPoints = successfulReferrals * pointsPerReferral;
 
-    runner.assertEqual(totalPoints, 30, 'Should calculate referral bonuses correctly');
+    expect(totalPoints).toBe(30);
   });
 });
 
-runner.describe('Error Handling', () => {
-  runner.test('should handle network errors gracefully', async () => {
+describe('Error Handling', () => {
+  it('should handle network errors gracefully', async () => {
     // Test network failure scenarios
     try {
       // Simulate network error
       throw new Error('Network connection failed');
     } catch (error: any) {
-      runner.assert(error.message.includes('Network'), 'Should handle network errors');
+      expect(error.message).toContain('Network');
     }
   });
 
-  runner.test('should handle contract reverts', async () => {
+  it('should handle contract reverts', async () => {
     // Test smart contract error scenarios
     try {
       // Simulate contract revert
       throw new Error('Contract reverted: Insufficient balance');
     } catch (error: any) {
-      runner.assert(error.message.includes('reverted'), 'Should handle contract reverts');
+      expect(error.message).toContain('reverted');
     }
   });
 
-  runner.test('should provide user-friendly error messages', () => {
+  it('should provide user-friendly error messages', () => {
     // Test error message formatting
     const rawError = 'execution reverted: ERC20: transfer amount exceeds balance';
     const userFriendlyMessage = 'Insufficient funds for this transaction';
 
-    runner.assert(userFriendlyMessage.length > 0, 'Should provide user-friendly messages');
-    runner.assert(!userFriendlyMessage.includes('execution reverted'), 'Should not expose technical details');
+    expect(userFriendlyMessage.length).toBeGreaterThan(0);
+    expect(userFriendlyMessage).not.toContain('execution reverted');
   });
 });
 
-runner.describe('Performance', () => {
-  runner.test('should load events list within acceptable time', () => {
+describe('Performance', () => {
+  it('should load events list within acceptable time', () => {
     // Test page load performance
     const loadTime = 500; // ms
     const acceptableTime = 2000; // ms
 
-    runner.assert(loadTime < acceptableTime, 'Should load within acceptable time');
+    expect(loadTime).toBeLessThan(acceptableTime);
   });
 
-  runner.test('should handle large datasets efficiently', () => {
+  it('should handle large datasets efficiently', () => {
     // Test performance with many events/tickets
     const largeDataset = Array.from({ length: 1000 }, (_, i) => ({ id: i, name: `Event ${i}` }));
     const processingTime = 100; // ms
     const acceptableTime = 500; // ms
 
-    runner.assert(largeDataset.length === 1000, 'Should handle large datasets');
-    runner.assert(processingTime < acceptableTime, 'Should process efficiently');
+    expect(largeDataset).toHaveLength(1000);
+    expect(processingTime).toBeLessThan(acceptableTime);
   });
 });
-
-// Run tests and print results
-async function runTests() {
-  console.log('🚀 Running Echain Integration Tests\n');
-
-  // Wait for all async tests to complete
-  await new Promise(resolve => setTimeout(resolve, 100));
-
-  const success = runner.printSummary();
-
-  if (success) {
-    console.log('\n🎉 All integration tests passed!');
-    process.exit(0);
-  } else {
-    console.log('\n❌ Some tests failed. Please review the output above.');
-    process.exit(1);
-  }
-}
-
-// Export for external usage
-export { runner, runTests };
-
-// Run tests if this file is executed directly
-if (typeof window === 'undefined' && import.meta.url === `file://${process.argv[1]}`) {
-  runTests();
-}

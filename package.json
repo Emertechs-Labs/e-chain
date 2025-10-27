@@ -50,6 +50,10 @@
   ],
   "dependencies": {
     "@coinbase/cdp-sdk": "^1.38.4",
+    "@firebase/app": "^0.14.4",
+    "@firebase/component": "^0.7.0",
+    "@firebase/util": "^1.13.0",
+    "@polymathuniversata/echain-wallet": "^1.0.3",
     "@sentry/nextjs": "^8.55.0",
     "@vercel/analytics": "^1.5.0",
     "install": "^0.13.0",

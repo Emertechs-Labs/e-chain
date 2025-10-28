@@ -23,8 +23,7 @@ const IPFS_GATEWAYS = [
   'https://dweb.link/ipfs/',             // CORS-friendly backup
   'https://gateway.ipfs.io/ipfs/',       // Additional CORS-friendly backup
   'https://ipfs.infura.io/ipfs/',        // Infura gateway (CORS-friendly)
-  'https://4everland.io/ipfs/',          // Decentralized storage (CORS-friendly)
-  'https://hardbin.com/ipfs/',           // Alternative gateway
+  'https://gateway.pinata.cloud/ipfs/',  // Fast but CORS-restricted (last resort)
 ];
 
 /**
@@ -64,43 +63,69 @@ export function ipfsToHttp(ipfsUri: string, gatewayIndex = 0): string {
  */
 export async function fetchMetadataFromIPFS(
   metadataURI: string,
-  timeout = 5000, // Reduced timeout for faster fallback
-  gatewayStartIndex = 0
+  timeout = 8000 // Increased timeout for better reliability
 ): Promise<EventMetadata | null> {
   if (!metadataURI || metadataURI === 'ipfs://placeholder' || metadataURI.includes('placeholder')) {
+    console.log(`[fetchMetadataFromIPFS] Skipping placeholder URI: ${metadataURI}`);
     return null;
   }
+
+  // Check localStorage cache first
+  const cacheKey = `metadata_${btoa(metadataURI)}`;
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) {
+    try {
+      const { data, timestamp } = JSON.parse(cached);
+      // Cache for 1 hour
+      if (Date.now() - timestamp < 60 * 60 * 1000) {
+        console.log(`[fetchMetadataFromIPFS] Using cached metadata for: ${metadataURI}`);
+        return data;
+      } else {
+        localStorage.removeItem(cacheKey);
+      }
+    } catch (e) {
+      localStorage.removeItem(cacheKey);
+    }
+  }
+
+  console.log(`[fetchMetadataFromIPFS] Fetching metadata from URI: ${metadataURI}`);
 
   // Check if it's a blob storage URL (Vercel Blob)
   if (metadataURI.includes('blob.vercel-storage.com') || metadataURI.includes('public.blob.vercel-storage.com')) {
     try {
+      console.log(`[fetchMetadataFromIPFS] Fetching from blob storage: ${metadataURI}`);
       const response = await fetch(metadataURI, {
         headers: {
           'Accept': 'application/json',
-          'Cache-Control': 'no-cache',
+          'Cache-Control': 'no-cache', // Ensure fresh data
           'User-Agent': 'Mozilla/5.0 (compatible; Echain/1.0)',
         },
         mode: 'cors',
       });
 
       if (!response.ok) {
-        return null;
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const metadata = await response.json();
-      if (metadata && typeof metadata === 'object') {
-        return metadata as EventMetadata;
-      }
-      return null;
-    } catch {
+      console.log(`[fetchMetadataFromIPFS] Successfully fetched metadata from blob storage:`, metadata);
+
+      // Cache the result
+      localStorage.setItem(cacheKey, JSON.stringify({ data: metadata, timestamp: Date.now() }));
+
+      return metadata as EventMetadata;
+    } catch (error) {
+      console.error(`[fetchMetadataFromIPFS] Blob storage fetch failed:`, error);
       return null;
     }
   }
 
-  // Try each IPFS gateway until one works (starting from specified index)
-  for (let i = gatewayStartIndex; i < IPFS_GATEWAYS.length; i++) {
+  // Try each IPFS gateway until one works
+  for (let i = 0; i < IPFS_GATEWAYS.length; i++) {
     const url = ipfsToHttp(metadataURI, i);
     try {
+      console.log(`[fetchMetadataFromIPFS] Trying gateway ${i + 1}: ${url}`);
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -108,32 +133,59 @@ export async function fetchMetadataFromIPFS(
         signal: controller.signal,
         headers: {
           'Accept': 'application/json',
-          'Cache-Control': 'no-cache',
-          'User-Agent': 'Mozilla/5.0 (compatible; Echain/1.0)',
+          'Cache-Control': 'no-cache', // Ensure fresh data
+          'User-Agent': 'Mozilla/5.0 (compatible; Echain/1.0)', // Some gateways require user agent
         },
-        mode: 'cors',
+        mode: 'cors', // Explicitly request CORS mode
       });
 
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        continue;
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const metadata = await response.json();
+      console.log(`[fetchMetadataFromIPFS] Successfully fetched metadata from gateway ${i + 1}:`, metadata);
 
       // Validate the metadata has required fields
       if (!metadata || typeof metadata !== 'object') {
+        console.warn(`[fetchMetadataFromIPFS] Invalid metadata format from gateway ${i + 1}`);
         continue;
       }
 
+      // Cache the result
+      localStorage.setItem(cacheKey, JSON.stringify({ data: metadata, timestamp: Date.now() }));
+
       return metadata as EventMetadata;
-    } catch {
-      // Silently continue to next gateway
-      // Add a small delay before trying the next gateway to avoid overwhelming servers
-      if (i < IPFS_GATEWAYS.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isCorsError = errorMessage.includes('CORS') ||
+                         errorMessage.includes('Access-Control') ||
+                         errorMessage.includes('preflight') ||
+                         errorMessage.includes('blocked by CORS') ||
+                         errorMessage.includes('No \'Access-Control-Allow-Origin\'');
+      const isNetworkError = errorMessage.includes('fetch') ||
+                            errorMessage.includes('network') ||
+                            errorMessage.includes('Failed to fetch') ||
+                            errorMessage.includes('ERR_FAILED') ||
+                            errorMessage.includes('ERR_NETWORK');
+
+      console.warn(`[fetchMetadataFromIPFS] Gateway ${i + 1} (${IPFS_GATEWAYS[i]}) failed:`, {
+        error: errorMessage,
+        isCorsError,
+        isNetworkError,
+        url
+      });
+
+      // If this was the last gateway, return null
+      if (i === IPFS_GATEWAYS.length - 1) {
+        console.error(`[fetchMetadataFromIPFS] All gateways failed for URI: ${metadataURI}`);
+        return null;
       }
+
+      // Add a small delay before trying the next gateway
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
   }
 
@@ -145,10 +197,14 @@ export async function fetchMetadataFromIPFS(
  */
 export async function enrichEventWithMetadata(event: Event): Promise<Event> {
   try {
+    console.log(`[enrichEventWithMetadata] Starting enrichment for event ${event.id} with metadataURI: ${event.metadataURI}`);
+
     // Use retry logic for better reliability
-    const metadata = await fetchMetadataWithRetry(event.metadataURI, 1, 5000);
+    const metadata = await fetchMetadataWithRetry(event.metadataURI, 2, 8000);
 
     if (metadata) {
+      console.log(`[enrichEventWithMetadata] Successfully fetched metadata for event ${event.id}:`, metadata);
+
       // Extract formatted dates from attributes if available
       let formattedStartDate = '';
       let formattedEndDate = '';
@@ -173,9 +229,10 @@ export async function enrichEventWithMetadata(event: Event): Promise<Event> {
                 hour: '2-digit',
                 minute: '2-digit'
               });
+              console.log(`[enrichEventWithMetadata] Extracted formatted start date: ${formattedStartDate}`);
             }
-          } catch {
-            // Silently ignore date parsing errors
+          } catch (error) {
+            console.warn('Failed to parse start date from metadata:', error);
           }
         }
 
@@ -191,9 +248,10 @@ export async function enrichEventWithMetadata(event: Event): Promise<Event> {
                 hour: '2-digit',
                 minute: '2-digit'
               });
+              console.log(`[enrichEventWithMetadata] Extracted formatted end date: ${formattedEndDate}`);
             }
-          } catch {
-            // Silently ignore date parsing errors
+          } catch (error) {
+            console.warn('Failed to parse end date from metadata:', error);
           }
         }
       }
@@ -212,8 +270,10 @@ export async function enrichEventWithMetadata(event: Event): Promise<Event> {
         organizer: event.organizer, // Keep the blockchain organizer address
       };
 
+      console.log(`[enrichEventWithMetadata] Enriched event ${event.id} with venue: "${enrichedEvent.venue}", image: "${enrichedEvent.image}"`);
       return enrichedEvent;
     } else {
+      console.log(`[enrichEventWithMetadata] No metadata found for event ${event.id}, using defaults`);
       // Generate default metadata if IPFS fails
       const defaultMetadata = generateDefaultMetadata(event);
       return {
@@ -224,6 +284,7 @@ export async function enrichEventWithMetadata(event: Event): Promise<Event> {
       };
     }
   } catch (error) {
+    console.error(`[enrichEventWithMetadata] Failed to enrich event ${event.id}:`, error);
     // Return event with defaults if enrichment fails completely
     const defaultMetadata = generateDefaultMetadata(event);
     return {
@@ -240,26 +301,30 @@ export async function enrichEventWithMetadata(event: Event): Promise<Event> {
  */
 export async function fetchMetadataWithRetry(
   metadataURI: string,
-  maxRetries = 1,
-  timeout = 5000
+  maxRetries = 2,
+  timeout = 8000
 ): Promise<EventMetadata | null> {
+  let lastError: Error | null = null;
+
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       if (attempt > 0) {
-        // Exponential backoff with jitter
-        const delayMs = Math.pow(2, attempt) * 500 + Math.random() * 500;
-        await new Promise(resolve => setTimeout(resolve, delayMs));
+        console.log(`[fetchMetadataWithRetry] Retry attempt ${attempt} for ${metadataURI}`);
+        // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
       }
 
-      const result = await fetchMetadataFromIPFS(metadataURI, timeout, 0);
+      const result = await fetchMetadataFromIPFS(metadataURI, timeout);
       if (result) {
         return result;
       }
-    } catch {
-      // Silently continue to next retry
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.warn(`[fetchMetadataWithRetry] Attempt ${attempt + 1} failed:`, lastError.message);
     }
   }
 
+  console.error(`[fetchMetadataWithRetry] All ${maxRetries + 1} attempts failed for ${metadataURI}:`, lastError?.message);
   return null;
 }
 
@@ -363,25 +428,29 @@ export function generateDefaultMetadata(event: Event): EventMetadata {
  * Batch enrich multiple events with metadata
  */
 export async function enrichEventsWithMetadata(events: Event[]): Promise<Event[]> {
+  console.log(`[enrichEventsWithMetadata] Enriching ${events.length} events with metadata...`);
+
   if (events.length === 0) return [];
 
   // Process events in smaller batches to avoid overwhelming IPFS gateways
-  const batchSize = 3; // Process 3 events at a time for better throughput
+  const batchSize = 2; // Reduced batch size for better reliability
   const enrichedEvents: Event[] = [];
 
   for (let i = 0; i < events.length; i += batchSize) {
     const batch = events.slice(i, i + batchSize);
+    console.log(`[enrichEventsWithMetadata] Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(events.length/batchSize)} (${batch.length} events)`);
 
     const enrichedBatch = await Promise.all(
       batch.map(event => enrichEventWithMetadata(event))
     );
     enrichedEvents.push(...enrichedBatch);
 
-    // Smaller delay between batches
+    // Slightly longer delay between batches to be more respectful to IPFS gateways
     if (i + batchSize < events.length) {
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
   }
 
+  console.log(`[enrichEventsWithMetadata] Successfully enriched ${enrichedEvents.length} events`);
   return enrichedEvents;
 }

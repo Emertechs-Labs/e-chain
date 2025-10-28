@@ -26,6 +26,8 @@ import { Loader2, AlertCircle, Check, RefreshCw, PlusCircle } from "lucide-react
 import { useUserListings, useCancelMarketplaceListing } from "../../hooks/useMarketplace";
 import { useWalletHelpers } from "../../hooks/useWalletHelpers";
 
+export const dynamic = 'force-dynamic';
+
 export default function MyListingsPage() {
   const { address, isConnected } = useAccount();
   const { connectWallet, formatEth, formatAddress } = useWalletHelpers();

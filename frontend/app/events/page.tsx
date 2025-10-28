@@ -18,6 +18,9 @@ const mockEvents = kenyaTechEvents.map(event => ({
   createdAt: event.createdAt || Date.now() / 1000
 }));
 
+// Prevent static rendering
+export const dynamic = 'force-dynamic';
+
 const EventsPage: React.FC = () => {
   const { data: blockchainEvents = [], isLoading: loading } = useEvents();
   const [searchTerm, setSearchTerm] = useState("");

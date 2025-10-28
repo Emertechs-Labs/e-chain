@@ -87,6 +87,67 @@ html {
 
 @import '@rainbow-me/rainbowkit/styles.css';
 
+/* Ensure header and navbar are always visible above OnchainKit components */
+.echain-header {
+  position: fixed !important;
+  z-index: 9999 !important;
+}
+
+header nav {
+  display: flex !important;
+  align-items: center !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+header nav a,
+header nav button,
+header nav > div {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-flex !important;
+}
+
+/* Ensure connect wallet button is visible */
+.wallet-button-wrapper,
+header .ml-4,
+header button[class*="ConnectButton"],
+header div[class*="ConnectButton"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: flex !important;
+}
+
+/* RainbowKit specific overrides */
+header [class*="iekbcc"],
+header [class*="rainbowkit"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-flex !important;
+  position: relative !important;
+}
+
+/* Custom Connect Wallet Button Styling */
+.echain-connect-button button {
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.025em !important;
+}
+
+.echain-connect-button .chain-icon-wrapper {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.echain-connect-button .chain-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -317,6 +378,13 @@ html {
 .bg-grid-pattern {
   background-image: radial-gradient(circle at 1px 1px, rgba(56, 189, 248, 0.15) 1px, transparent 0);
   background-size: 30px 30px;
+}
+
+.progress-fill {
+  width: var(--progress-width, 0%);
+  height: 0.5rem;
+  border-radius: 9999px;
+  transition: all 0.5s;
 }
 
 /* Ensure anchored sections are visible below the fixed header */

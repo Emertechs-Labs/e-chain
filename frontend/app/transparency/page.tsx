@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { readContract } from "../../lib/contract-wrapper";
 
+// Prevent static rendering
+export const dynamic = 'force-dynamic';
+
 interface Transaction {
   id: string;
   type: "mint" | "royalty" | "transfer" | "create";

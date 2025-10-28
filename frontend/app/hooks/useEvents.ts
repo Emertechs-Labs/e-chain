@@ -190,6 +190,7 @@ export const useEvents = () => {
         return [];
       }
     },
+<<<<<<< HEAD
     // Increased stale time with optimized refetching
     staleTime: 10 * 60 * 1000, // 10 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes
@@ -205,6 +206,11 @@ export const useEvents = () => {
     // Enable background refetching but reduce frequency
     refetchOnWindowFocus: false,
     refetchInterval: 15 * 60 * 1000, // Refetch every 15 minutes in background
+=======
+    // Increased stale time to reduce refetching
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 60 * 60 * 1000, // 1 hour cache
+>>>>>>> 9502891 (feat: Complete Farcaster integration and production readiness)
   });
 };
 
@@ -252,10 +258,15 @@ export const useEventsByOrganizer = (organizer?: string) => {
       }
     },
     enabled: !!targetOrganizer,
+<<<<<<< HEAD
     staleTime: 8 * 60 * 1000, // 8 minutes
     gcTime: 20 * 60 * 1000, // 20 minutes
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 10000),
+=======
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 60 * 60 * 1000, // 1 hour cache
+>>>>>>> 9502891 (feat: Complete Farcaster integration and production readiness)
   });
 };
 
@@ -330,10 +341,15 @@ export const useEvent = (eventId: number) => {
       }
     },
     enabled: !!eventId,
+<<<<<<< HEAD
     staleTime: 8 * 60 * 1000, // 8 minutes
     gcTime: 20 * 60 * 1000, // 20 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1500 * 2 ** attemptIndex, 20000),
+=======
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 60 * 60 * 1000, // 1 hour cache
+>>>>>>> 9502891 (feat: Complete Farcaster integration and production readiness)
   });
 };
 
@@ -449,9 +465,14 @@ export const useOrganizerMetrics = (organizer?: string) => {
       }
     },
     enabled: !!targetOrganizer,
+<<<<<<< HEAD
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 15 * 60 * 1000, // 15 minutes
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(3000 * 2 ** attemptIndex, 15000),
+=======
+    staleTime: 15 * 60 * 1000, // 15 minutes - refresh more frequently for metrics
+    gcTime: 60 * 60 * 1000, // 1 hour cache
+>>>>>>> 9502891 (feat: Complete Farcaster integration and production readiness)
   });
 };

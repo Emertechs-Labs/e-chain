@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   description: 'Comprehensive guides for using the Echain platform.',
 };
 
+// Prevent static rendering
+export const dynamic = 'force-dynamic';
+
 export default function GuidesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950">

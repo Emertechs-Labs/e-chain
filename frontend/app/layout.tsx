@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import '@coinbase/onchainkit/styles.css';
 import './globals.css';
 import './styles/modern-ui.css';
 import { Providers } from './providers';
@@ -8,6 +9,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ChainWatcherClient from './components/ChainWatcherClient';
 import RealtimeSubscriptionsClient from './components/RealtimeSubscriptionsClient';
 import RealtimeStatus from './components/RealtimeStatus';
+import { FarcasterAuthPortal } from './components/FarcasterAuthPortal';
+import { ClientMiniKitWrapper } from './components/ClientMiniKitWrapper';
 import { Analytics } from '@vercel/analytics/next';
 
 // Use system font stack to avoid remote Google Fonts fetch during dev/build
@@ -24,6 +27,7 @@ export const metadata: Metadata = {
   creator: 'Echain',
   publisher: 'Echain',
   robots: 'index, follow',
+  manifest: '/manifest.json',
   openGraph: {
     title: 'Echain Events - Blockchain Event Ticketing',
     description: 'Create and attend blockchain-powered events with NFT tickets and POAP rewards',
@@ -45,6 +49,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.variable}>
+        {/* Temporarily removed MiniKitContextProvider due to SSR issues */}
         <Providers>
           <ChainWatcherClient />
           <RealtimeSubscriptionsClient />
@@ -57,6 +62,7 @@ export default function RootLayout({
               </ErrorBoundary>
             </main>
             <Footer />
+            <FarcasterAuthPortal />
           </div>
         </Providers>
         <Analytics />

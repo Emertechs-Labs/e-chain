@@ -3,6 +3,9 @@
 import { OrganizerApprovalDashboard } from '@/components/organizer/OrganizerApprovalDashboard';
 import { useRouter } from 'next/navigation';
 
+// Prevent static rendering
+export const dynamic = 'force-dynamic';
+
 export default function OrganizerApprovalPage() {
   const router = useRouter();
 

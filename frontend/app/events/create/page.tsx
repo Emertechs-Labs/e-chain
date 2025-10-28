@@ -1,9 +1,12 @@
 "use client";
 
+export const runtime = 'edge';
+
 import React, { useState } from "react";
 import { useAccount } from "wagmi";
 import { useOrganizerVerification, useVerifyOrganizer } from "../../hooks/useTransactions";
 import { useCreateEventDirect } from "../../hooks/useTransactionsDirect"; // Direct wallet transaction
+
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { uploadToIPFS, uploadEventMetadata, generateEventPosterWithQR } from "../../../lib/ipfs";

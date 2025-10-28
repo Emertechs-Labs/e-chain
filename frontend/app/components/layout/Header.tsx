@@ -7,8 +7,10 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { EnhancedConnectButton } from '../EnhancedConnectButton';
+import { UnifiedConnectButton } from '../UnifiedConnectButton';
 import { ThemeToggle } from '../ThemeToggle';
 import { usePendingTransactions } from '../TransactionStatus';
+import { SignInWithBaseButton } from '../SignInWithBaseButton';
 import { Clock, Home, User, LogOut } from 'lucide-react';
 
 export default function Header() {
@@ -45,7 +47,7 @@ export default function Header() {
   );
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border/50">
+    <header className="fixed top-0 left-0 right-0 z-[9999] bg-background/80 backdrop-blur-sm border-b border-border/50 echain-header">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -115,7 +117,16 @@ export default function Header() {
             ) : (
               // Unconnected user navigation
               <>
-                <Link href="/" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
+                <Link
+                  href="#hero"
+                  onClick={(e) => {
+                    if (pathname === '/my-events') {
+                      e.preventDefault();
+                      router.push('/');
+                    }
+                  }}
+                  className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+                >
                   Home
                 </Link>
                 <Link href="/#events" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
@@ -143,8 +154,8 @@ export default function Header() {
 
             {/* Connect Wallet - only show when not connected */}
             {!isConnected && (
-              <div className="ml-4">
-                <EnhancedConnectButton />
+              <div className="ml-4 wallet-button-wrapper">
+                <UnifiedConnectButton />
               </div>
             )}
           </nav>
@@ -305,9 +316,13 @@ export default function Header() {
                     <ThemeToggle />
                   </div>
 
-                  {/* Mobile wallet button */}
+                  {/* Mobile wallet buttons */}
                   <div className="px-3 py-3 border-t border-slate-800/50">
-                    <EnhancedConnectButton />
+                    <SignInWithBaseButton 
+                      variant="outline" 
+                      className="w-full" 
+                      onSignIn={() => setIsMenuOpen(false)} 
+                    />
                   </div>
                 </>
               )}

@@ -9,18 +9,15 @@ import { useClaimPOAP } from "../../hooks/useTransactions";
 import { formatEther } from "viem";
 import { toast } from "sonner";
 import Link from "next/link";
+
+// Prevent static rendering
+export const dynamic = 'force-dynamic';
 import { useQuery } from "@tanstack/react-query";
 import { CONTRACT_ADDRESSES } from "../../../lib/contracts";
 import { EnhancedConnectButton } from "../../components/EnhancedConnectButton";
 import Image from "next/image";
 import { readContract } from "../../../lib/contract-wrapper";
-import { FiCalendar, FiMapPin, FiUsers, FiShare2, FiBookmark, FiClock, FiGlobe, FiTwitter, FiMessageCircle, FiX, FiExternalLink } from 'react-icons/fi';
-import { HiTicket, HiCheckCircle, HiSparkles } from 'react-icons/hi';
-import { ModernButton } from '../../components/ui/ModernButton';
-import { ModernCard } from '../../components/ui/ModernCard';
-import { motion } from 'framer-motion';
-import { isMockEvent } from '../../../lib/mockEvents';
-import { EventLocationMap } from '../../components/maps/EventLocationMap';
+import { useMiniKit } from '@coinbase/onchainkit/minikit';
 
 const EventDetailPage: React.FC = () => {
   const params = useParams();
@@ -32,6 +29,42 @@ const EventDetailPage: React.FC = () => {
   const claimPOAPMutation = useClaimPOAP();
   const [quantity, setQuantity] = useState(1);
   const progressBarRef = useRef<HTMLDivElement>(null);
+  const { setFrameReady, isFrameReady } = useMiniKit();
+  // Add Frame metadata for Farcaster Frames
+  useEffect(() => {
+    if (event) {
+      // Add Frame metadata to document head
+      const metaTags = [
+        { property: 'fc:frame', content: 'vNext' },
+        { property: 'fc:frame:image', content: event.imageUrl || 'https://echain.com/default-event-image.png' },
+        { property: 'fc:frame:button:1', content: 'View Event' },
+        { property: 'fc:frame:button:1:action', content: 'link' },
+        { property: 'fc:frame:button:1:target', content: `https://echain.com/events/${eventId}` },
+        { property: 'fc:frame:button:2', content: 'RSVP' },
+        { property: 'fc:frame:post_url', content: `https://echain.com/api/frames/rsvp/${eventId}` },
+      ];
+
+      metaTags.forEach(({ property, content }) => {
+        const meta = document.createElement('meta');
+        meta.setAttribute('property', property);
+        meta.setAttribute('content', content);
+        document.head.appendChild(meta);
+      });
+
+      return () => {
+        // Cleanup meta tags on unmount
+        metaTags.forEach(({ property }) => {
+          const meta = document.querySelector(`meta[property="${property}"]`);
+          if (meta) document.head.removeChild(meta);
+        });
+      };
+    }
+  }, [event, eventId]);
+
+  // Initialize MiniKit Frame
+  useEffect(() => {
+    if (!isFrameReady) setFrameReady();
+  }, [isFrameReady, setFrameReady]);
 
   // Check if user has tickets for this event
   const { data: hasTicket = false } = useQuery({

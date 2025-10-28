@@ -14,7 +14,6 @@ export function sanitizeHtml(dirty: string): string {
     let sanitized = DOMPurify.sanitize(dirty, {
       ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br'],
       ALLOWED_ATTR: ['href', 'target', 'rel'],
-      ALLOWED_PROTOCOLS: ['http', 'https'],
     });
 
     // Additionally sanitize dangerous protocols and function calls in plain text

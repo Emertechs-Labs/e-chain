@@ -2,6 +2,12 @@
 
 This directory contains comprehensive documentation for the Echain development team, including individual member profiles, technical expertise, contribution logs, and collaborative workflows.
 
+## Directory Structure Standards
+
+All team member directories follow the standardized structure defined in [TEAM_DIRECTORY_STANDARD.md](./TEAM_DIRECTORY_STANDARD.md). Please refer to this document when creating or updating team member documentation.
+
+Templates for all required files can be found in the [templates](./templates/) directory.
+
 ## 👨‍💼 Core Team Members
 
 ### **Ancestor Koiyaki - Lead Engineer & Technical Architect**

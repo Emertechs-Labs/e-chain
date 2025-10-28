@@ -94,7 +94,6 @@ function buildIntegrations(target: SentryTarget): IntegrationArray {
       maskAllText: false,
       maskAllInputs: true,
       blockAllMedia: false,
-      errorSampleRate: 1.0,
     }));
     integrations.push(Sentry.browserProfilingIntegration());
   }

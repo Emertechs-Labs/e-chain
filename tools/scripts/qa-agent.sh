@@ -39,7 +39,7 @@ NC='\033[0m' # No Color
 
 # Script configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 
 # Load optional QA configuration
@@ -382,9 +382,9 @@ run_tests() {
     fi
 
     # Integration tests
-    if [ -f "scripts/run_all_tests.sh" ]; then
+    if [ -f "tools/scripts/run_all_tests.sh" ]; then
         log_info "Running integration tests..."
-        if run_with_timeout 900 "bash scripts/run_all_tests.sh" "Integration tests"; then
+        if run_with_timeout 900 "bash tools/scripts/run_all_tests.sh" "Integration tests"; then
             log_success "Integration tests passed"
         else
             log_error "Integration tests failed"

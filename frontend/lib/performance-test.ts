@@ -167,34 +167,43 @@ class PerformanceTester {
 
       // Test with first few events
       const testEvents = events.slice(0, Math.min(3, events.length));
-      let tracker: any;
-      tracker = trackMetadataEnrichment(testEvents.length);
+      const tracker = trackMetadataEnrichment(testEvents.length);
       const startTime = performance.now();
 
-      // Import the enrichment function
-      const { enrichEventsWithMetadata } = await import('../lib/metadata');
-      const enrichedEvents = await enrichEventsWithMetadata(testEvents);
-      const duration = performance.now() - startTime;
+      try {
+        // Import the enrichment function
+        const { enrichEventsWithMetadata } = await import('../lib/metadata');
+        const enrichedEvents = await enrichEventsWithMetadata(testEvents);
+        const duration = performance.now() - startTime;
 
-      tracker.end(true, { enrichedCount: enrichedEvents.length, duration });
-      this.results.push({
-        testName: 'Metadata Enrichment Test',
-        duration,
-        success: true,
-        details: { eventCount: testEvents.length, enrichedCount: enrichedEvents.length }
-      });
+        tracker.end(true, { enrichedCount: enrichedEvents.length, duration });
+        this.results.push({
+          testName: 'Metadata Enrichment Test',
+          duration,
+          success: true,
+          details: { eventCount: testEvents.length, enrichedCount: enrichedEvents.length }
+        });
 
-      console.log(`  ✅ Enriched ${enrichedEvents.length} events in ${duration.toFixed(2)}ms`);
+        console.log(`  ✅ Enriched ${enrichedEvents.length} events in ${duration.toFixed(2)}ms`);
+      } catch (error) {
+        tracker.end(false, { error: error instanceof Error ? error.message : String(error) });
+        this.results.push({
+          testName: 'Metadata Enrichment Test',
+          duration: 0,
+          success: false,
+          details: { error: String(error) }
+        });
+
+        console.log(`  ❌ Metadata enrichment failed: ${error instanceof Error ? error.message : String(error)}`);
+      }
     } catch (error) {
-      tracker.end(false, { error: error instanceof Error ? error.message : String(error) });
+      console.log(`  ❌ Metadata enrichment setup failed: ${error instanceof Error ? error.message : String(error)}`);
       this.results.push({
         testName: 'Metadata Enrichment Test',
         duration: 0,
         success: false,
-        details: { error: String(error) }
+        details: { error: 'Setup failed', message: String(error) }
       });
-
-      console.log(`  ❌ Metadata enrichment failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

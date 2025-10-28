@@ -7,9 +7,10 @@ import { getRPCProvider } from './providers/rpc-provider';
 const activeNetwork = process.env.NEXT_PUBLIC_ACTIVE_NETWORK || 'sepolia';
 const isMainnet = activeNetwork === 'mainnet';
 
-// Initialize RPC provider with failover support
-const rpcProvider = getRPCProvider(isMainnet ? 'mainnet' : 'sepolia');
-const endpoints = rpcProvider.getEndpoints();
+// Initialize RPC provider with failover support - only if not in build mode
+const isBuildTime = typeof window === 'undefined' && !process.env.NEXT_PUBLIC_REOWN_PROJECT_ID;
+const rpcProvider = !isBuildTime ? getRPCProvider(isMainnet ? 'mainnet' : 'sepolia') : null;
+const endpoints = rpcProvider ? rpcProvider.getEndpoints() : [];
 
 // Build RPC URL list with priority order
 const rpcUrls = endpoints.map(e => e.url).filter(Boolean);
@@ -46,9 +47,9 @@ const baseMainnetWithRPC = {
 
 export const config = getDefaultConfig({
   appName: 'Echain Event Ticketing',
-  projectId: process.env.NEXT_PUBLIC_REOWN_PROJECT_ID || '',
+  projectId: process.env.NEXT_PUBLIC_REOWN_PROJECT_ID || 'placeholder-for-build',
   chains: [isMainnet ? baseMainnetWithRPC : baseSepoliaWithRPC],
-  ssr: true,
+  ssr: false, // Disable SSR for Web3 config
 });
 
 export const defaultChain = isMainnet ? baseMainnetWithRPC : baseSepoliaWithRPC;

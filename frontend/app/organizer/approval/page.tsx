@@ -1,5 +1,8 @@
 'use client';
 
+// Force dynamic rendering to avoid prerendering issues with Web3 hooks
+export const dynamic = 'force-dynamic';
+
 import { OrganizerApprovalDashboard } from '@/components/organizer/OrganizerApprovalDashboard';
 import { useRouter } from 'next/navigation';
 

@@ -13,6 +13,10 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Disable static generation for Web3 app to avoid prerendering issues
+  generateBuildId: async () => {
+    return 'build-' + Date.now()
+  },
   transpilePackages: ['@polymathuniversata/echain-wallet', 'firebase', '@firebase'],
   outputFileTracingRoot: path.resolve(__dirname),
   images: {

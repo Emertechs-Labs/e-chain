@@ -25,7 +25,10 @@ const PerformanceDashboard: React.FC = () => {
 
   useEffect(() => {
     const updateStats = () => {
-      setStats(getStats());
+      const statsData = getStats();
+      // Ensure we always have a Map
+      const statsMap = statsData instanceof Map ? statsData : new Map();
+      setStats(statsMap);
       setRecentMetrics(getRecentMetrics(20));
     };
 

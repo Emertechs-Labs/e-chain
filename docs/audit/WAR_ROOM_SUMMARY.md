@@ -70,7 +70,7 @@
 ### **Status References**
 1. `docs/team/*/TASKS.md` - Individual team member tasks
 2. `docs/team/*/ISSUES.md` - Current blockers and issues
-3. `test-qa/.qa-cache.json` - Current QA status
+3. `tools/test-qa/.qa-cache.json` - Current QA status
 4. `docs/audit/BETA_RELEASE_ASSESSMENT.md` - Readiness assessment
 
 ---

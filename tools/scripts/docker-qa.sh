@@ -33,7 +33,7 @@ if [ -n "$DOCKER_CONTAINER" ] || echo "$@" | grep -q "docker"; then
     cd "$PROJECT_ROOT"
 
     # Run QA agent
-    if bash scripts/qa-agent.sh; then
+    if bash tools/scripts/qa-agent.sh; then
         log_info "QA checks passed - proceeding with Docker operation"
         exit 0
     else

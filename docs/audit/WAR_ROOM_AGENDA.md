@@ -157,7 +157,7 @@
 - Beta Release Plan: `docs/audit/BETA_RELEASE_PLAN.md`
 - Current Issues: `docs/team/*/ISSUES.md`
 - Team Tasks: `docs/team/*/TASKS.md`
-- QA Status: `test-qa/.qa-cache.json`
+- QA Status: `tools/test-qa/.qa-cache.json`
 
 **Preparation Deadline:** November 25, 2025 (EOD)</content>
 <parameter name="filePath">E:\Polymath Universata\Projects\Echain\docs\audit\WAR_ROOM_AGENDA.md

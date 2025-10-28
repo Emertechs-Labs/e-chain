@@ -1,5 +1,8 @@
 import { Metadata } from 'next';
 
+// Force dynamic rendering to avoid prerendering issues
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Privacy Policy | Echain',
   description: 'Privacy policy for Echain - Blockchain Event Platform',

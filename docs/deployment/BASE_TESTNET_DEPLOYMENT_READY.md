@@ -6,7 +6,7 @@
 1. **`blockchain/deployment-config.base-testnet.template.js`** - Template configuration file
 2. **`blockchain/scripts/deploy-base-testnet.ts`** - Base testnet deployment script
 3. **`blockchain/setup-base-deployment.sh`** - Pre-deployment verification script
-4. **`blockchain/BASE_TESTNET_DEPLOYMENT.md`** - Complete deployment guide
+4. **`docs/deployment/BASE_TESTNET_DEPLOYMENT.md`** - Complete deployment guide
 5. **`blockchain/.gitignore`** - Updated to allow template files while securing config
 6. **`blockchain/foundry.toml`** - Updated with Base testnet profiles and RPC aliases
 

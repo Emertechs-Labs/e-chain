@@ -5,7 +5,7 @@
 
 BASE_URL="https://echain-eight.vercel.app"
 TIMESTAMP=$(date +%s)
-RESULTS_FILE="comprehensive_test_$(date +%Y%m%d_%H%M%S).log"
+RESULTS_FILE="logs/comprehensive_test_$(date +%Y%m%d_%H%M%S).log"
 
 echo "🚀 COMPREHENSIVE ECHAIN PRODUCTION TESTING 🚀" | tee $RESULTS_FILE
 echo "===============================================" | tee -a $RESULTS_FILE

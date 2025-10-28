@@ -1,7 +1,7 @@
 # 📚 Echain Documentation Index
 
-**Version:** 1.2.0  
-**Last Updated:** October 26, 2025  
+**Version:** 1.3.0  
+**Last Updated:** October 28, 2025  
 **Status:** Beta Release Ready with Dynamic Data System
 
 ---
@@ -10,10 +10,13 @@
 
 ### 🚀 Getting Started
 - **[README](./README.md)** - Platform overview and quick start
-- **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Complete development setup
+- **[Environment Setup Guide](./ENVIRONMENT_SETUP_GUIDE.md)** - Complete development environment setup
 - **[Quick Start](./README.md#-quick-start)** - Get up and running in minutes
+- **[Beta User FAQ](./BETA_USER_FAQ.md)** - Frequently asked questions for beta users
 
 ### 🆕 NEW: Beta Release & Implementation
+- **[Beta Readiness Summary](./BETA_READINESS_SUMMARY.md)** - Current beta release status
+- **[Beta Release Checklist](./BETA_RELEASE_CHECKLIST.md)** - Requirements for beta release
 - **[Dynamic Data Implementation](./implementation/DYNAMIC_DATA_IMPLEMENTATION.md)** - Sprint plan for dynamic data system
 - **[Dynamic Data Complete Guide](./implementation/DYNAMIC_DATA_COMPLETE.md)** - Full documentation of implemented features
 - **[Base Integration Guide](./deployment/BASE_INTEGRATION_GUIDE.md)** - Base mainnet deployment, Farcaster mini-apps, and distribution
@@ -25,29 +28,64 @@
 - **[Beta Release Assessment](./audit/BETA_RELEASE_ASSESSMENT.md)** - Beta readiness evaluation
 - **[Beta Release Plan](./audit/BETA_RELEASE_PLAN.md)** - Strategic beta release planning
 - **[Security Audit](./security/README.md)** - Security documentation and fixes
+- **[War Room Summaries](./audit/WAR_ROOM_SUMMARY.md)** - Critical issue resolution sessions
 
 ### 🏗️ Architecture & Development
 - **[Architecture](./architecture/README.md)** - System design and component relationships
 - **[Smart Contracts](./contracts/README.md)** - Blockchain contract documentation
 - **[Multi-Chain Integration](./integration/README.md)** - Cross-chain development guides
 - **[API Reference](./api/README.md)** - Complete API documentation
+- **[Bridge Documentation](./bridge/README.md)** - Cross-chain bridge implementation
+- **[Frontend Architecture](./frontend/ARCHITECTURE.md)** - Frontend design patterns and structure
 
 ### 🚀 Deployment & Operations
 - **[Deployment Guide](./deployment/README.md)** - Production deployment instructions
-- **[Base Integration Guide](./deployment/BASE_INTEGRATION_GUIDE.md)** - 🆕 Base mainnet deployment with RPC providers
+- **[Base Integration Guide](./deployment/BASE_INTEGRATION_GUIDE.md)** - Base mainnet deployment with RPC providers
 - **[Vercel Deployment](./deployment/VERCEL_DEPLOYMENT_GUIDE.md)** - Frontend deployment guide
 - **[Testing Guide](./deployment/TESTING_DEPLOYMENT_GUIDE.md)** - Testing and validation procedures
 - **[Branching Strategy](./BRANCHING_STRATEGY.md)** - Git branching workflow for development, beta, and production
+- **[Node Provider Setup](./deployment/NODE_PROVIDER_SETUP.md)** - RPC node configuration
+- **[Frame Performance Optimization](./deployment/FRAME_PERFORMANCE_OPTIMIZATION.md)** - Optimizing Farcaster frames
 
-### 📖 User Guides
+### � Monitoring & Observability
+- **[Monitoring Setup](./monitoring/MONITORING_SETUP.md)** - Monitoring infrastructure setup
+- **[Dashboard Configuration](./monitoring/DASHBOARD_CONFIG.md)** - Metrics dashboard setup
+- **[Health Checks](./monitoring/HEALTH_CHECKS.md)** - System health monitoring
+- **[Error Tracking](./monitoring/ERROR_TRACKING_RULES.md)** - Error monitoring configuration
+- **[Performance Alerts](./monitoring/PERFORMANCE_ALERTS.md)** - Performance threshold alerts
+
+### �📖 User Guides
 - **[User Guides](./guides/README.md)** - End-user documentation
 - **[Code Examples](./examples/README.md)** - Sample implementations
 - **[Base Documentation](./base-docs/README.md)** - Base network specific guides
+- **[Beta User Onboarding](./guides/BETA_USER_ONBOARDING.md)** - Onboarding process for beta users
 
 ### 🔒 Security
 - **[Security Overview](./security/README.md)** - Security documentation index
 - **[Organizer Approval Security Audit](./security/ORGANIZER_APPROVAL_SECURITY_AUDIT.md)** - Complete organizer verification flow audit
 - **[Critical Vulnerabilities](./security/CRITICAL_VULNERABILITIES_FIXES.md)** - Security fixes
+- **[Comprehensive Blockchain Security Audit](./security/COMPREHENSIVE_BLOCKCHAIN_SECURITY_AUDIT.md)** - Full blockchain security review
+- **[Deployment Security Checklist](./security/DEPLOYMENT_SECURITY_CHECKLIST.md)** - Security verification for deployments
+- **[Incident Response Plan](./security/INCIDENT_RESPONSE_PLAN.md)** - Security incident handling procedures
+
+### 🎨 Design & User Experience
+- **[Design Overview](./design/README.md)** - Design system documentation
+- **[User Flows](./design/USER_FLOWS.md)** - User journey mapping
+- **[Accessibility Guidelines](./design/ACCESSIBILITY_GUIDELINES.md)** - Accessibility standards
+- **[Material Design 3 Integration](./design/MATERIAL_DESIGN_3_INTEGRATION.md)** - MD3 implementation details
+- **[Component Library](./design/COMPONENT_LIBRARY.md)** - UI component documentation
+
+### 👥 Team & Project Management
+- **[Team Directory](./team/README.md)** - Team structure and contacts
+- **[Agile Sprint Planning](./team/AGILE_SPRINT_PLANNING.md)** - Sprint methodology
+- **[Development Sprints](./development/AGILE_SPRINT_PLAN_BETA.md)** - Current sprint planning
+- **[Beta Realtime Roadmap](./development/BETA_REALTIME_ROADMAP.md)** - Live project roadmap
+
+### 🧪 Testing & Quality Assurance
+- **[QA Documentation](./qa/README.md)** - Quality assurance processes
+- **[Test Results](./test-results/)** - Latest test outcomes
+- **[Production Testing Guide](./status/PRODUCTION_TESTING_GUIDE.md)** - Production environment testing
+- **[Testing Summary](./status/PRODUCTION_TESTING_SUMMARY.md)** - Test result analysis
 - **[Security Audit Report](./security/SECURITY_AUDIT_REPORT_2025.md)** - Latest audit results
 - **[Deployment Security](./security/DEPLOYMENT_SECURITY_CHECKLIST.md)** - Security checklist
 

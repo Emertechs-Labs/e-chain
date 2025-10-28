@@ -35,7 +35,7 @@ if echo "$@" | grep -q -E "(dev|start|server)"; then
     log_info "Running pre-launch QA checks..."
 
     # Run QA checks (lighter version for dev)
-    if timeout 120 bash scripts/qa-agent.sh --lint-only; then
+    if timeout 120 bash tools/scripts/qa-agent.sh --lint-only; then
         log_success "QA checks passed - starting development server"
         log_info "Server will be available at: http://localhost:3000"
         echo ""

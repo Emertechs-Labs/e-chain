@@ -30,7 +30,7 @@
 | 2:04:19 AM | INFO | Checking for exposed secrets... |
 | 2:04:19 AM | INFO | Secret [REDACTED] |
 | 2:04:19 AM | SUCCESS | No exposed secrets detected |
-| 2:04:19 AM | SUCCESS | QA report generated: E:\Polymath Universata\Projects\Echain\test-qa\qa-report.json |
+| 2:04:19 AM | SUCCESS | QA report generated: E:\Polymath Universata\Projects\Echain\tools\test-qa\qa-report.json |
 
 
 **Duration:** 1.0s | **Errors:** 0 | **Warnings:** 1

@@ -43,19 +43,16 @@ Echain/
 │   ├── scripts/         # Deployment scripts
 │   ├── test/           # Foundry test suite
 │   └── deployments/    # Deployment artifacts
-├── docs/               # Comprehensive documentation
-│   ├── integration/    # Integration guides
-│   ├── deployment/     # Deployment documentation
-│   ├── audit/          # Security audits
-│   ├── base-docs/      # Base network documentation
-│   ├── frontend/       # Frontend architecture
-│   ├── guides/         # User guides
-│   ├── monitoring/     # Monitoring & alerting
-│   └── status/         # Project status & PMF
-├── packages/           # Shared packages
-│   └── wallet/         # Wallet package
-├── tools/             # Development tools
-└── scripts/           # Build and automation scripts
+├── frontend/
+│   ├── packages/       # Frontend packages
+│   │   └── wallet/     # Wallet package
+│   ├── tools/          # Frontend tools
+│   └── scripts/        # Frontend scripts
+├── tools/             # Development tools & scripts
+│   ├── scripts/        # Build and automation scripts
+│   ├── test-qa/        # QA testing framework
+│   └── backup/         # Universata backup
+└── docs/               # Comprehensive documentation
 ```
 
 ## 🔗 Contract Deployments (Base Sepolia)

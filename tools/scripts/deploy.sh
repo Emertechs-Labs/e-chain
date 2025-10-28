@@ -72,7 +72,7 @@ validate_environment() {
     print_info "Validating environment variables..."
     
     # Run environment validation script
-    if [ -f "scripts/validate-env.cjs" ]; then
+    if [ -f "tools/scripts/validate-env.cjs" ]; then
         if npm run validate:env; then
             print_success "Environment variables validated"
         else

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import './styles/modern-ui.css';
-import { Providers } from './providers';
+import dynamic from 'next/dynamic';
 import { MiniAppProvider } from '@/components/providers/MiniAppProvider';
 import Header from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
@@ -11,6 +11,11 @@ import RealtimeSubscriptionsClient from './components/RealtimeSubscriptionsClien
 import RealtimeStatus from './components/RealtimeStatus';
 import { Analytics } from '@vercel/analytics/next';
 import { FeedbackWidget } from '@/components/feedback/FeedbackWidget';
+
+// Dynamically import Providers to avoid prerendering issues with Web3
+const Providers = dynamic(() => import('./providers'), {
+  loading: () => <div>Loading...</div>
+});
 
 // Use system font stack to avoid remote Google Fonts fetch during dev/build
 // Keep a CSS variable for compatibility with existing styles

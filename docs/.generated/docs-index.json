@@ -43,17 +43,17 @@
   },
   {
     "path": "api/API_DOCUMENTATION.md",
-    "title": "API Documentation",
+    "title": "Echain API Documentation",
     "headings": [
-      "API Documentation",
-      "📋 Table of Contents",
+      "Echain API Documentation",
+      "Overview",
+      "Table of Contents",
       "Authentication",
-      "Admin Authentication",
-      "Health Check",
-      "GET /api/health"
+      "Overview",
+      "Authentication Flow"
     ],
-    "updatedAt": "2025-10-26T14:09:02.535Z",
-    "size": 9012
+    "updatedAt": "2025-10-29T00:31:23.869Z",
+    "size": 34777
   },
   {
     "path": "api/README.md",
@@ -66,8 +66,8 @@
       "Advanced Features",
       "🏗️ API Architecture"
     ],
-    "updatedAt": "2025-10-25T09:30:36.081Z",
-    "size": 46197
+    "updatedAt": "2025-10-27T01:48:50.908Z",
+    "size": 70200
   },
   {
     "path": "architecture/README.md",
@@ -80,8 +80,8 @@
       "🏗️ High-Level System Architecture",
       "Architecture Principles"
     ],
-    "updatedAt": "2025-10-25T09:30:36.087Z",
-    "size": 34772
+    "updatedAt": "2025-10-27T01:48:51.236Z",
+    "size": 46873
   },
   {
     "path": "audit/AUDIT_SUMMARY_20251025.md",
@@ -201,8 +201,8 @@
       "**2. Team Status Updates (30 min)**",
       "**Smart Contract Security (Peter - 10 min)**"
     ],
-    "updatedAt": "2025-10-25T06:00:33.268Z",
-    "size": 5740
+    "updatedAt": "2025-10-28T02:47:40.336Z",
+    "size": 5746
   },
   {
     "path": "audit/WAR_ROOM_NOTIFICATION.md",
@@ -243,8 +243,8 @@
       "**3. Documentation Structure**",
       "🎯 **War Room Readiness Status**"
     ],
-    "updatedAt": "2025-10-25T06:01:11.449Z",
-    "size": 4731
+    "updatedAt": "2025-10-28T02:47:40.219Z",
+    "size": 4737
   },
   {
     "path": "base-docs/backendintegration.md",
@@ -492,17 +492,17 @@
   },
   {
     "path": "BETA_READINESS_SUMMARY.md",
-    "title": "✅ Beta Release Readiness Summary",
+    "title": "⚠️ Beta Release Readiness Summary - UPDATED ASSESSMENT",
     "headings": [
-      "✅ Beta Release Readiness Summary",
+      "⚠️ Beta Release Readiness Summary - UPDATED ASSESSMENT",
       "🎯 Executive Summary",
       "✅ COMPLETED (Ready for Beta)",
       "1. Smart Contracts (100% Complete) ✅",
-      "2. Frontend Application (95% Complete) ✅",
+      "2. Frontend Application (100% Complete) ✅",
       "3. Documentation (98% Complete) ✅"
     ],
-    "updatedAt": "2025-10-26T14:09:02.507Z",
-    "size": 10513
+    "updatedAt": "2025-10-27T20:27:08.562Z",
+    "size": 12610
   },
   {
     "path": "BETA_RELEASE_CHECKLIST.md",
@@ -515,8 +515,36 @@
       "3. Frontend Application 🖥️",
       "4. Backend & APIs 🔧"
     ],
-    "updatedAt": "2025-10-26T14:09:02.508Z",
-    "size": 8875
+    "updatedAt": "2025-10-27T16:37:38.922Z",
+    "size": 9307
+  },
+  {
+    "path": "BETA_TROUBLESHOOTING_GUIDE.md",
+    "title": "Echain Troubleshooting Guide",
+    "headings": [
+      "Echain Troubleshooting Guide",
+      "Quick Diagnosis",
+      "Check Your Connection",
+      "Common Symptoms & Solutions",
+      "Wallet Connection Issues",
+      "Problem: \"Wallet not detected\""
+    ],
+    "updatedAt": "2025-10-27T20:27:08.802Z",
+    "size": 7244
+  },
+  {
+    "path": "BETA_USER_FAQ.md",
+    "title": "Echain Beta User FAQ",
+    "headings": [
+      "Echain Beta User FAQ",
+      "Getting Started",
+      "What is Echain?",
+      "How do I get started?",
+      "What wallets are supported?",
+      "Creating Events"
+    ],
+    "updatedAt": "2025-10-27T20:27:08.739Z",
+    "size": 5601
   },
   {
     "path": "BRANCHING_STRATEGY.md",
@@ -525,12 +553,12 @@
       "🔀 Echain Branching Strategy",
       "📋 Branch Overview",
       "🌿 Branch Structure",
+      "**dev** - Active Development Branch",
       "**main** - Stable Release & Backup Branch",
-      "**preview** - Beta Releases Branch",
-      "**production** - Active & Live Production Branch"
+      "**preview** - Beta Releases Branch"
     ],
-    "updatedAt": "2025-10-26T11:18:47.665Z",
-    "size": 11340
+    "updatedAt": "2025-10-26T17:02:11.264Z",
+    "size": 13680
   },
   {
     "path": "bridge/adapters/PolkadotAdapter.md",
@@ -649,14 +677,14 @@
     "title": "Bug Fixes and Code Quality Improvements",
     "headings": [
       "Bug Fixes and Code Quality Improvements",
-      "Date: October 26, 2025",
+      "Date: October 29, 2025",
       "GitHub Actions Workflow Fixes",
       "deploy-base-mainnet.yml",
       "Before",
       "After"
     ],
-    "updatedAt": "2025-10-26T14:09:02.509Z",
-    "size": 6798
+    "updatedAt": "2025-10-28T23:08:33.290Z",
+    "size": 8524
   },
   {
     "path": "CODEBASE_INDEX.md",
@@ -669,8 +697,8 @@
       "🛠️ Tech Stack",
       "Frontend (Next.js 15)"
     ],
-    "updatedAt": "2025-10-26T14:09:02.510Z",
-    "size": 12726
+    "updatedAt": "2025-10-28T02:47:52.667Z",
+    "size": 12533
   },
   {
     "path": "COMPLETE_TASKS_SUMMARY.md",
@@ -708,11 +736,11 @@
       "🎯 Contract Overview",
       "Current Implementation Status",
       "Architecture Principles",
-      "🏭 Core Contracts",
-      "EventFactory Contract"
+      "Tech Stack",
+      "🏭 Core Contracts"
     ],
-    "updatedAt": "2025-10-26T14:09:02.562Z",
-    "size": 65487
+    "updatedAt": "2025-10-27T01:48:50.908Z",
+    "size": 88456
   },
   {
     "path": "deployment/BASE_INTEGRATION_GUIDE.md",
@@ -725,8 +753,8 @@
       "Official Resources",
       "RPC Endpoints (Priority Order)"
     ],
-    "updatedAt": "2025-10-26T14:09:02.564Z",
-    "size": 14505
+    "updatedAt": "2025-10-28T05:02:32.338Z",
+    "size": 20564
   },
   {
     "path": "deployment/BASE_MAINNET_DEPLOYMENT_PLAN.md",
@@ -743,6 +771,20 @@
     "size": 2026
   },
   {
+    "path": "deployment/BASE_TESTNET_DEPLOYMENT_COMPLETED.md",
+    "title": "Echain Contracts - Base Testnet Deployment",
+    "headings": [
+      "Echain Contracts - Base Testnet Deployment",
+      "🚀 Deployed Contract Addresses",
+      "🔍 Deployment Information",
+      "📝 Contracts Overview",
+      "⚙️ Configuration Status",
+      "🖥️ Frontend Integration"
+    ],
+    "updatedAt": "2025-09-30T21:07:49.518Z",
+    "size": 2439
+  },
+  {
     "path": "deployment/BASE_TESTNET_DEPLOYMENT_READY.md",
     "title": "✅ BASE TESTNET DEPLOYMENT SETUP COMPLETE",
     "headings": [
@@ -753,8 +795,22 @@
       "🚀 NEXT STEPS FOR BASE TESTNET DEPLOYMENT",
       "**Step 1: Environment Setup**"
     ],
-    "updatedAt": "2025-10-25T09:30:36.124Z",
-    "size": 3728
+    "updatedAt": "2025-10-27T21:55:45.167Z",
+    "size": 3733
+  },
+  {
+    "path": "deployment/BASE_TESTNET_DEPLOYMENT.md",
+    "title": "Base Testnet Deployment Guide",
+    "headings": [
+      "Base Testnet Deployment Guide",
+      "Prerequisites",
+      "Setup Instructions",
+      "1. Environment Configuration",
+      "Deployer wallet private key (must have Base Sepolia ETH)",
+      "Optional: Custom Base Sepolia RPC URL (defaults to public RPC)"
+    ],
+    "updatedAt": "2025-10-05T02:01:47.173Z",
+    "size": 3788
   },
   {
     "path": "deployment/BETA_RELEASE_READINESS.md",
@@ -769,6 +825,20 @@
     ],
     "updatedAt": "2025-10-26T14:09:02.568Z",
     "size": 16821
+  },
+  {
+    "path": "deployment/CROSS_CHAIN_DEPLOYMENT.md",
+    "title": "Cross-Chain Deployment Guide",
+    "headings": [
+      "Cross-Chain Deployment Guide",
+      "Overview",
+      "Supported Networks",
+      "Cross-Chain Architecture",
+      "Deployment Steps",
+      "1. Base Mainnet Deployment (Primary)"
+    ],
+    "updatedAt": "2025-10-28T05:13:58.245Z",
+    "size": 4972
   },
   {
     "path": "deployment/DEPLOYMENT_CHECKLIST.md",
@@ -865,8 +935,8 @@
       "📋 Prerequisites & Requirements",
       "System Requirements"
     ],
-    "updatedAt": "2025-10-26T14:09:02.574Z",
-    "size": 31696
+    "updatedAt": "2025-10-28T05:22:58.636Z",
+    "size": 48639
   },
   {
     "path": "deployment/TESTING_DEPLOYMENT_GUIDE.md",
@@ -981,6 +1051,20 @@
     "size": 12457
   },
   {
+    "path": "design/MATERIAL_DESIGN_3_INTEGRATION.md",
+    "title": "🎨 Material Design 3 Integration Guide",
+    "headings": [
+      "🎨 Material Design 3 Integration Guide",
+      "Overview",
+      "🎯 Implementation Status",
+      "✅ **Completed Features**",
+      "🔧 **Current Issues**",
+      "Key Features"
+    ],
+    "updatedAt": "2025-10-27T01:26:13.364Z",
+    "size": 10305
+  },
+  {
     "path": "design/NATASHA_UI_UX_WEB3_GUIDE.md",
     "title": "🌟 NATASHA_UI_UX_WEB3_GUIDE.md",
     "headings": [
@@ -1047,7 +1131,7 @@
       "[Web3 UX Patterns](web3_ux_patterns.md)",
       "How to Use Research Components"
     ],
-    "updatedAt": "2025-10-26T14:14:17.282Z",
+    "updatedAt": "2025-10-26T14:14:50.799Z",
     "size": 4682
   },
   {
@@ -1178,17 +1262,17 @@
   },
   {
     "path": "DIAGNOSTIC_FIXES.md",
-    "title": "Diagnostic Fixes Summary - October 26, 2025",
+    "title": "Diagnostic Fixes Summary - October 29, 2025",
     "headings": [
-      "Diagnostic Fixes Summary - October 26, 2025",
+      "Diagnostic Fixes Summary - October 29, 2025",
       "✅ All Critical Errors Fixed",
       "Fixed Issues",
       "1. GitHub Actions Workflow (2 errors)",
       "2. Backend TypeScript Errors (24 errors)",
       "Prisma Configuration"
     ],
-    "updatedAt": "2025-10-26T14:09:02.516Z",
-    "size": 4657
+    "updatedAt": "2025-10-28T23:08:33.086Z",
+    "size": 5760
   },
   {
     "path": "DOCUMENTATION_UPDATE_SUMMARY.md",
@@ -1201,22 +1285,36 @@
       "Documentation Coverage",
       "📂 New Documentation Files"
     ],
-    "updatedAt": "2025-10-26T14:09:02.518Z",
-    "size": 15138
+    "updatedAt": "2025-10-29T01:58:14.085Z",
+    "size": 16853
+  },
+  {
+    "path": "ENVIRONMENT_BACKUP_TEMPLATE.md",
+    "title": "Echain Environment Variables Backup",
+    "headings": [
+      "Echain Environment Variables Backup",
+      "⚠️  SENSITIVE - DO NOT COMMIT TO GIT",
+      "📅 Created: October 26, 2025",
+      "🎯 Purpose: Secure backup of production environment variables",
+      "🔒 Store this file encrypted and offline",
+      "📋 Environment Variables Backup"
+    ],
+    "updatedAt": "2025-10-26T14:42:47.913Z",
+    "size": 3746
   },
   {
     "path": "ENVIRONMENT_SETUP_GUIDE.md",
-    "title": "Echain Environment Setup Guide",
+    "title": "Echain Environment Setup Guide - Beta Launch",
     "headings": [
-      "Echain Environment Setup Guide",
+      "Echain Environment Setup Guide - Beta Launch",
+      "🚨 **CRITICAL SECURITY WARNING**",
+      "**Public Repository - Never Commit Secrets!**",
       "🎯 **Quick Setup Overview**",
-      "**Phase 1: RPC Providers (30 minutes)**",
-      "**Phase 2: Monitoring (20 minutes)**",
-      "**Phase 3: Vercel Deployment (15 minutes)**",
-      "🔗 **Detailed Setup Instructions**"
+      "**Phase 1: Core Services (45 minutes)** - REQUIRED FOR BETA",
+      "**Phase 2: Optional Services (30 minutes)** - RECOMMENDED"
     ],
-    "updatedAt": "2025-10-26T14:10:25.914Z",
-    "size": 7010
+    "updatedAt": "2025-10-28T22:36:42.540Z",
+    "size": 15580
   },
   {
     "path": "ENVIRONMENT_SETUP_SUMMARY.md",
@@ -1225,12 +1323,12 @@
       "✅ Production Environment Setup - COMPLETED",
       "🎯 **What We've Accomplished**",
       "✅ **Created Environment Template**",
-      "✅ **Created Setup Guide**",
+      "✅ **Created Comprehensive Setup Guide**",
       "✅ **Updated Validation Script**",
       "✅ **Created Setup Script**"
     ],
-    "updatedAt": "2025-10-26T14:09:02.521Z",
-    "size": 4386
+    "updatedAt": "2025-10-27T16:26:26.663Z",
+    "size": 5353
   },
   {
     "path": "examples/README.md",
@@ -1248,17 +1346,17 @@
   },
   {
     "path": "FINAL_COMPLETION_REPORT.md",
-    "title": "🎉 ALL 6 TASKS COMPLETE - FINAL REPORT",
+    "title": "🎉 ALL 6 TASKS COMPLETE + RUNTIME FIXES - FINAL REPORT",
     "headings": [
-      "🎉 ALL 6 TASKS COMPLETE - FINAL REPORT",
+      "🎉 ALL 6 TASKS COMPLETE + RUNTIME FIXES - FINAL REPORT",
       "✅ **EXECUTIVE SUMMARY**",
       "📦 **DELIVERABLES SUMMARY**",
       "Task 1: E2E Test Suite (31 tests)",
       "Task 2: Beta Feedback System",
       "Task 3: User Management"
     ],
-    "updatedAt": "2025-10-26T14:09:02.522Z",
-    "size": 9774
+    "updatedAt": "2025-10-28T23:08:34.316Z",
+    "size": 10857
   },
   {
     "path": "fixes/TYPESCRIPT_ERROR_FIXES.md",
@@ -1439,8 +1537,22 @@
       "🔍 Audit & Assessment",
       "🏗️ Architecture & Development"
     ],
-    "updatedAt": "2025-10-26T14:12:38.990Z",
-    "size": 9996
+    "updatedAt": "2025-10-28T23:08:34.141Z",
+    "size": 13154
+  },
+  {
+    "path": "integration/CROSS_CHAIN_INTEGRATION.md",
+    "title": "Cross-Chain Integration Guide",
+    "headings": [
+      "Cross-Chain Integration Guide",
+      "Overview",
+      "Table of Contents",
+      "Architecture Overview",
+      "Multi-Chain Design Philosophy",
+      "Core Components"
+    ],
+    "updatedAt": "2025-10-28T23:20:53.859Z",
+    "size": 27337
   },
   {
     "path": "integration/FARCASTER_MINIAPPS_GUIDE.md",
@@ -1504,8 +1616,8 @@
       "Current Implementation Status",
       "Advanced Integration Patterns"
     ],
-    "updatedAt": "2025-10-25T09:30:36.139Z",
-    "size": 59182
+    "updatedAt": "2025-10-28T22:36:42.427Z",
+    "size": 69485
   },
   {
     "path": "integration/RPC_LATENCY_TUNING.md",
@@ -1516,6 +1628,20 @@
     ],
     "updatedAt": "2025-10-26T14:09:02.661Z",
     "size": 1919
+  },
+  {
+    "path": "MONITORING_ALERTING_BETA.md",
+    "title": "Echain Monitoring & Alerting Setup",
+    "headings": [
+      "Echain Monitoring & Alerting Setup",
+      "Overview",
+      "Health Check Endpoints",
+      "Primary Health Check",
+      "Monitoring Tools Configuration",
+      "Vercel Analytics"
+    ],
+    "updatedAt": "2025-10-27T20:27:08.904Z",
+    "size": 7417
   },
   {
     "path": "MONITORING_ALERTING_COMPLETE.md",
@@ -1556,8 +1682,8 @@
       "Metrics to Track",
       "Application Performance Metrics"
     ],
-    "updatedAt": "2025-10-26T14:09:02.668Z",
-    "size": 4359
+    "updatedAt": "2025-10-28T03:38:27.147Z",
+    "size": 9073
   },
   {
     "path": "monitoring/ERROR_TRACKING_RULES.md",
@@ -1658,20 +1784,6 @@
     "size": 21009
   },
   {
-    "path": "qa/README.md",
-    "title": "Quality Assurance & Testing Framework",
-    "headings": [
-      "Quality Assurance & Testing Framework",
-      "Overview",
-      "Testing Strategy",
-      "Testing Pyramid",
-      "Test Categories",
-      "1. Unit Testing"
-    ],
-    "updatedAt": "2025-10-26T14:09:02.680Z",
-    "size": 8039
-  },
-  {
     "path": "qalog.md",
     "title": "Quality Assurance Log",
     "headings": [
@@ -1682,8 +1794,8 @@
       "🛡️ QA Session: QA_20251026_053034 (Latest Successful)",
       "Test Results Summary"
     ],
-    "updatedAt": "2025-10-26T14:09:02.682Z",
-    "size": 16449
+    "updatedAt": "2025-10-29T17:55:37.512Z",
+    "size": 18070
   },
   {
     "path": "README.md",
@@ -1691,13 +1803,13 @@
     "headings": [
       "📖 Echain Documentation",
       "🎯 Platform Overview",
-      "🆕 Latest Updates (October 26, 2025)",
+      "🆕 Latest Updates (October 29, 2025)",
       "📋 Deployed Contract Addresses (Base Testnet)",
       "🔄 Multi-Chain Development Roadmap",
       "🚀 Quick Start for Beta Preparation"
     ],
-    "updatedAt": "2025-10-26T14:12:26.008Z",
-    "size": 31465
+    "updatedAt": "2025-10-29T01:58:14.449Z",
+    "size": 32453
   },
   {
     "path": "security/COMPREHENSIVE_BLOCKCHAIN_SECURITY_AUDIT.md",
@@ -1826,6 +1938,20 @@
     "size": 5594
   },
   {
+    "path": "security/SECURITY_AUDIT.md",
+    "title": "Security Audit Documentation",
+    "headings": [
+      "Security Audit Documentation",
+      "Overview",
+      "Table of Contents",
+      "Security Framework",
+      "Security Principles",
+      "Risk Assessment Matrix"
+    ],
+    "updatedAt": "2025-10-28T23:23:58.463Z",
+    "size": 29115
+  },
+  {
     "path": "security/SECURITY_IMPROVEMENTS.md",
     "title": "🔒 Security Improvements & Best Practices Implementation",
     "headings": [
@@ -1874,12 +2000,12 @@
       "Documentation Update Summary",
       "Overview",
       "What Was Completed",
-      "1. Beta Release Readiness Assessment ✅",
-      "2. Monitoring & Alerting Setup Guide ✅",
-      "3. GitHub Actions Workflow Fixes ✅"
+      "1. UI/UX Improvements Fixed ✅",
+      "2. Documentation Updates ✅",
+      "Documentation Structure Created"
     ],
-    "updatedAt": "2025-10-26T14:09:02.528Z",
-    "size": 10691
+    "updatedAt": "2025-10-29T01:58:14.285Z",
+    "size": 4063
   },
   {
     "path": "status/BETA_REALTIME_AUDIT.md",
@@ -2179,6 +2305,20 @@
     "size": 15316
   },
   {
+    "path": "team/MATERIAL_DESIGN_3_IMPLEMENTATION.md",
+    "title": "🎨 Material Design 3 Implementation Guide",
+    "headings": [
+      "🎨 Material Design 3 Implementation Guide",
+      "📋 Overview",
+      "🎯 Implementation Goals",
+      "🏗️ Technical Architecture",
+      "**Core Dependencies**",
+      "**Theme Configuration**"
+    ],
+    "updatedAt": "2025-10-26T22:46:48.378Z",
+    "size": 12174
+  },
+  {
     "path": "team/Natasha Frontend UI-UX/BACKLOG.md",
     "title": "Backlog — Natasha (Frontend UI/UX)",
     "headings": [
@@ -2295,13 +2435,107 @@
     "title": "👥 Echain Development Team Documentation",
     "headings": [
       "👥 Echain Development Team Documentation",
+      "Directory Structure Standards",
       "👨‍💼 Core Team Members",
       "**Ancestor Koiyaki - Lead Engineer & Technical Architect**",
       "**Technical Expertise**",
-      "**Key Contributions**",
-      "**Current Projects**"
+      "**Key Contributions**"
     ],
-    "updatedAt": "2025-10-25T11:32:05.187Z",
-    "size": 10735
+    "updatedAt": "2025-10-28T03:49:37.897Z",
+    "size": 11373
+  },
+  {
+    "path": "team/TEAM_DIRECTORY_STANDARD.md",
+    "title": "Team Directory Structure Standard",
+    "headings": [
+      "Team Directory Structure Standard",
+      "Overview",
+      "Directory Naming Convention",
+      "Required Files",
+      "Role-Specific Audit Files",
+      "Implementation Steps"
+    ],
+    "updatedAt": "2025-10-28T03:44:10.786Z",
+    "size": 1435
+  },
+  {
+    "path": "team/templates/PROFILE.md",
+    "title": "Team Member Profile",
+    "headings": [
+      "Team Member Profile",
+      "Technical Expertise",
+      "Key Contributions",
+      "Current Projects",
+      "Contact Information"
+    ],
+    "updatedAt": "2025-10-28T03:44:51.673Z",
+    "size": 560
+  },
+  {
+    "path": "team/templates/ROLE_AUDIT.md",
+    "title": "[Role] Audit Summary",
+    "headings": [
+      "[Role] Audit Summary",
+      "Responsibilities",
+      "Technical Standards",
+      "Quality Metrics",
+      "Recent Audits"
+    ],
+    "updatedAt": "2025-10-28T03:46:18.378Z",
+    "size": 442
+  },
+  {
+    "path": "team/templates/TASKS.md",
+    "title": "Current Tasks",
+    "headings": [
+      "Current Tasks",
+      "In Progress",
+      "Upcoming",
+      "Completed"
+    ],
+    "updatedAt": "2025-10-28T03:45:12.638Z",
+    "size": 310
+  },
+  {
+    "path": "TEST_RESULTS_DOCUMENTATION.md",
+    "title": "Test Results Documentation",
+    "headings": [
+      "Test Results Documentation",
+      "Test Summary",
+      "Detailed Test Results",
+      "1. Security Tests (`frame-security.test.ts`) - 28/28 ✅",
+      "2. Contract Wrapper Tests (`contract-wrapper.test.ts`) - 2/2 ✅",
+      "3. Integration Tests (`integration.test.ts`) - 21/21 ✅"
+    ],
+    "updatedAt": "2025-10-27T20:27:08.642Z",
+    "size": 4168
+  },
+  {
+    "path": "test-results/test_results_20251026_052225/SUMMARY_REPORT.md",
+    "title": "Echain Production Testing Summary Report",
+    "headings": [
+      "Echain Production Testing Summary Report",
+      "Test Overview",
+      "Tests Performed",
+      "1. Blockchain Contract Tests",
+      "2. Frontend Integration Tests",
+      "3. Deployment Verification Tests"
+    ],
+    "updatedAt": "2025-10-26T02:22:32.175Z",
+    "size": 2458
+  },
+  {
+    "path": "user/USER_ONBOARDING_GUIDE.md",
+    "title": "Echain User Onboarding Guide",
+    "headings": [
+      "Echain User Onboarding Guide",
+      "Welcome to Echain! 🎉",
+      "Table of Contents",
+      "Getting Started",
+      "What is Echain?",
+      "System Requirements"
+    ],
+    "updatedAt": "2025-10-28T23:35:18.894Z",
+    "size": 17173
   }
 ]

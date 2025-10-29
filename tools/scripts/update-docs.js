@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const projectRoot = path.resolve(__dirname, '..');
+const projectRoot = path.resolve(__dirname, '../..');
 const docsDir = path.join(projectRoot, 'docs');
 const generatedDir = path.join(docsDir, '.generated');
 const excludedDirectories = new Set(['.git', '.next', 'node_modules', 'dist', 'build', 'coverage', 'artifacts', 'cache', '.generated']);

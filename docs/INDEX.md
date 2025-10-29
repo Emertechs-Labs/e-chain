@@ -1,8 +1,8 @@
 # 📚 Echain Documentation Index
 
-**Version:** 1.3.0  
-**Last Updated:** October 28, 2025  
-**Status:** Beta Release Ready with Dynamic Data System
+**Version:** 1.3.1  
+**Last Updated:** October 29, 2025  
+**Status:** Beta Release Ready with Dynamic Data System & Runtime Fixes
 
 ---
 

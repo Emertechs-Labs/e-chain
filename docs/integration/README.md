@@ -727,6 +727,336 @@ export class MemoryManager {
 }
 ```
 
+#### RPC Provider Management System
+```typescript
+// lib/providers/rpc-provider.ts - Intelligent RPC endpoint management
+export interface RPCProvider {
+  url: string;
+  name: string;
+  priority: number;
+  latency?: number;
+  lastUsed?: number;
+  failures: number;
+  isActive: boolean;
+}
+
+export class RPCProviderManager {
+  private providers: Map<string, RPCProvider[]> = new Map();
+  private currentProvider: Map<string, RPCProvider> = new Map();
+  private latencyCheckInterval: NodeJS.Timeout | null = null;
+  private readonly maxLatency = 5000; // 5 seconds
+  private readonly maxFailures = 3;
+  private readonly latencyCheckFrequency = 30000; // 30 seconds
+
+  constructor() {
+    this.startLatencyMonitoring();
+  }
+
+  // Add RPC providers for a network
+  addProviders(network: string, providers: Omit<RPCProvider, 'latency' | 'lastUsed' | 'failures' | 'isActive'>[]) {
+    const providerList = providers.map(provider => ({
+      ...provider,
+      latency: undefined,
+      lastUsed: undefined,
+      failures: 0,
+      isActive: true,
+    }));
+
+    this.providers.set(network, providerList);
+    this.selectBestProvider(network);
+  }
+
+  // Get the best available provider for a network
+  getProvider(network: string): RPCProvider | null {
+    let provider = this.currentProvider.get(network);
+
+    if (!provider || !provider.isActive) {
+      provider = this.selectBestProvider(network);
+    }
+
+    if (provider) {
+      provider.lastUsed = Date.now();
+    }
+
+    return provider;
+  }
+
+  // Select the best provider based on priority and latency
+  private selectBestProvider(network: string): RPCProvider | null {
+    const networkProviders = this.providers.get(network);
+    if (!networkProviders || networkProviders.length === 0) {
+      return null;
+    }
+
+    // Filter active providers
+    const activeProviders = networkProviders.filter(p => p.isActive);
+
+    if (activeProviders.length === 0) {
+      // If no active providers, try to reactivate failed ones
+      this.reactivateProviders(network);
+      return networkProviders[0] || null;
+    }
+
+    // Sort by priority (lower number = higher priority), then by latency
+    const sortedProviders = activeProviders.sort((a, b) => {
+      if (a.priority !== b.priority) {
+        return a.priority - b.priority;
+      }
+      if (a.latency && b.latency) {
+        return a.latency - b.latency;
+      }
+      return (a.latency ? 1 : 0) - (b.latency ? 1 : 0);
+    });
+
+    const bestProvider = sortedProviders[0];
+    this.currentProvider.set(network, bestProvider);
+    return bestProvider;
+  }
+
+  // Report provider failure
+  reportFailure(network: string, url: string) {
+    const networkProviders = this.providers.get(network);
+    if (!networkProviders) return;
+
+    const provider = networkProviders.find(p => p.url === url);
+    if (provider) {
+      provider.failures++;
+      if (provider.failures >= this.maxFailures) {
+        provider.isActive = false;
+        console.warn(`Provider ${provider.name} (${url}) deactivated due to ${provider.failures} failures`);
+        // Select new provider
+        this.selectBestProvider(network);
+      }
+    }
+  }
+
+  // Report successful request
+  reportSuccess(network: string, url: string, latency: number) {
+    const networkProviders = this.providers.get(network);
+    if (!networkProviders) return;
+
+    const provider = networkProviders.find(p => p.url === url);
+    if (provider) {
+      provider.latency = latency;
+      provider.failures = Math.max(0, provider.failures - 1); // Reduce failure count on success
+      if (!provider.isActive && provider.failures < this.maxFailures) {
+        provider.isActive = true;
+        console.log(`Provider ${provider.name} (${url}) reactivated`);
+      }
+    }
+  }
+
+  // Periodic latency monitoring
+  private startLatencyMonitoring() {
+    this.latencyCheckInterval = setInterval(async () => {
+      for (const [network, providers] of this.providers.entries()) {
+        await Promise.all(
+          providers.map(async (provider) => {
+            if (!provider.isActive) return;
+
+            try {
+              const startTime = Date.now();
+              const response = await fetch(provider.url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  jsonrpc: '2.0',
+                  id: 1,
+                  method: 'eth_blockNumber',
+                  params: []
+                }),
+                signal: AbortSignal.timeout(5000)
+              });
+
+              if (response.ok) {
+                const latency = Date.now() - startTime;
+                provider.latency = latency;
+
+                if (latency > this.maxLatency) {
+                  console.warn(`Provider ${provider.name} (${provider.url}) high latency: ${latency}ms`);
+                }
+              } else {
+                throw new Error(`HTTP ${response.status}`);
+              }
+            } catch (error) {
+              console.warn(`Provider ${provider.name} (${provider.url}) health check failed:`, error);
+              this.reportFailure(network, provider.url);
+            }
+          })
+        );
+
+        // Re-select best provider if current one is slow
+        const current = this.currentProvider.get(network);
+        if (current && current.latency && current.latency > this.maxLatency) {
+          this.selectBestProvider(network);
+        }
+      }
+    }, this.latencyCheckFrequency);
+  }
+
+  // Reactivate providers that have cooled down
+  private reactivateProviders(network: string) {
+    const networkProviders = this.providers.get(network);
+    if (!networkProviders) return;
+
+    const now = Date.now();
+    networkProviders.forEach(provider => {
+      if (!provider.isActive && provider.lastUsed) {
+        const timeSinceLastUse = now - provider.lastUsed;
+        // Reactivate after 5 minutes of cooling down
+        if (timeSinceLastUse > 5 * 60 * 1000) {
+          provider.isActive = true;
+          provider.failures = Math.max(0, provider.failures - 1);
+          console.log(`Reactivating provider ${provider.name} (${provider.url})`);
+        }
+      }
+    });
+  }
+
+  // Get provider statistics
+  getStats(network: string) {
+    const networkProviders = this.providers.get(network) || [];
+    const current = this.currentProvider.get(network);
+
+    return {
+      totalProviders: networkProviders.length,
+      activeProviders: networkProviders.filter(p => p.isActive).length,
+      currentProvider: current ? {
+        name: current.name,
+        url: current.url,
+        latency: current.latency,
+        failures: current.failures
+      } : null,
+      providers: networkProviders.map(p => ({
+        name: p.name,
+        url: p.url,
+        priority: p.priority,
+        latency: p.latency,
+        failures: p.failures,
+        isActive: p.isActive
+      }))
+    };
+  }
+
+  // Cleanup
+  destroy() {
+    if (this.latencyCheckInterval) {
+      clearInterval(this.latencyCheckInterval);
+      this.latencyCheckInterval = null;
+    }
+  }
+}
+
+// Global RPC provider manager instance
+export const rpcProviderManager = new RPCProviderManager();
+
+// Initialize providers for supported networks
+rpcProviderManager.addProviders('base', [
+  {
+    url: 'https://sepolia.base.org',
+    name: 'Base Sepolia Official',
+    priority: 1
+  },
+  {
+    url: 'https://base-sepolia.publicnode.com',
+    name: 'PublicNode Base Sepolia',
+    priority: 2
+  },
+  {
+    url: 'https://base-sepolia.blockpi.network/v1/rpc/public',
+    name: 'BlockPI Base Sepolia',
+    priority: 3
+  }
+]);
+
+rpcProviderManager.addProviders('ethereum', [
+  {
+    url: 'https://eth-mainnet.g.alchemy.com/v2/demo',
+    name: 'Alchemy Ethereum',
+    priority: 1
+  },
+  {
+    url: 'https://cloudflare-eth.com',
+    name: 'Cloudflare Ethereum',
+    priority: 2
+  },
+  {
+    url: 'https://rpc.ankr.com/eth',
+    name: 'Ankr Ethereum',
+    priority: 3
+  }
+]);
+```
+
+#### Enhanced Wagmi Configuration with RPC Provider Management
+```typescript
+// lib/wagmi.ts - Wagmi config with intelligent RPC provider selection
+import { http, createConfig } from 'wagmi';
+import { baseSepolia, mainnet } from 'wagmi/chains';
+import { rpcProviderManager } from './providers/rpc-provider';
+
+// Custom transport that uses RPC provider manager
+function createManagedTransport(network: string) {
+  return http((args) => {
+    const provider = rpcProviderManager.getProvider(network);
+    if (!provider) {
+      throw new Error(`No available RPC provider for ${network}`);
+    }
+
+    const url = new URL(provider.url);
+
+    // Add API key if needed
+    if (network === 'base' && process.env.NEXT_PUBLIC_BASE_RPC_API_KEY) {
+      url.searchParams.set('apikey', process.env.NEXT_PUBLIC_BASE_RPC_API_KEY);
+    }
+
+    return url.toString();
+  }, {
+    onFetchError: ({ error, url }) => {
+      // Report failure to provider manager
+      rpcProviderManager.reportFailure(network, url.toString());
+    },
+    onFetchSuccess: ({ response, url }) => {
+      // Report success and latency
+      const latency = response.headers.get('x-response-time') ?
+        parseInt(response.headers.get('x-response-time')!) :
+        0;
+      rpcProviderManager.reportSuccess(network, url.toString(), latency);
+    }
+  });
+}
+
+export const config = createConfig({
+  chains: [mainnet, baseSepolia],
+  transports: {
+    [mainnet.id]: createManagedTransport('ethereum'),
+    [baseSepolia.id]: createManagedTransport('base'),
+  },
+});
+```
+
+#### RPC Provider Health Monitoring Hook
+```typescript
+// lib/hooks/useRpcHealth.ts - Monitor RPC provider health
+export function useRpcHealth(network: string) {
+  const [stats, setStats] = useState<any>(null);
+
+  useEffect(() => {
+    const updateStats = () => {
+      const currentStats = rpcProviderManager.getStats(network);
+      setStats(currentStats);
+    };
+
+    updateStats();
+    const interval = setInterval(updateStats, 5000); // Update every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [network]);
+
+  return stats;
+}
+```
+
 ### Integration Components
 ```mermaid
 graph TB

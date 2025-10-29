@@ -264,6 +264,25 @@ Add premium RPC providers for better performance.
    NEXT_PUBLIC_SPECTRUM_WS_URL=wss://...
    ```
 
+#### **RPC Provider Management System:**
+The application includes an intelligent RPC provider management system that automatically selects the best available RPC endpoint based on latency and reliability. Configure multiple providers for redundancy:
+
+```bash
+# Primary RPC providers (automatically managed)
+NEXT_PUBLIC_BASE_RPC_URL=https://sepolia.base.org
+NEXT_PUBLIC_BASE_RPC_API_KEY=your_base_api_key  # Optional
+
+# Additional providers for failover (optional)
+NEXT_PUBLIC_BASE_RPC_BACKUP_1=https://base-sepolia.publicnode.com
+NEXT_PUBLIC_BASE_RPC_BACKUP_2=https://base-sepolia.blockpi.network/v1/rpc/public
+```
+
+**Note:** The RPC provider management system will automatically:
+- Monitor latency and performance
+- Switch to backup providers on failure
+- Reactivate providers when they recover
+- Prioritize faster, more reliable endpoints
+
 ---
 
 ### **8. Email Service Setup** ⏱️ 5 minutes - OPTIONAL

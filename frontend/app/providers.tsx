@@ -31,7 +31,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
               appName: 'Echain Event Ticketing',
               learnMoreUrl: 'http://localhost:3000',
             }}
-            initialChain={defaultChain}
+            initialChain={defaultChain.id}
             showRecentTransactions={true}
           >
             <GoogleMapsProvider>

@@ -30,6 +30,7 @@ class RPCProviderManager {
 
   private initializeEndpoints(network: 'mainnet' | 'sepolia') {
     const prefix = network === 'mainnet' ? 'BASE_MAINNET' : 'BASE_SEPOLIA';
+    const publicRpcUrl = network === 'mainnet' ? 'https://mainnet.base.org' : 'https://sepolia.base.org';
 
     // Priority order: Chainstack > Spectrum > Coinbase > Public
     const endpoints: RPCEndpoint[] = [
@@ -53,7 +54,7 @@ class RPCProviderManager {
       },
       {
         name: 'Public RPC',
-        url: process.env[`NEXT_PUBLIC_${prefix}_RPC_URL`] || '',
+        url: process.env[`NEXT_PUBLIC_${prefix}_RPC_URL`] || publicRpcUrl,
         priority: 4,
         maxLatency: 1000, // Fallback, higher tolerance
       },

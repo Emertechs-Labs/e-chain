@@ -11,10 +11,11 @@ import RealtimeSubscriptionsClient from './components/RealtimeSubscriptionsClien
 import RealtimeStatus from './components/RealtimeStatus';
 import { Analytics } from '@vercel/analytics/next';
 import { FeedbackWidget } from '@/components/feedback/FeedbackWidget';
+import { AppLoader } from '@/components/ui/AppLoader';
 
 // Dynamically import Providers to avoid prerendering issues with Web3
-const Providers = dynamic(() => import('./providers'), {
-  loading: () => <div>Loading...</div>
+const Providers = dynamic(() => import('./providers').then(mod => mod.Providers), {
+  loading: () => <AppLoader />
 });
 
 // Use system font stack to avoid remote Google Fonts fetch during dev/build
@@ -78,7 +79,7 @@ export default function RootLayout({
             <FeedbackWidget />
           </MiniAppProvider>
         </Providers>
-        <Analytics />
+        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   );

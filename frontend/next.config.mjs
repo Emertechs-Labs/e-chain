@@ -20,7 +20,20 @@ const nextConfig = {
   transpilePackages: ['@polymathuniversata/echain-wallet', 'firebase', '@firebase'],
   outputFileTracingRoot: path.resolve(__dirname),
   images: {
-    domains: ['localhost', 'gateway.pinata.cloud', 'ipfs.io'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: 'gateway.pinata.cloud',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ipfs.io',
+      },
+    ],
   },
   async headers() {
     return [
@@ -31,10 +44,10 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' 'inline-speculation-rules'",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https: http:",
-              "font-src 'self' data:",
+              "font-src 'self' data: https://fonts.gstatic.com https://r2cdn.perplexity.ai",
               "connect-src 'self' https://sepolia.base.org https://base.g.alchemy.com https://base-sepolia.g.alchemy.com https://*.pinata.cloud https://api.pinata.cloud https://gateway.pinata.cloud https://ipfs.io https://api.web3modal.com https://*.web3modal.org https://*.walletconnect.com https://*.coinbase.com https://*.walletconnect.org https://*.bridge.walletconnect.org wss://*.bridge.walletconnect.org wss://*.walletconnect.org wss://*.walletconnect.com wss://base-sepolia.g.alchemy.com https://*.infura.io wss://*.infura.io http://localhost:*",
               "frame-src 'self' https://*.coinbase.com https://*.walletconnect.com https://*.walletconnect.org",
               "worker-src 'self' blob:",

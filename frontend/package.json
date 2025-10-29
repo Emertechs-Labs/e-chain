@@ -29,7 +29,7 @@
     "@coinbase/onchainkit": "^1.1.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@farcaster/frame-sdk": "^0.1.12",
+    "@farcaster/miniapp-sdk": "^0.1.12",
     "@firebase/app": "^0.14.4",
     "@firebase/component": "^0.7.0",
     "@firebase/util": "^1.13.0",

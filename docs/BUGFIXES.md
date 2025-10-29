@@ -1,6 +1,6 @@
 # Bug Fixes and Code Quality Improvements
 
-## Date: October 26, 2025
+## Date: October 29, 2025
 
 This document tracks all bug fixes and code quality improvements made to the codebase.
 
@@ -144,14 +144,54 @@ console.log('[Analytics]', {
   - `DEPLOYER_PRIVATE_KEY`
   - `BASESCAN_API_KEY`
 
+## Frontend Runtime Fixes (October 29, 2025)
+
+### Environment Configuration
+**Issue**: Environment variables not loading in Next.js development
+- **File**: `.env.local`
+- **Solution**: Moved `.env.local` from `frontend/` directory to project root
+- **Status**: ✅ Fixed
+
+### RPC Provider Configuration
+**Issue**: "No RPC endpoints configured for sepolia" error
+- **File**: `frontend/lib/providers/rpc-provider.ts`
+- **Solution**: 
+  - Added public Base RPC as fallback when environment variables are missing
+  - Implemented lazy loading to ensure environment variables are available at runtime
+- **Status**: ✅ Fixed
+
+### Wagmi Configuration
+**Issue**: RPC URLs not resolving properly in wagmi config
+- **File**: `frontend/lib/wagmi.ts`
+- **Solution**: Changed RPC URLs to use dynamic functions instead of static arrays
+- **Status**: ✅ Fixed
+
+### Content Security Policy (CSP)
+**Issue**: Font loading blocked by CSP, inline scripts blocked
+- **Files**: `frontend/next.config.mjs`, `frontend/vercel.json`
+- **Solution**: 
+  - Added `https://fonts.gstatic.com` and `https://r2cdn.perplexity.ai` to `font-src`
+  - Added `'inline-speculation-rules'` to `script-src` for Chrome compatibility
+- **Status**: ✅ Fixed
+
+### Vercel Analytics
+**Issue**: 404 error for analytics script in development
+- **File**: `frontend/app/layout.tsx`
+- **Solution**: Made Analytics component conditional (only loads in production)
+- **Status**: ✅ Fixed
+
 ## Summary
 
-- ✅ **26 Critical Errors Fixed**
+- ✅ **32 Critical Errors Fixed**
 - ✅ **All TypeScript compilation errors resolved**
 - ✅ **All test type errors fixed**
 - ✅ **Prisma schema updated** (tokenId and txHash made optional for pre-mint ticket creation)
 - ✅ **TicketStatus enum values corrected** (VALID → ACTIVE, USED → TRANSFERRED)
 - ✅ **Decimal type conversions added** for all price and revenue fields
+- ✅ **Environment configuration fixed** for proper Next.js loading
+- ✅ **RPC provider made robust** with fallbacks and lazy loading
+- ✅ **CSP updated** for font and script loading
+- ✅ **Analytics made production-only** to prevent dev errors
 - ⚠️ **Context access warnings remain** (require GitHub repository configuration)
 - 📝 **CSS inline style warnings** (intentional for OG image generation)
 

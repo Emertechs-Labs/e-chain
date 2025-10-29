@@ -7,20 +7,43 @@ import { getRPCProvider } from './providers/rpc-provider';
 const activeNetwork = process.env.NEXT_PUBLIC_ACTIVE_NETWORK || 'sepolia';
 const isMainnet = activeNetwork === 'mainnet';
 
-// Initialize RPC provider with failover support - only if not in build mode
-const isBuildTime = typeof window === 'undefined' && !process.env.NEXT_PUBLIC_REOWN_PROJECT_ID;
-const rpcProvider = !isBuildTime ? getRPCProvider(isMainnet ? 'mainnet' : 'sepolia') : null;
-const endpoints = rpcProvider ? rpcProvider.getEndpoints() : [];
+// Initialize RPC provider with failover support - lazy load
+let rpcProvider: ReturnType<typeof getRPCProvider> | null = null;
 
-// Build RPC URL list with priority order
-const rpcUrls = endpoints.map(e => e.url).filter(Boolean);
+const getRpcProvider = () => {
+  if (!rpcProvider) {
+    rpcProvider = getRPCProvider(isMainnet ? 'mainnet' : 'sepolia');
+  }
+  return rpcProvider;
+};
+
+// Build RPC URL list with priority order and fallbacks
+const getRpcUrls = (): readonly string[] => {
+  try {
+    const provider = getRpcProvider();
+    const endpoints = provider.getEndpoints();
+    const urls = endpoints.map(e => e.url).filter(Boolean);
+
+    // Always include public RPC as fallback
+    const publicRpc = isMainnet ? 'https://mainnet.base.org' : 'https://sepolia.base.org';
+    if (!urls.includes(publicRpc)) {
+      urls.push(publicRpc);
+    }
+
+    return urls.length > 0 ? urls : [publicRpc];
+  } catch (error) {
+    console.warn('[WAGMI] Failed to initialize RPC provider, using public RPC:', error);
+    // Fallback to public RPC if provider initialization fails
+    return [isMainnet ? 'https://mainnet.base.org' : 'https://sepolia.base.org'];
+  }
+};
 
 // Custom Base Sepolia configuration with enhanced RPC management
 const baseSepoliaWithRPC = {
   ...baseSepolia,
   rpcUrls: {
     default: {
-      http: rpcUrls.length > 0 ? rpcUrls : ['https://sepolia.base.org'],
+      http: getRpcUrls(),
       webSocket: ['wss://sepolia.base.org/ws']
     },
     public: {
@@ -35,7 +58,7 @@ const baseMainnetWithRPC = {
   ...base,
   rpcUrls: {
     default: {
-      http: rpcUrls.length > 0 ? rpcUrls : ['https://mainnet.base.org'],
+      http: getRpcUrls(),
       webSocket: ['wss://mainnet.base.org/ws']
     },
     public: {
@@ -48,9 +71,9 @@ const baseMainnetWithRPC = {
 export const config = getDefaultConfig({
   appName: 'Echain Event Ticketing',
   projectId: process.env.NEXT_PUBLIC_REOWN_PROJECT_ID || 'placeholder-for-build',
-  chains: [isMainnet ? baseMainnetWithRPC : baseSepoliaWithRPC],
+  chains: [isMainnet ? base : baseSepolia],
   ssr: false, // Disable SSR for Web3 config
 });
 
-export const defaultChain = isMainnet ? baseMainnetWithRPC : baseSepoliaWithRPC;
+export const defaultChain = isMainnet ? base : baseSepolia;
 export { rpcProvider };

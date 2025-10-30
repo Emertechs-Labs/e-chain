@@ -10,8 +10,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { formatDistanceToNow } from 'date-fns';
 import { 
   Breadcrumb,
@@ -24,7 +24,7 @@ import {
 import { toast } from "sonner";
 import { Loader2, AlertCircle, Check, RefreshCw, PlusCircle } from "lucide-react";
 import { useUserListings, useCancelMarketplaceListing } from "../../hooks/useMarketplace";
-import { useWalletHelpers } from "@echain/wallet/hooks";
+import { useWalletHelpers } from "@polymathuniversata/echain-wallet/hooks";
 
 export const dynamic = 'force-dynamic';
 
@@ -122,7 +122,7 @@ export default function MyListingsPage() {
               
               <div className="flex gap-3">
                 <Button 
-                  variant="outline"
+                  variant="outlined"
                   className="border-slate-700 text-white hover:bg-slate-800"
                   onClick={() => refetch()}
                 >
@@ -130,12 +130,12 @@ export default function MyListingsPage() {
                   Refresh
                 </Button>
                 
-                <Button asChild>
-                  <Link href="/marketplace/create">
+                <Link href="/marketplace/create">
+                  <Button>
                     <PlusCircle className="h-4 w-4 mr-2" />
                     Create Listing
-                  </Link>
-                </Button>
+                  </Button>
+                </Link>
               </div>
             </div>
             
@@ -150,11 +150,11 @@ export default function MyListingsPage() {
                 <div className="text-6xl mb-6">🎫</div>
                 <h2 className="text-2xl font-bold text-white mb-4">No Active Listings</h2>
                 <p className="text-gray-400 mb-8">You don&apos;t have any active listings on the marketplace.</p>
-                <Button asChild>
-                  <Link href="/marketplace/create" className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 font-semibold">
+                <Link href="/marketplace/create" className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 font-semibold">
+                  <Button>
                     List a Ticket
-                  </Link>
-                </Button>
+                  </Button>
+                </Link>
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -193,7 +193,7 @@ export default function MyListingsPage() {
                     
                     <CardFooter className="border-t border-slate-700 pt-4">
                       <Button
-                        variant="destructive"
+                        variant="outlined"
                         className="w-full"
                         onClick={() => handleCancelListing(listing.id)}
                         disabled={cancelingId === listing.id || isPending}

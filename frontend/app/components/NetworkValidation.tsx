@@ -1,6 +1,6 @@
 'use client';
 
-import { useWalletHelpers } from '@echain/wallet';
+import { useWalletHelpers } from '@polymathuniversata/echain-wallet';
 import { useState } from 'react';
 import { AlertTriangle, Wifi } from 'lucide-react';
 

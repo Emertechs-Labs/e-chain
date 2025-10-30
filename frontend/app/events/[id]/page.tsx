@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useWalletConnection } from '@echain/wallet';
+import { useWalletConnection } from '@polymathuniversata/echain-wallet';
 import { useEvent } from "../../hooks/useEvents";
 import { usePurchaseTicketDirect } from "../../hooks/useTransactionsDirect"; // Direct wallet transaction
 import { useClaimPOAP } from "../../hooks/useTransactions";
@@ -14,7 +14,7 @@ import Link from "next/link";
 export const dynamic = 'force-dynamic';
 import { useQuery } from "@tanstack/react-query";
 import { CONTRACT_ADDRESSES } from "../../../lib/contracts";
-import { UnifiedConnectButton } from '@echain/wallet/components';
+import { UnifiedConnectButton } from '@polymathuniversata/echain-wallet/components';
 import Image from "next/image";
 import { readContract } from "../../../lib/contract-wrapper";
 import { useMiniKit } from '@coinbase/onchainkit/minikit';

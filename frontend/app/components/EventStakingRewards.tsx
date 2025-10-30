@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { useStaking } from '../../hooks/useStaking';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui';
+import { Button } from '../../components/ui';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Coins, TrendingUp, PiggyBank, Gift } from 'lucide-react';

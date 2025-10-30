@@ -5,7 +5,7 @@ import { WagmiProvider } from 'wagmi';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { OnchainKitProvider } from '@coinbase/onchainkit';
 import { base } from 'wagmi/chains';
-import { defaultChain, config } from '@echain/wallet';
+import { defaultChain, config } from '@polymathuniversata/echain-wallet';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '../lib/theme-provider';
 import { useState } from 'react';

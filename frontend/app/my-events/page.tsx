@@ -2,9 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
-import { useWalletConnection } from '@echain/wallet';
+import { useWalletConnection } from '@polymathuniversata/echain-wallet';
 import { formatEther } from "viem";
-import { UnifiedConnectButton } from '@echain/wallet/components';
+import { UnifiedConnectButton } from '@polymathuniversata/echain-wallet/components';
 import { useEventsByOrganizer, useOrganizerMetrics } from "../hooks/useEvents";
 import { readContract } from "../../lib/contract-wrapper";
 import { useQuery } from "@tanstack/react-query";

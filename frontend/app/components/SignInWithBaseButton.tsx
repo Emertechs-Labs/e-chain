@@ -1,7 +1,7 @@
 'use client';
 
 import { useBaseAuth } from '../../hooks/useBaseAuth';
-import { Button } from './ui/button';
+import { Button } from '../../components/ui';
 import { Wallet, LogOut, UserRound } from 'lucide-react';
 
 interface SignInWithBaseButtonProps {
@@ -25,6 +25,10 @@ export function SignInWithBaseButton({
 }: SignInWithBaseButtonProps) {
   const { authenticate, disconnect, isConnected, address, isLoading } = useBaseAuth();
 
+  // Map variant and size to MUI
+  const muiVariant = variant === 'outline' ? 'outlined' : variant === 'ghost' ? 'text' : 'filled';
+  const muiSize = size === 'sm' ? 'small' : size === 'lg' ? 'large' : 'medium';
+
   const handleSignIn = async () => {
     await authenticate();
     onSignIn?.();
@@ -46,8 +50,8 @@ export function SignInWithBaseButton({
         </div>
         {showDisconnect && (
           <Button
-            variant="outline"
-            size="sm"
+            variant={muiVariant}
+            size={muiSize}
             onClick={handleSignOut}
             disabled={isLoading}
             className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
@@ -63,8 +67,8 @@ export function SignInWithBaseButton({
   return (
     <div className="flex flex-col gap-2">
       <Button
-        variant="outline"
-        size={size}
+        variant={muiVariant}
+        size={muiSize}
         onClick={handleSignIn}
         disabled={isLoading}
         className={`${className} w-full flex justify-center items-center py-2`}
@@ -92,8 +96,8 @@ export function SignInWithBaseButton({
       </div>
       
       <Button
-        variant="secondary"
-        size={size}
+        variant="outlined"
+        size={muiSize}
         onClick={() => {
           // Trigger Farcaster auth modal
           window.dispatchEvent(new CustomEvent('farcaster-auth-start'));

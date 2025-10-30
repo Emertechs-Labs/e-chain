@@ -391,6 +391,47 @@ vercel --prod
 
 ### Frontend Deployment (Vercel)
 
+#### Monorepo Configuration
+This project uses a monorepo structure with the Next.js frontend located in the `frontend/` directory. Vercel deployment requires specific configuration to build from the correct directory.
+
+##### vercel.json Configuration
+```json
+{
+  "framework": "nextjs",
+  "rootDirectory": "frontend",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "outputDirectory": ".next",
+  "functions": {
+    "app/api/**/*.ts": {
+      "runtime": "@vercel/node"
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Important**: The `vercel.json` file must be placed in the **root directory** of the repository, not in the `frontend/` folder, to properly configure Vercel for monorepo deployment.
+
 #### Automated Deployment
 ```bash
 # Install Vercel CLI

@@ -36,6 +36,7 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 - ✅ **Dependency Updates**: Upgraded packages for better security and compatibility
 - ✅ **Multi-Chain Readiness**: Enhanced Base network integration with wallet optimizations
 - ✅ **Documentation Updates**: Comprehensive docs refresh to reflect current project state
+- ✅ **Vercel Deployment Fix**: Configured monorepo deployment with proper rootDirectory settings
 
 ### 📋 Deployed Contract Addresses (Base Testnet)
 
@@ -308,7 +309,7 @@ graph TD
 ## 📞 Support & Resources
 
 ### **Official Channels**
-- **[GitHub Repository](https://github.com/Talent-Index/Echain)**: Source code and issue tracking
+- **[GitHub Repository](https://github.com/Emertechs-Labs/e-chain)**: Source code and issue tracking
 - **[Live Demo](https://echain-eight.vercel.app)**: Production application
 - **[Base Explorer](https://sepolia.basescan.org/)**: Contract verification and transactions
 - **[Polkadot Explorer](https://polkadot.js.org/apps/)**: Polkadot network interactions

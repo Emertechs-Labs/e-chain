@@ -93,6 +93,7 @@ export function EnhancedConnectModal({
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            title="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
@@ -213,7 +214,6 @@ export function EnhancedConnectModal({
                     onClick={() => handleSocialAuth(provider.id)}
                     disabled={socialAuth.isLoading}
                     className="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:shadow-lg transition-all disabled:opacity-50"
-                    style={{ borderColor: provider.color }}
                   >
                     <span className="text-2xl mb-2">{provider.icon}</span>
                     <span className="text-sm font-medium text-gray-900 dark:text-white">

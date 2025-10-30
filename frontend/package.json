@@ -50,6 +50,7 @@
     "@polymathuniversata/echain-wallet": "^1.0.2",
     "@types/better-sqlite3": "^7.6.13",
     "@types/google.maps": "^3.58.1",
+    "@types/jest": "^29.5.12",
     "@types/minimatch": "^6.0.0",
     "@types/node": "^20.19.17",
     "@types/react": "^18.3.26",

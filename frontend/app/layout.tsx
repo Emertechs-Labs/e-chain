@@ -1,22 +1,16 @@
 import type { Metadata } from 'next';
+import '@coinbase/onchainkit/styles.css';
 import './globals.css';
-import './styles/modern-ui.css';
-import dynamic from 'next/dynamic';
-import { MiniAppProvider } from '@/components/providers/MiniAppProvider';
+import { Providers } from './providers';
 import Header from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import ChainWatcherClient from './components/ChainWatcherClient';
 import RealtimeSubscriptionsClient from './components/RealtimeSubscriptionsClient';
 import RealtimeStatus from './components/RealtimeStatus';
+import { FarcasterAuthPortal } from './components/FarcasterAuthPortal';
+import { ClientMiniKitWrapper } from './components/ClientMiniKitWrapper';
 import { Analytics } from '@vercel/analytics/next';
-import { FeedbackWidget } from '@/components/feedback/FeedbackWidget';
-import { AppLoader } from '@/components/ui/AppLoader';
-
-// Dynamically import Providers to avoid prerendering issues with Web3
-const Providers = dynamic(() => import('./providers').then(mod => mod.Providers), {
-  loading: () => <AppLoader />
-});
 
 // Use system font stack to avoid remote Google Fonts fetch during dev/build
 // Keep a CSS variable for compatibility with existing styles
@@ -32,6 +26,7 @@ export const metadata: Metadata = {
   creator: 'Echain',
   publisher: 'Echain',
   robots: 'index, follow',
+  manifest: '/manifest.json',
   openGraph: {
     title: 'Echain Events - Blockchain Event Ticketing',
     description: 'Create and attend blockchain-powered events with NFT tickets and POAP rewards',
@@ -43,9 +38,6 @@ export const metadata: Metadata = {
     title: 'Echain Events',
     description: 'Blockchain-powered event ticketing platform',
   },
-  other: {
-    'google-fonts': 'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap',
-  },
 };
 
 export default function RootLayout({
@@ -55,31 +47,24 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
-        />
-      </head>
       <body className={inter.variable}>
+        {/* Temporarily removed MiniKitContextProvider due to SSR issues */}
         <Providers>
-          <MiniAppProvider>
-            <ChainWatcherClient />
-            <RealtimeSubscriptionsClient />
-            <RealtimeStatus />
-            <div className="min-h-screen flex flex-col">
-              <Header />
-              <main className="flex-1 pt-16">
-                <ErrorBoundary>
-                  {children}
-                </ErrorBoundary>
-              </main>
-              <Footer />
-            </div>
-            <FeedbackWidget />
-          </MiniAppProvider>
+          <ChainWatcherClient />
+          <RealtimeSubscriptionsClient />
+          <RealtimeStatus />
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-1 pt-16">
+              <ErrorBoundary>
+                {children}
+              </ErrorBoundary>
+            </main>
+            <Footer />
+            <FarcasterAuthPortal />
+          </div>
         </Providers>
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        <Analytics />
       </body>
     </html>
   );

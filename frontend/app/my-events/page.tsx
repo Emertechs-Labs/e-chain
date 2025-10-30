@@ -2,13 +2,16 @@
 
 import React from "react";
 import Link from "next/link";
-import { useAccount } from "wagmi";
+import { useWalletConnection } from '@echain/wallet';
 import { formatEther } from "viem";
-import { EnhancedConnectButton } from "../components/EnhancedConnectButton";
+import { UnifiedConnectButton } from '@echain/wallet/components';
 import { useEventsByOrganizer, useOrganizerMetrics } from "../hooks/useEvents";
 import { readContract } from "../../lib/contract-wrapper";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart3, Users, DollarSign, TrendingUp, Calendar, MapPin } from "lucide-react";
+
+// Prevent static rendering
+export const dynamic = 'force-dynamic';
 
 // Hook to get event metrics
 const useEventMetrics = (event: any) => {
@@ -138,17 +141,20 @@ const EventCard: React.FC<{ event: any }> = ({ event }) => {
               <span>{Math.round((metrics.soldTickets / event.maxTickets) * 100)}%</span>
             </div>
             <div className="w-full bg-slate-700 rounded-full h-2">
-              {/* dynamic width requires inline style — allow this specific case */}
-              {/* eslint-disable-next-line react/forbid-dom-props, react/no-unknown-property */}
-              <div
-                className={`h-2 rounded-full transition-all duration-500 ${
-                  metrics.soldTickets / event.maxTickets > 0.8 ? 'bg-gradient-to-r from-red-500 to-orange-500' :
-                  metrics.soldTickets / event.maxTickets > 0.5 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
-                  'bg-gradient-to-r from-cyan-500 to-blue-500'
-                }`}
-                style={{ width: `${Math.min((metrics.soldTickets / event.maxTickets) * 100, 100)}%` }}
-              ></div>
+              <div className={`progress-fill ${
+                metrics.soldTickets / event.maxTickets > 0.8 ? 'bg-gradient-to-r from-red-500 to-orange-500' :
+                metrics.soldTickets / event.maxTickets > 0.5 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                'bg-gradient-to-r from-cyan-500 to-blue-500'
+              }`}></div>
             </div>
+            <style jsx>{`
+              .progress-fill {
+                width: ${Math.min((metrics.soldTickets / event.maxTickets) * 100, 100)}%;
+                height: 0.5rem;
+                border-radius: 9999px;
+                transition: all 0.5s;
+              }
+            `}</style>
           </div>
         </div>
 
@@ -172,7 +178,7 @@ const EventCard: React.FC<{ event: any }> = ({ event }) => {
 };
 
 const MyEventsPage: React.FC = () => {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected } = useWalletConnection();
   const { data: events = [], isLoading } = useEventsByOrganizer();
   const { data: metrics } = useOrganizerMetrics();
 
@@ -185,7 +191,9 @@ const MyEventsPage: React.FC = () => {
           <p className="text-gray-400 mb-8 max-w-md mx-auto">
             Connect your wallet to view and manage your events.
           </p>
-          <EnhancedConnectButton />
+          <div className="flex justify-center">
+            <UnifiedConnectButton />
+          </div>
         </div>
       </div>
     );

@@ -9,6 +9,9 @@ import Link from "next/link";
 import { ArrowLeft, Users, DollarSign, Calendar, Settings, BarChart3 } from "lucide-react";
 import { readContract } from "../../../../lib/contract-wrapper";
 import { CONTRACT_ADDRESSES } from "../../../../lib/contracts";
+
+// Prevent static rendering
+export const dynamic = 'force-dynamic';
 import styles from "./page.module.css";
 
 const EventManagementPage: React.FC = () => {

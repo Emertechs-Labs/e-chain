@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { RewardsDashboard } from "@/components/rewards/RewardsDashboard";
 import { Trophy, Star, Users, Gift, ArrowLeft } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 const RewardsPage: React.FC = () => {
   const { isConnected } = useAccount();
 

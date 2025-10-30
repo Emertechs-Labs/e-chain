@@ -1,20 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount, useDisconnect } from 'wagmi';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { EnhancedConnectButton } from '../EnhancedConnectButton';
+import { UnifiedConnectButton } from '@echain/wallet/components';
+import { useWalletConnection } from '@echain/wallet';
 import { ThemeToggle } from '../ThemeToggle';
 import { usePendingTransactions } from '../TransactionStatus';
+import { SignInWithBaseButton } from '../SignInWithBaseButton';
 import { Clock, Home, User, LogOut } from 'lucide-react';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isConnected, address } = useAccount();
-  const { disconnect } = useDisconnect();
+  const { isConnected, address, disconnectWallet } = useWalletConnection();
   const pathname = usePathname();
   const router = useRouter();
   const isHomePage = pathname === '/';
@@ -28,7 +26,7 @@ export default function Header() {
 
   // Handle wallet disconnection - redirect to home
   const handleDisconnect = () => {
-    disconnect();
+    disconnectWallet();
     router.push('/');
   };
 
@@ -45,19 +43,15 @@ export default function Header() {
   );
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border/50">
+    <header className="fixed top-0 left-0 right-0 z-[9999] bg-background/80 backdrop-blur-sm border-b border-border/50 echain-header">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <Image
-                src="/logo.jpeg"
-                alt="Echain Logo"
-                width={32}
-                height={32}
-                className="h-8 w-8 rounded-lg"
-              />
+              <div className="h-8 w-8 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">E</span>
+              </div>
               <span className="ml-2 text-xl font-bold gradient-text">
                 Echain
               </span>
@@ -115,16 +109,25 @@ export default function Header() {
             ) : (
               // Unconnected user navigation
               <>
-                <Link href="/" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
+                <Link
+                  href="#hero"
+                  onClick={(e) => {
+                    if (pathname === '/my-events') {
+                      e.preventDefault();
+                      router.push('/');
+                    }
+                  }}
+                  className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+                >
                   Home
                 </Link>
-                <Link href="/#events" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
+                <Link href="#events" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
                   Events
                 </Link>
-                <Link href="/#features" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
+                <Link href="#features" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
                   Features
                 </Link>
-                <Link href="/#faq" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
+                <Link href="#faq" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
                   FAQ
                 </Link>
                 <Link href="/marketplace" className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors">
@@ -143,8 +146,8 @@ export default function Header() {
 
             {/* Connect Wallet - only show when not connected */}
             {!isConnected && (
-              <div className="ml-4">
-                <EnhancedConnectButton />
+              <div className="ml-4 wallet-button-wrapper">
+                <UnifiedConnectButton />
               </div>
             )}
           </nav>
@@ -258,28 +261,21 @@ export default function Header() {
                 // Mobile unconnected navigation
                 <>
                   <Link
-                    href="/"
-                    className="text-muted-foreground hover:text-foreground block px-3 py-2 rounded-md text-base font-medium transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Home
-                  </Link>
-                  <Link
-                    href="/#events"
+                    href="#events"
                     className="text-muted-foreground hover:text-foreground block px-3 py-2 rounded-md text-base font-medium transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Events
                   </Link>
                   <Link
-                    href="/#features"
+                    href="#features"
                     className="text-muted-foreground hover:text-foreground block px-3 py-2 rounded-md text-base font-medium transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Features
                   </Link>
                   <Link
-                    href="/#faq"
+                    href="#faq"
                     className="text-muted-foreground hover:text-foreground block px-3 py-2 rounded-md text-base font-medium transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -305,9 +301,13 @@ export default function Header() {
                     <ThemeToggle />
                   </div>
 
-                  {/* Mobile wallet button */}
+                  {/* Mobile wallet buttons */}
                   <div className="px-3 py-3 border-t border-slate-800/50">
-                    <EnhancedConnectButton />
+                    <SignInWithBaseButton 
+                      variant="outline" 
+                      className="w-full" 
+                      onSignIn={() => setIsMenuOpen(false)} 
+                    />
                   </div>
                 </>
               )}

@@ -2,8 +2,10 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Terms of Service | Echain',
-  description: 'Terms of service for Echain - Blockchain Event Platform',
+  description: 'Terms and conditions for Echain - Blockchain Event Platform',
 };
+
+export const dynamic = 'force-dynamic';
 
 export default function TermsPage() {
   return (

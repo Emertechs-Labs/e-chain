@@ -5,11 +5,25 @@
 [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Base](https://img.shields.io/badge/Base-0052FF?style=for-the-badge&logo=base&logoColor=white)](https://base.org/)
+[![Farcaster](https://img.shields.io/badge/Farcaster-855DCD?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDMTMuMSAyIDE0IDIuOSAxNCA0VjE2QzE0IDE3LjEgMTMuMSAxOCA5LjUgMTguNUM3LjkgMTguNSA3IDE3LjYgNyAxNlY0QzcgMi45IDcuOSAyIDkgMkgxNUMxNS4xIDIgMTYgMi45IDE2IDRWMTZDMTYgMTcuMSAxNS4xIDE4IDEyIDE4QzEwLjQgMTggOS45IDE3LjEgOS45IDE2VjRDOS45IDIuOSA5LjQgMiAxMiAyWiIgc3Ryb2tlPSIjODU1REN EIIC8+Cjwvc3ZnPg==)](https://farcaster.xyz/)
 [![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
+[![Jest](https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white)](https://jestjs.io/)
+[![OpenZeppelin](https://img.shields.io/badge/OpenZeppelin-4E5EE4?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQgNkg4VjE4SDRWNkgNnoiIGZpbGw9IiM0RTVFRTQiLz4KPHBhdGggZD0iTTE2IDZIMTguNVYxOEgxNlY2WiIgZmlsbD0iIzRFNUVFNCIvPgo8cGF0aCBkPSJNMCAwaDI0djI0SDBWMFoiIGZpbGw9Im5vbmUiLz4KPC9zdmc+)](https://openzeppelin.com/)
+[![Status](https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge)](https://github.com/Talent-Index/Echain)
 
-**A Web3-native event management platform built on Base with direct contract integration**
+**A Web3-native event management platform built on Base with Farcaster integration, NFT tickets, POAP certificates, and gamified participation**
 
-Echain transforms traditional events into blockchain-powered experiences with NFT tickets, POAP certificates, and gamified participation. Built with modern Web3 infrastructure for secure, transparent, and engaging event experiences.
+Echain transforms traditional events into blockchain-powered experiences with NFT tickets, POAP certificates, and gamified participation. Now featuring Farcaster social authentication, interactive Frames, and cross-platform availability while maintaining wallet-first security.
+
+## Deployed Contract Addresses (Base Sepolia)
+
+| Contract | Address | Verified Link |
+| -------- | ------- | ------------- |
+| EventFactory | `0xA97cB40548905B05A67fCD4765438aFBEA4030fc` | [View on BaseScan](https://sepolia.basescan.org/address/0xA97cB40548905B05A67fCD4765438aFBEA4030fc#code) |
+| EventTicket | `0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C` | [View on BaseScan](https://sepolia.basescan.org/address/0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C#code) |
+| POAPAttendance | `0x08344CfBfB3afB2e114A0dbABbaF40e7eB62FD33` | [View on BaseScan](https://sepolia.basescan.org/address/0x08344CfBfB3afB2e114A0dbABbaF40e7eB62FD33#code) |
+| IncentiveManager | `0x1cfDae689817B954b72512bC82f23F35B997617D` | [View on BaseScan](https://sepolia.basescan.org/address/0x1cfDae689817B954b72512bC82f23F35B997617D#code) |
+| Marketplace | `0xD061393A54784da5Fea48CC845163aBc2B11537A` | [View on BaseScan](https://sepolia.basescan.org/address/0xD061393A54784da5Fea48CC845163aBc2B11537A#code) |
 
 ## Deployed Contract Addresses (Base Sepolia)
 
@@ -53,25 +67,25 @@ Echain transforms traditional events into blockchain-powered experiences with NF
 - Push notifications for critical updates
 - WebSocket streaming to keep dashboards in sync
 
-**Current Status**: Production-ready on Base Sepolia testnet
+### Farcaster Integration
+- **Hybrid Authentication**: Social login with Farcaster while maintaining wallet security
+- **Social Recovery**: Account recovery through Farcaster verification with backend validation
+- **Interactive Frames**: Event embeds in Farcaster posts with RSVP functionality
+- **Cross-Platform Reach**: Available on Farcaster clients and Base ecosystem apps
+- **Gasless Transactions**: Coinbase Paymaster integration for fee-free interactions
 
-## 🔐 Security Notice
+**Current Status**: ✅ Production-ready on Base Sepolia with Farcaster integration complete
 
-**This repository is PUBLIC on GitHub.** 
+## 🌟 Latest Features - Farcaster Integration Complete!
 
-### Critical Security Guidelines:
-- 🚨 **NEVER commit API keys, secrets, or `.env` files containing real credentials**
-- ✅ **Use `.env.example` as a template for environment variables**
-- ✅ **Set environment variables in your deployment platform (Vercel, Netlify, etc.)**
-- ✅ **Use `.env.local` for local development (automatically excluded from git)**
+**Farcaster Social Login & Cross-Platform Availability** 🎉
+- **Hybrid Authentication**: Optional Farcaster login alongside traditional wallet connections
+- **Social Recovery**: Account recovery via Farcaster verification for enhanced security
+- **Farcaster Frames**: Interactive event embeds in Farcaster posts with MiniKit
+- **Base App Optimization**: Gasless transactions and PWA support for mobile apps
+- **Enterprise Security**: Comprehensive audit with production-ready protections
 
-**If you accidentally commit secrets:**
-1. Immediately rotate all affected API keys
-2. Remove from git history using `git filter-branch`
-3. Update deployment platform variables
-4. Notify the development team
-
-See [Environment Setup Guide](./docs/ENVIRONMENT_SETUP_GUIDE.md) for secure configuration instructions.
+**Status**: ✅ All 5 Sprints Complete (69/69 Story Points) - Ready for Production Deployment
 
 ## Technology Stack
 
@@ -85,7 +99,9 @@ See [Environment Setup Guide](./docs/ENVIRONMENT_SETUP_GUIDE.md) for secure conf
 - Framework: Next.js 15 App Router with TypeScript
 - Styling: Tailwind CSS and custom design system primitives
 - Data & wallet: Viem, Wagmi, RainbowKit, and Reown (WalletConnect)
+- Social auth: Farcaster Auth Kit with MiniKit for Frames
 - State management: TanStack Query for server state orchestration
+- Testing: Jest with React Testing Library and security-focused test suites
 
 ### Infrastructure
 - Hosting: Vercel with edge functions and CDN distribution
@@ -102,10 +118,17 @@ See [Environment Setup Guide](./docs/ENVIRONMENT_SETUP_GUIDE.md) for secure conf
 4. Manage live events from the organizer dashboard
 
 ### For Attendees
-1. Connect your wallet using the top-right button
+1. Connect your wallet using the top-right button or sign in with Farcaster
 2. Browse available events on the homepage
-3. Purchase tickets with cryptocurrency
+3. Purchase tickets with cryptocurrency (gasless on Base!)
 4. Access tickets in the My Tickets section
+5. Use social recovery if you lose wallet access
+
+### For Farcaster Users
+1. Sign in with Farcaster for quick access
+2. View events as interactive Frames in Farcaster posts
+3. RSVP directly from Frames without leaving the app
+4. Connect wallet later for full transaction capabilities
 
 ## Documentation
 
@@ -116,6 +139,8 @@ Explore the full documentation set:
 - [Deployment Guide](./docs/deployment/README.md)
 - [Security Info](./docs/security/README.md)
 - [Integration Guide](./docs/integration/README.md)
+- [Farcaster Integration](./docs/farcaster-integration-guide.md)
+- [Production Deployment](./docs/production-deployment-guide.md)
 
 ## Support & Resources
 
@@ -161,9 +186,8 @@ Explore the full documentation set:
 
 3. **Configure environment**
    ```bash
-   cp .env.example .env.local
-   # Edit .env.local with your development keys
-   # NEVER commit .env.local to the repository
+   cp frontend/.env.example frontend/.env.local
+   nano frontend/.env.local
    ```
 
 4. **Start development services**
@@ -183,15 +207,27 @@ Explore the full documentation set:
 
 ### Environment Configuration
 
-Copy `.env.example` to `.env.local` for local development:
+Create `.env.local` in the frontend directory:
 
 ```bash
-cp .env.example .env.local
+# Wallet integration
+NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID=your_reown_project_id
+
+# Network configuration
+NEXT_PUBLIC_CHAIN_ID=84532
+NEXT_PUBLIC_RPC_URL=https://sepolia.base.org
+
+# Contract addresses (Base Sepolia)
+NEXT_PUBLIC_EVENT_FACTORY_ADDRESS=0xA97cB40548905B05A67fCD4765438aFBEA4030fc
+NEXT_PUBLIC_EVENT_TICKET_ADDRESS=0xc8cd32F0b2a6EE43f465a3f88BC52955A805043C
+NEXT_PUBLIC_POAP_ADDRESS=0x08344CfBfB3afB2e114A0dbABbaF40e7eB62FD33
+NEXT_PUBLIC_INCENTIVE_ADDRESS=0x1cfDae689817B954b72512bC82f23F35B997617D
+NEXT_PUBLIC_MARKETPLACE_ADDRESS=0xD061393A54784da5Fea48CC845163aBc2B11537A
+
+# Optional: IPFS/Pinata
+NEXT_PUBLIC_PINATA_JWT=your_pinata_jwt
+NEXT_PUBLIC_PINATA_GATEWAY=your_gateway_url
 ```
-
-Then edit `.env.local` with your actual development credentials. See the [Environment Setup Guide](./docs/ENVIRONMENT_SETUP_GUIDE.md) for detailed instructions on obtaining and configuring all required API keys and services.
-
-**⚠️ Never commit `.env.local` or any file containing real API keys to the repository.**
 
 ## Available Scripts
 
@@ -250,6 +286,8 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 ## Acknowledgments
 
 - Base: for the scalable Ethereum L2 network
+- Farcaster: for the social layer enabling cross-platform experiences
+- Coinbase: for OnchainKit, MiniKit, and Paymaster infrastructure
 - OpenZeppelin: for battle-tested smart contract libraries
 - RainbowKit: for seamless wallet integration
 - Vercel: for the exceptional hosting platform
@@ -265,8 +303,8 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 [![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=flat-square&logo=twitter)](https://twitter.com/echain_events)
 [![Discord](https://img.shields.io/badge/Discord-Community-5865F2?style=flat-square&logo=discord)](https://discord.gg/echain)
 
-**Ready to revolutionize event management with blockchain?**
+**Ready to revolutionize event management with blockchain and social features?**
 
-[Get Started](#quick-start-guide) • [Documentation](./docs/) • [Report Issues](https://github.com/Talent-Index/Echain/issues)
+[Get Started](#quick-start-guide) • [Documentation](./docs/) • [Farcaster Integration](./docs/farcaster-integration-guide.md) • [Report Issues](https://github.com/Talent-Index/Echain/issues)
 
 </div>

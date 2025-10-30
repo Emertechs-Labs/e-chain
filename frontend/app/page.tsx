@@ -1,20 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 
 // Dynamically import sections to improve initial load performance
-const HeroSection = dynamic(() => import('./components/sections/HeroSection').then(m => m.HeroSection), {
+
+export const dynamic = 'force-dynamic';
+const HeroSection = dynamicImport(() => import('./components/sections/HeroSection').then(m => m.HeroSection), {
   loading: () => <div className="min-h-screen bg-slate-900 flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div></div>
 });
-const FeaturedEventsSection = dynamic(() => import('./components/sections/FeaturedEventsSection').then(m => m.FeaturedEventsSection));
-const StatsSection = dynamic(() => import('./components/sections/StatsSection').then(m => m.StatsSection));
-const FeaturesSection = dynamic(() => import('./components/sections/FeaturesSection').then(m => m.FeaturesSection));
-const BlockchainSection = dynamic(() => import('./components/sections/BlockchainSection').then(m => m.BlockchainSection));
-const TestimonialsSection = dynamic(() => import('./components/sections/TestimonialsSection').then(m => m.TestimonialsSection));
-const FAQSection = dynamic(() => import('./components/sections/FAQSection').then(m => m.FAQSection));
-const CTASection = dynamic(() => import('./components/sections/CTASection').then(m => m.CTASection));
-const FloatingActionButton = dynamic(() => import('./components/sections/FloatingActionButton').then(m => m.FloatingActionButton));
+const FeaturedEventsSection = dynamicImport(() => import('./components/sections/FeaturedEventsSection').then(m => m.FeaturedEventsSection));
+const FeaturesSection = dynamicImport(() => import('./components/sections/FeaturesSection').then(m => m.FeaturesSection));
+const TestimonialsSection = dynamicImport(() => import('./components/sections/TestimonialsSection').then(m => m.TestimonialsSection));
+const FAQSection = dynamicImport(() => import('./components/sections/FAQSection').then(m => m.FAQSection));
+const CTASection = dynamicImport(() => import('./components/sections/CTASection').then(m => m.CTASection));
+const FloatingActionButton = dynamicImport(() => import('./components/sections/FloatingActionButton').then(m => m.FloatingActionButton));
 
 const Home: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -53,10 +53,8 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <HeroSection />
-      <StatsSection />
       <FeaturedEventsSection />
       <FeaturesSection />
-      <BlockchainSection />
       <TestimonialsSection />
       <FAQSection />
       <CTASection />

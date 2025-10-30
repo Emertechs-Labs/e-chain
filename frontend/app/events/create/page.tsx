@@ -1,21 +1,21 @@
 "use client";
 
+export const runtime = 'edge';
+
 import React, { useState } from "react";
 import { useAccount } from "wagmi";
 import { useOrganizerVerification, useVerifyOrganizer } from "../../hooks/useTransactions";
 import { useCreateEventDirect } from "../../hooks/useTransactionsDirect"; // Direct wallet transaction
+
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { uploadToIPFS, uploadEventMetadata, generateEventPosterWithQR } from "../../../lib/ipfs";
 import Image from "next/image";
-import { SimpleLocationPicker } from "../../components/maps/SimpleLocationPicker";
-import { EnhancedConnectButton } from "../../components/EnhancedConnectButton";
 
 interface EventForm {
   name: string;
   description: string;
   venue: string;
-  coordinates?: { lat: number; lng: number };
   category: string;
   startDate: string;
   endDate: string;
@@ -51,7 +51,6 @@ const CreateEventPage: React.FC = () => {
     name: "",
     description: "",
     venue: "",
-    coordinates: undefined,
     category: "",
     startDate: "",
     endDate: "",
@@ -255,16 +254,11 @@ const CreateEventPage: React.FC = () => {
         name: formData.name,
         description: formData.description,
         venue: formData.venue,
-        coordinates: formData.coordinates, // Include coordinates for heat maps and precise location data
         category: formData.category,
         image: imageUpload.ipfsUrl || formData.imageUrl || "",
         attributes: [
           { trait_type: "Event Type", value: formData.category },
           { trait_type: "Venue", value: formData.venue },
-          ...(formData.coordinates ? [
-            { trait_type: "Latitude", value: formData.coordinates.lat.toString() },
-            { trait_type: "Longitude", value: formData.coordinates.lng.toString() }
-          ] : []),
           { trait_type: "Max Tickets", value: formData.maxTickets.toString() },
           { trait_type: "Ticket Price", value: `${formData.ticketPrice} ETH` },
           { trait_type: "Start Date", value: new Date(formData.startDate).toISOString() },
@@ -312,13 +306,13 @@ const CreateEventPage: React.FC = () => {
   };  if (!isConnected) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
+        <div className="text-center">
           <div className="text-6xl mb-6">🔗</div>
           <h2 className="text-3xl font-bold text-white mb-4">Connect Your Wallet</h2>
           <p className="text-gray-400 mb-8">You need to connect your wallet to create events</p>
-          <div className="flex justify-center">
-            <EnhancedConnectButton />
-          </div>
+          <button className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200 font-semibold">
+            Connect Wallet
+          </button>
         </div>
       </div>
     );
@@ -522,12 +516,16 @@ const CreateEventPage: React.FC = () => {
 
                 <div className="mt-6">
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Venue * <span className="text-cyan-400">(Interactive Map)</span>
+                    Venue *
                   </label>
-                  <SimpleLocationPicker
+                  <input
+                    type="text"
+                    name="venue"
                     value={formData.venue}
-                    onChange={(address, coordinates) => setFormData(prev => ({ ...prev, venue: address, coordinates }))}
-                    placeholder="Enter event location or select from popular venues"
+                    onChange={handleInputChange}
+                    required
+                    className="w-full bg-slate-700 text-white px-4 py-3 rounded-lg border border-slate-600 focus:border-cyan-500 focus:outline-none"
+                    placeholder="Convention Center, San Francisco CA"
                   />
                 </div>
               </div>

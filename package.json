@@ -3,20 +3,20 @@
   "version": "1.0.0",
   "description": "Echain - Web3-native event management platform built on Base with direct contract integration",
   "scripts": {
-    "qa": "bash tools/scripts/qa-agent.sh",
-    "qa:lint": "bash tools/scripts/qa-agent.sh --lint-only",
-    "qa:test": "bash tools/scripts/qa-agent.sh --test-only",
-    "qa:build": "bash tools/scripts/qa-agent.sh --build-only",
-    "qa:security": "bash tools/scripts/qa-agent.sh --security-only",
-    "qa:docs": "bash tools/scripts/qa-agent.sh --docs-only",
-    "docs:update": "node tools/scripts/update-docs.js",
+    "qa": "bash scripts/qa-agent.sh",
+    "qa:lint": "bash scripts/qa-agent.sh --lint-only",
+    "qa:test": "bash scripts/qa-agent.sh --test-only",
+    "qa:build": "bash scripts/qa-agent.sh --build-only",
+    "qa:security": "bash scripts/qa-agent.sh --security-only",
+    "qa:docs": "bash scripts/qa-agent.sh --docs-only",
+    "docs:update": "node scripts/update-docs.js",
     "dev": "npm run qa && npm run dev:frontend",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:blockchain": "cd blockchain && npm run dev",
     "build": "npm run qa:build && npm run build:all",
     "build:all": "cd frontend && npm run build && cd ../blockchain && forge build",
     "test": "npm run qa:test",
-    "test:all": "bash tools/scripts/run_all_tests.sh",
+    "test:all": "bash scripts/run_all_tests.sh",
     "lint": "npm run qa:lint",
     "lint:fix": "cd frontend && npm run lint:fix && cd ../blockchain && npm run fix:all",
     "docker:build": "npm run qa && docker build -t echain .",
@@ -46,28 +46,16 @@
   "homepage": "https://github.com/Talent-Index/Echain#readme",
   "workspaces": [
     "blockchain",
-    "frontend"
+    "frontend",
+    "packages/wallet"
   ],
   "dependencies": {
-    "@coinbase/cdp-sdk": "^1.38.4",
-    "@firebase/app": "^0.14.4",
-    "@firebase/component": "^0.7.0",
-    "@firebase/util": "^1.13.0",
-    "@polymathuniversata/echain-wallet": "^1.0.3",
-    "@sentry/nextjs": "^8.55.0",
     "@vercel/analytics": "^1.5.0",
-    "install": "^0.13.0",
-    "lodash": "^4.17.21",
+    "dedot": "^0.18.2",
     "polkadot-api": "^1.19.2"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
-    "@types/lodash": "^4.17.20",
-    "@vitest/ui": "^4.0.3",
     "echain-qa-agent": "^2.1.5",
-    "jsdom": "^27.0.1",
-    "lint-staged": "^16.2.2",
-    "vitest": "^4.0.3"
+    "lint-staged": "^16.2.2"
   }
 }

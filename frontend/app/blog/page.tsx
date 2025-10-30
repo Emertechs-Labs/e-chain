@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   description: 'Latest news, updates, and insights from the Echain team.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function BlogPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950">

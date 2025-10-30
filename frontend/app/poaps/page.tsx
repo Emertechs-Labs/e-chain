@@ -8,6 +8,9 @@ import { CONTRACT_ADDRESSES } from "../../lib/contracts";
 import Link from "next/link";
 import { RewardsDashboard } from "@/components/rewards/RewardsDashboard";
 
+// Prevent static rendering
+export const dynamic = 'force-dynamic';
+
 interface POAP {
   id: string;
   eventId: number;

@@ -23,13 +23,12 @@ const quantityBigInt = BigInt(quantity);
 const totalCost = ticketPriceBigInt * quantityBigInt;
 ```
 
-### 2. IPFS Image Upload and Display Issues 
+### 2. IPFS Image Upload and Display Issues ✅ FIXED
 **Problem**: Event posters not showing when creating events, IPFS not working
-**Root Cause**: Missing IPFS/Pinata configuration, brittle uploads, and no resilient fallback strategy
+**Root Cause**: Missing IPFS/Pinata configuration and no fallback mechanism
 **Solution**:
-- Added Pinata IPFS configuration to `.env` file (JWT + configurable gateway)
-- Implemented exponential retry for Pinata uploads with automatic Vercel Blob fallback
-- Annotated upload responses with `storage` origin (`ipfs` vs `blob`) for downstream handling
+- Added Pinata IPFS configuration to `.env` file
+- Implemented fallback to Vercel Blob storage when IPFS isn't configured
 - Enhanced metadata fetching to support both IPFS and blob storage URLs
 - Updated image components to handle external URLs properly
 
@@ -41,45 +40,34 @@ NEXT_PUBLIC_PINATA_JWT=your_pinata_jwt_token_here
 NEXT_PUBLIC_PINATA_GATEWAY_URL=https://gateway.pinata.cloud
 ```
 
-2. **Resilient Upload Pipeline** (`frontend/lib/ipfs.ts`):
+2. **Fallback Implementation** (`lib/ipfs.ts`):
 ```typescript
-const result = await uploadFileWithPinataRetry(file, 'asset');
-if (!result.success) {
-  console.error('Pinata failed, falling back to blob storage:', result.error);
-  return await uploadFileToBlob(file, 'event-assets');
+export async function uploadToIPFS(file: File): Promise<IPFSUploadResult> {
+  try {
+    if (!PINATA_JWT) {
+      console.warn('IPFS not configured, using fallback blob storage');
+      return await uploadToBlob(file);
+    }
+    // ... IPFS upload logic
+  } catch (error) {
+    // Fallback to blob storage on IPFS failure
+    return await uploadToBlob(file);
+  }
 }
-
-return {
-  ...result,
-  storage: 'ipfs'
-};
 ```
 
-3. **Blob Helper with Storage Metadata** (`frontend/lib/blob.ts`):
+3. **Enhanced Metadata Fetching** (`lib/metadata.ts`):
 ```typescript
-export interface BlobUploadResult {
-  url: string;
-  size: number;
-  pathname: string;
-  storage: 'blob';
+export async function fetchMetadataFromIPFS(metadataURI: string) {
+  // Support both IPFS and blob storage URLs
+  if (metadataURI.includes('blob.vercel-storage.com')) {
+    // Handle blob storage URLs directly
+  }
+  // ... IPFS gateway fallback logic
 }
-
-const fallback = await blobHelpers.uploadFile(file, 'ipfs-fallback/tickets');
-return { ...fallback, success: true, cid: '', storage: 'blob' };
 ```
 
-4. **Enhanced Metadata Fetching** (`frontend/lib/metadata.ts`):
-```typescript
-if (metadataURI.includes('blob.vercel-storage.com')) {
-  const response = await fetch(metadataURI, { mode: 'cors' });
-  return response.ok ? (await response.json()) as EventMetadata : null;
-}
-
-// IPFS gateway rotation + parallel fetch
-const url = ipfsToHttp(metadataURI, gatewayIndex);
-```
-
-### 3. Infinite Loading During NFT Purchase 
+### 3. Infinite Loading During NFT Purchase ✅ FIXED
 **Problem**: NFT ticket purchase gets stuck in loading state
 **Root Cause**: BigInt conversion errors causing transaction failures
 **Solution**:
@@ -110,13 +98,38 @@ useEffect(() => {
 }, [soldTickets, event]);
 ```
 
-### 5. Image Display Improvements ✅ ENHANCED
-**Problem**: Event images not displaying properly, no fallback mechanism
+### 6. Accessibility Compliance - Form Labels ✅ FIXED
+**Problem**: Axe accessibility checker flagged form elements missing labels/title/placeholder attributes
+**Root Cause**: Weight and Threshold input fields in MultisigDashboard component lacked placeholder attributes
 **Solution**:
-- Enhanced `EventCard` component to support blob storage URLs
-- Added `unoptimized={true}` for external image URLs
-- Improved error handling for broken images
-- Added proper fallback to emoji placeholders
+- Added descriptive placeholder attributes to both input fields
+- Maintained existing label elements for proper accessibility compliance
+- Ensured screen reader compatibility
+
+**Code Changes** (`packages/wallet/src/components/MultisigDashboard.tsx`):
+```typescript
+// Weight input (line ~244)
+<input
+  type="number"
+  value={newSignerWeight}
+  onChange={(e) => setNewSignerWeight(parseInt(e.target.value))}
+  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+  placeholder="Enter signer weight (e.g., 1)"  // ← Added
+  min="1"
+  required
+/>
+
+// Threshold input (line ~266)
+<input
+  type="number"
+  value={newThreshold}
+  onChange={(e) => setNewThreshold(parseInt(e.target.value))}
+  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+  placeholder="Enter new threshold (e.g., 2)"  // ← Added
+  min="1"
+  required
+/>
+```
 
 ## Testing Instructions
 

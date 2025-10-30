@@ -1,79 +1,63 @@
-import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { baseSepolia, base } from 'wagmi/chains';
-import { http } from 'viem';
-import { getRPCProvider } from './providers/rpc-provider';
+import { connectorsForWallets } from '@rainbow-me/rainbowkit';
+import {
+  metaMaskWallet,
+  walletConnectWallet,
+  coinbaseWallet,
+  rainbowWallet,
+  braveWallet,
+  injectedWallet,
+} from '@rainbow-me/rainbowkit/wallets';
+import { createConfig, http } from 'wagmi';
+import { base } from 'wagmi/chains';
+import { baseRPCManager } from './base-rpc-manager';
 
-// Determine active network from environment
-const activeNetwork = process.env.NEXT_PUBLIC_ACTIVE_NETWORK || 'sepolia';
-const isMainnet = activeNetwork === 'mainnet';
-
-// Initialize RPC provider with failover support - lazy load
-let rpcProvider: ReturnType<typeof getRPCProvider> | null = null;
-
-const getRpcProvider = () => {
-  if (!rpcProvider) {
-    rpcProvider = getRPCProvider(isMainnet ? 'mainnet' : 'sepolia');
-  }
-  return rpcProvider;
-};
-
-// Build RPC URL list with priority order and fallbacks
-const getRpcUrls = (): readonly string[] => {
-  try {
-    const provider = getRpcProvider();
-    const endpoints = provider.getEndpoints();
-    const urls = endpoints.map(e => e.url).filter(Boolean);
-
-    // Always include public RPC as fallback
-    const publicRpc = isMainnet ? 'https://mainnet.base.org' : 'https://sepolia.base.org';
-    if (!urls.includes(publicRpc)) {
-      urls.push(publicRpc);
-    }
-
-    return urls.length > 0 ? urls : [publicRpc];
-  } catch (error) {
-    console.warn('[WAGMI] Failed to initialize RPC provider, using public RPC:', error);
-    // Fallback to public RPC if provider initialization fails
-    return [isMainnet ? 'https://mainnet.base.org' : 'https://sepolia.base.org'];
-  }
-};
-
-// Custom Base Sepolia configuration with enhanced RPC management
-const baseSepoliaWithRPC = {
-  ...baseSepolia,
-  rpcUrls: {
-    default: {
-      http: getRpcUrls(),
-      webSocket: ['wss://sepolia.base.org/ws']
-    },
-    public: {
-      http: ['https://sepolia.base.org'],
-      webSocket: ['wss://sepolia.base.org/ws']
-    }
-  }
-};
-
-// Custom Base Mainnet configuration with premium providers
-const baseMainnetWithRPC = {
+// Custom Base configuration with enhanced RPC management
+const baseWithRPC = {
   ...base,
   rpcUrls: {
     default: {
-      http: getRpcUrls(),
+      http: [baseRPCManager.getPublicClient().transport.url || 'https://mainnet.base.org'],
       webSocket: ['wss://mainnet.base.org/ws']
     },
     public: {
-      http: ['https://mainnet.base.org'],
+      http: [baseRPCManager.getPublicClient().transport.url || 'https://mainnet.base.org'],
       webSocket: ['wss://mainnet.base.org/ws']
     }
   }
 };
 
-export const config = getDefaultConfig({
-  appName: 'Echain Event Ticketing',
-  projectId: process.env.NEXT_PUBLIC_REOWN_PROJECT_ID || 'placeholder-for-build',
-  chains: [isMainnet ? base : baseSepolia],
-  ssr: false, // Disable SSR for Web3 config
+const appName = 'Echain Event Ticketing';
+const projectId = process.env.NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID || 'your-project-id';
+
+// Compose default wallets + Farcaster as an extra group
+const connectors = connectorsForWallets(
+  [
+    {
+      groupName: 'Recommended',
+      wallets: [
+        metaMaskWallet,
+        walletConnectWallet,
+        coinbaseWallet,
+        rainbowWallet,
+        braveWallet,
+        injectedWallet,
+      ],
+    },
+  ],
+  {
+    appName,
+    projectId,
+  }
+);
+
+export const config = createConfig({
+  chains: [baseWithRPC],
+  transports: {
+    [baseWithRPC.id]: http(baseRPCManager.getPublicClient().transport.url || 'https://mainnet.base.org'),
+  },
+  connectors,
+  ssr: true,
 });
 
-export const defaultChain = isMainnet ? base : baseSepolia;
-export { rpcProvider };
+export { base as defaultChain };
+export { baseRPCManager };

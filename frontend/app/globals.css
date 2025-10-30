@@ -87,6 +87,67 @@ html {
 
 @import '@rainbow-me/rainbowkit/styles.css';
 
+/* Ensure header and navbar are always visible above OnchainKit components */
+.echain-header {
+  position: fixed !important;
+  z-index: 9999 !important;
+}
+
+header nav {
+  display: flex !important;
+  align-items: center !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+header nav a,
+header nav button,
+header nav > div {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-flex !important;
+}
+
+/* Ensure connect wallet button is visible */
+.wallet-button-wrapper,
+header .ml-4,
+header button[class*="ConnectButton"],
+header div[class*="ConnectButton"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: flex !important;
+}
+
+/* RainbowKit specific overrides */
+header [class*="iekbcc"],
+header [class*="rainbowkit"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-flex !important;
+  position: relative !important;
+}
+
+/* Custom Connect Wallet Button Styling */
+.echain-connect-button button {
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.025em !important;
+}
+
+.echain-connect-button .chain-icon-wrapper {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.echain-connect-button .chain-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -95,28 +156,28 @@ html {
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 180 95% 35%;
+    --primary: 180 98% 25%;
     --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96%;
     --secondary-foreground: 222.2 84% 4.9%;
     --muted: 210 40% 98%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 180 60% 85%;
+    --accent: 180 30% 90%;
     --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 180 95% 35%;
+    --ring: 180 98% 25%;
     --radius: 0.5rem;
-    --chart-1: 180 95% 35%;
+    --chart-1: 180 98% 25%;
     --chart-2: 270 95% 75%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     
     /* Echain-specific light theme colors */
-    --neon-cyan: 180 95% 35%;
+    --neon-cyan: 180 98% 25%;
     --neon-purple: 270 95% 45%;
     --success-green: 142 76% 36%;
     --warning-orange: 25 95% 53%;
@@ -317,6 +378,13 @@ html {
 .bg-grid-pattern {
   background-image: radial-gradient(circle at 1px 1px, rgba(56, 189, 248, 0.15) 1px, transparent 0);
   background-size: 30px 30px;
+}
+
+.progress-fill {
+  width: var(--progress-width, 0%);
+  height: 0.5rem;
+  border-radius: 9999px;
+  transition: all 0.5s;
 }
 
 /* Ensure anchored sections are visible below the fixed header */

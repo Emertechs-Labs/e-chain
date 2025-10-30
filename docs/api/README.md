@@ -3,1053 +3,15 @@
 <div align="center">
 
 ![Echain API](https://img.shields.io/badge/Echain-API-00D4FF?style=for-the-badge&logo=api&logoColor=white)
-![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![Prisma](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white)
+![Direct RPC](https://img.shields.io/badge/Direct_RPC-Base_&_Hedera-00AEEF?style=for-the-badge&logo=api&logoColor=white)
+![Base Network](https://img.shields.io/badge/Base-Sepolia-0052FF?style=for-the-badge&logo=ethereum&logoColor=white)
+![Hedera](https://img.shields.io/badge/Hedera-Testnet-6F3FF5?style=for-the-badge&logo=hedera&logoColor=white)
 
-**Complete REST API reference for the Echain blockchain events platform**
+**Complete API reference for the Echain blockchain events platform**
 
-*Express.js REST API with PostgreSQL database and Prisma ORM*
+*Direct RPC integration across Base and Hedera networks*
 
-[🏗️ Architecture](#-api-architecture) • [🚀 Quick Start](#-quick-start) • [📋 Endpoints](#-api-endpoints) • [🔐 Authentication](#-authentication) • [🛠️ SDK](#-sdk-integration)
-
-</div>
-
----
-
-## 🎯 API Overview
-
-### Current Implementation Status
-- **✅ Production Ready**: All endpoints operational with PostgreSQL backend
-- **✅ Authentication**: JWT-based auth with role-based access control
-- **✅ Database Integration**: Full Prisma ORM with PostgreSQL
-- **✅ Rate Limiting**: Configured for production use with Redis support
-- **✅ Error Handling**: Comprehensive error responses and validation
-- **✅ Documentation**: OpenAPI/Swagger compatible
-
-### API Architecture
-```mermaid
-graph TB
-    subgraph "Client Applications"
-        A[Next.js Frontend]
-        B[Mobile Apps]
-        C[Third-party Integrations]
-        D[Admin Dashboards]
-    end
-
-    subgraph "REST API Layer"
-        E[Authentication Middleware]
-        F[Rate Limiting]
-        G[Request Validation]
-        H[Response Formatting]
-        I[Error Handling]
-    end
-
-    subgraph "Database Layer"
-        J[PostgreSQL Database]
-        K[Prisma ORM]
-        L[Database Migrations]
-    end
-
-    subgraph "External Services"
-        M[Blockchain RPC]
-        N[IPFS/Pinata]
-        O[Email Service]
-        P[Payment Processors]
-    end
-
-    A --> E
-    B --> E
-    C --> E
-    D --> E
-
-    E --> F
-    F --> G
-    G --> H
-    H --> I
-
-    I --> K
-    K --> J
-    L --> J
-
-    H --> M
-    H --> N
-    H --> O
-    H --> P
-
-    style E fill:#e1f5fe
-    style J fill:#f3e5f5
-    style M fill:#e8f5e8
-```
-
-### Advanced Features
-- **🔄 Pagination**: Cursor-based pagination for large datasets
-- **📊 Analytics Integration**: Built-in usage tracking and reporting
-- **🔐 JWT Authentication**: Secure token-based authentication
-- **👥 Role-based Access**: ORGANIZER, ATTENDEE, and ADMIN roles
-- **📝 Input Validation**: Zod schema validation for all inputs
-- **⚡ Rate Limiting**: Configurable rate limits per endpoint
-- **🌐 CORS Support**: Configurable cross-origin resource sharing
-
----
-
-## 🏗️ API Architecture
-
-### Base Configuration
-```yaml
-Base URL: https://api.echain.events
-Protocol: HTTPS
-Rate Limits:
-  - Authenticated: 1000 requests/hour
-  - Unauthenticated: 100 requests/hour
-  - Strict endpoints: 10 requests/minute
-Database: PostgreSQL with connection pooling
-Cache: Redis (optional, for rate limiting)
-```
-
-### Authentication Flow
-
-#### JWT Token Authentication
-```typescript
-// Authentication headers for API requests
-const authHeaders = {
-  'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-  'Content-Type': 'application/json'
-};
-
-// Example authenticated request
-const response = await fetch('/api/events', {
-  method: 'GET',
-  headers: authHeaders
-});
-```
-
-#### Session Management
-```typescript
-interface Session {
-  id: string;
-  userId: string;
-  token: string;
-  expiresAt: Date;
-  userAgent?: string;
-  ipAddress?: string;
-}
-```
-
-### Request/Response Format
-
-#### Standard Request Structure
-```typescript
-interface ApiRequest {
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  headers: {
-    'Authorization'?: string;
-    'Content-Type': 'application/json';
-    'X-API-Key'?: string;
-  };
-  body?: any;
-}
-```
-
-#### Standard Response Structure
-```typescript
-interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: {
-    code: string;
-    message: string;
-    details?: any;
-  };
-  meta?: {
-    requestId: string;
-    timestamp: number;
-    processingTime: number;
-    pagination?: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPages: number;
-    };
-  };
-}
-```
-
----
-
-## 🚀 Quick Start
-
-### 1. Get API Access
-```bash
-# API Base URL
-API_BASE_URL="https://api.echain.events"
-
-# Optional: API Key for enhanced features (future use)
-API_KEY="your-api-key-here"
-```
-
-### 2. Authentication
-```bash
-# Login to get JWT token
-curl -X POST "${API_BASE_URL}/api/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "address": "0x742d35Cc6635C0532925a3b8D7ba6C4a1e5aF1e9",
-    "signature": "0x..."
-  }'
-
-# Use token in subsequent requests
-TOKEN="your-jwt-token-here"
-```
-
-### 3. Basic Event Query
-```typescript
-// Get events with authentication
-const getEvents = async () => {
-  const response = await fetch('/api/events', {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  });
-
-  const data = await response.json();
-  return data.data;
-};
-```
-
-### 4. Create Event
-```typescript
-// Create new event (organizer only)
-const createEvent = async (eventData) => {
-  const response = await fetch('/api/events', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(eventData)
-  });
-
-  return await response.json();
-};
-```
-
----
-
-## 🔐 Authentication
-
-### Authentication Endpoints
-
-#### POST /api/auth/login
-Authenticate user with wallet signature.
-
-**Request:**
-```json
-{
-  "address": "0x742d35Cc6635C0532925a3b8D7ba6C4a1e5aF1e9",
-  "signature": "0xabcdef123456..."
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "user": {
-      "id": "user_123",
-      "address": "0x742d35Cc6635C0532925a3b8D7ba6C4a1e5aF1e9",
-      "role": "ATTENDEE",
-      "username": "johndoe"
-    },
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "expiresAt": "2024-01-01T12:00:00.000Z"
-  }
-}
-```
-
-#### POST /api/auth/register
-Register new user (optional, can be combined with login).
-
-**Request:**
-```json
-{
-  "address": "0x742d35Cc6635C0532925a3b8D7ba6C4a1e5aF1e9",
-  "username": "johndoe",
-  "email": "john@example.com"
-}
-```
-
-#### POST /api/auth/refresh
-Refresh JWT token before expiration.
-
-**Request:**
-```json
-{
-  "token": "current-jwt-token"
-}
-```
-
-### Authentication Middleware
-```typescript
-// Protected route example
-app.get('/api/protected', authenticate, (req, res) => {
-  // req.user contains authenticated user info
-  res.json({ user: req.user });
-});
-
-// Role-based access
-app.post('/api/events', authenticate, authorize('ORGANIZER'), (req, res) => {
-  // Only organizers can create events
-});
-```
-
-### Security Features
-- **JWT Expiration**: Tokens expire in 24 hours
-- **Signature Verification**: Wallet signatures for authentication
-- **Rate Limiting**: Authentication endpoints have strict limits
-- **Session Tracking**: IP and user agent logging
-- **Token Blacklisting**: Compromised tokens can be invalidated
-
----
-
-## 📋 API Endpoints
-
-### Events API
-
-#### GET /api/events
-List events with pagination, filtering, and search.
-
-**Query Parameters:**
-- `page` (number): Page number (default: 1)
-- `limit` (number): Items per page (default: 20, max: 100)
-- `search` (string): Search in name, description, location
-- `category` (string): Filter by category
-- `status` (string): Filter by status (DRAFT, PUBLISHED, SOLD_OUT, CANCELLED, COMPLETED)
-- `organizerId` (string): Filter by organizer
-- `sortBy` (string): Sort field (startDate, createdAt, price, ticketsSold)
-- `sortOrder` (string): Sort order (asc, desc)
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "event_123",
-      "name": "Tech Conference 2024",
-      "description": "Annual technology conference",
-      "startDate": "2024-01-15T09:00:00.000Z",
-      "endDate": "2024-01-15T17:00:00.000Z",
-      "location": "San Francisco, CA",
-      "price": "1000000000000000000",
-      "maxCapacity": 500,
-      "ticketsSold": 127,
-      "status": "PUBLISHED",
-      "visibility": "PUBLIC",
-      "organizer": {
-        "id": "user_456",
-        "username": "techorg",
-        "address": "0xabc123..."
-      },
-      "tags": ["technology", "conference"],
-      "category": "Technology",
-      "createdAt": "2024-01-01T00:00:00.000Z",
-      "updatedAt": "2024-01-02T00:00:00.000Z"
-    }
-  ],
-  "meta": {
-    "pagination": {
-      "page": 1,
-      "limit": 20,
-      "total": 45,
-      "totalPages": 3
-    }
-  }
-}
-```
-
-#### GET /api/events/:id
-Get single event details.
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "event_123",
-    "name": "Tech Conference 2024",
-    "description": "Annual technology conference",
-    "startDate": "2024-01-15T09:00:00.000Z",
-    "endDate": "2024-01-15T17:00:00.000Z",
-    "location": "San Francisco, CA",
-    "price": "1000000000000000000",
-    "maxCapacity": 500,
-    "ticketsSold": 127,
-    "status": "PUBLISHED",
-    "visibility": "PUBLIC",
-    "organizer": {
-      "id": "user_456",
-      "username": "techorg",
-      "address": "0xabc123...",
-      "email": "contact@techconf.com"
-    },
-    "tags": ["technology", "conference"],
-    "category": "Technology",
-    "ticketsRemaining": 373,
-    "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2024-01-02T00:00:00.000Z"
-  }
-}
-```
-
-#### POST /api/events
-Create new event (organizers and admins only).
-
-**Request:**
-```json
-{
-  "name": "Tech Conference 2024",
-  "description": "Annual technology conference featuring industry leaders",
-  "startDate": "2024-01-15T09:00:00.000Z",
-  "endDate": "2024-01-15T17:00:00.000Z",
-  "location": "San Francisco, CA",
-  "imageUrl": "https://example.com/image.jpg",
-  "price": "1000000000000000000",
-  "maxCapacity": 500,
-  "tags": ["technology", "conference"],
-  "category": "Technology",
-  "visibility": "PUBLIC"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "event_123",
-    "name": "Tech Conference 2024",
-    "status": "DRAFT",
-    "organizer": {
-      "id": "user_456",
-      "username": "techorg",
-      "address": "0xabc123..."
-    },
-    "createdAt": "2024-01-01T00:00:00.000Z"
-  }
-}
-```
-
-#### PUT /api/events/:id
-Update event (organizer only).
-
-**Request:**
-```json
-{
-  "name": "Updated Tech Conference 2024",
-  "description": "Updated description",
-  "price": "1500000000000000000"
-}
-```
-
-#### DELETE /api/events/:id
-Delete/cancel event (organizer only).
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Event cancelled successfully",
-    "note": "Event has sold tickets and was marked as cancelled instead of deleted"
-  }
-}
-```
-
-#### POST /api/events/:id/publish
-Publish a draft event.
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "event_123",
-    "status": "PUBLISHED",
-    "updatedAt": "2024-01-01T12:00:00.000Z"
-  }
-}
-```
-
-### Tickets API
-
-#### GET /api/tickets
-Get user's tickets.
-
-**Query Parameters:**
-- `eventId` (string): Filter by event
-- `status` (string): Filter by status (ACTIVE, TRANSFERRED, REFUNDED, CANCELLED)
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "ticket_123",
-      "eventId": "event_456",
-      "event": {
-        "id": "event_456",
-        "name": "Tech Conference 2024",
-        "startDate": "2024-01-15T09:00:00.000Z",
-        "location": "San Francisco, CA"
-      },
-      "tokenId": "1",
-      "txHash": "0xabcdef123456...",
-      "status": "ACTIVE",
-      "checkedIn": false,
-      "createdAt": "2024-01-01T00:00:00.000Z"
-    }
-  ]
-}
-```
-
-#### GET /api/tickets/:id
-Get ticket details.
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "ticket_123",
-    "eventId": "event_456",
-    "userId": "user_789",
-    "tokenId": "1",
-    "txHash": "0xabcdef123456...",
-    "tokenUri": "ipfs://QmToken123...",
-    "status": "ACTIVE",
-    "checkedIn": false,
-    "checkedInAt": null,
-    "transferredTo": null,
-    "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  }
-}
-```
-
-### Analytics API
-
-#### GET /api/analytics/events
-Get event analytics (organizer only).
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "eventId": "event_123",
-    "pageViews": 1250,
-    "uniqueVisitors": 890,
-    "ticketsSold": 127,
-    "totalRevenue": "127000000000000000000",
-    "conversionRate": 0.142,
-    "updatedAt": "2024-01-01T12:00:00.000Z"
-  }
-}
-```
-
-#### GET /api/analytics/platform
-Get platform-wide analytics (admin only).
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "totalEvents": 45,
-    "totalTickets": 1250,
-    "totalRevenue": "1250000000000000000000",
-    "activeUsers": 890,
-    "topCategories": [
-      { "category": "Technology", "count": 15 },
-      { "category": "Music", "count": 12 }
-    ]
-  }
-}
-```
-
-### Health Check
-
-#### GET /health
-Check API health status.
-
-**Response:**
-```json
-{
-  "status": "healthy",
-  "timestamp": "2024-01-01T12:00:00.000Z",
-  "environment": "production",
-  "version": "1.0.0",
-  "database": "connected",
-  "uptime": "7 days"
-}
-```
-
----
-
-## 🛠️ SDK Integration
-
-### TypeScript/JavaScript SDK
-```typescript
-// REST API client for Echain
-class EchainAPI {
-  private baseURL: string;
-  private token?: string;
-
-  constructor(baseURL: string = 'https://api.echain.events') {
-    this.baseURL = baseURL;
-  }
-
-  setToken(token: string) {
-    this.token = token;
-  }
-
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
-
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
-    }
-
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'API request failed');
-    }
-
-    return data;
-  }
-
-  // Events
-  async getEvents(params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    category?: string;
-    status?: string;
-  }) {
-    const query = new URLSearchParams(params as any);
-    return this.request(`/api/events?${query}`);
-  }
-
-  async getEvent(id: string) {
-    return this.request(`/api/events/${id}`);
-  }
-
-  async createEvent(eventData: any) {
-    return this.request('/api/events', {
-      method: 'POST',
-      body: JSON.stringify(eventData),
-    });
-  }
-
-  async updateEvent(id: string, eventData: any) {
-    return this.request(`/api/events/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(eventData),
-    });
-  }
-
-  // Authentication
-  async login(address: string, signature: string) {
-    const response = await this.request('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ address, signature }),
-    });
-
-    if (response.success && response.data.token) {
-      this.setToken(response.data.token);
-    }
-
-    return response;
-  }
-
-  // Tickets
-  async getUserTickets() {
-    return this.request('/api/tickets');
-  }
-
-  async getTicket(id: string) {
-    return this.request(`/api/tickets/${id}`);
-  }
-}
-
-// Usage example
-const api = new EchainAPI();
-
-// Login
-const loginResponse = await api.login(userAddress, signature);
-console.log('Logged in:', loginResponse.data.user);
-
-// Get events
-const events = await api.getEvents({ category: 'Technology', limit: 10 });
-console.log('Events:', events.data);
-
-// Create event (organizer only)
-const newEvent = await api.createEvent({
-  name: 'My Event',
-  description: 'Event description',
-  startDate: '2024-02-01T10:00:00.000Z',
-  endDate: '2024-02-01T18:00:00.000Z',
-  location: 'New York, NY',
-  price: '1000000000000000000',
-  maxCapacity: 100,
-  category: 'Technology'
-});
-```
-
-### React Hooks Integration
-```typescript
-// Custom hooks for React applications
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-export function useEvents(params?: any) {
-  return useQuery({
-    queryKey: ['events', params],
-    queryFn: async () => {
-      const api = new EchainAPI();
-      return api.getEvents(params);
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-}
-
-export function useEvent(id: string) {
-  return useQuery({
-    queryKey: ['event', id],
-    queryFn: async () => {
-      const api = new EchainAPI();
-      return api.getEvent(id);
-    },
-    enabled: !!id,
-  });
-}
-
-export function useCreateEvent() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (eventData: any) => {
-      const api = new EchainAPI();
-      return api.createEvent(eventData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['events'] });
-    },
-  });
-}
-
-export function useUserTickets() {
-  return useQuery({
-    queryKey: ['user-tickets'],
-    queryFn: async () => {
-      const api = new EchainAPI();
-      return api.getUserTickets();
-    },
-  });
-}
-
-// Usage in React component
-function EventsPage() {
-  const { data: eventsResponse, isLoading } = useEvents({
-    category: 'Technology',
-    limit: 20
-  });
-
-  const createEventMutation = useCreateEvent();
-
-  const handleCreateEvent = async (eventData) => {
-    try {
-      await createEventMutation.mutateAsync(eventData);
-      toast.success('Event created successfully!');
-    } catch (error) {
-      toast.error('Failed to create event');
-    }
-  };
-
-  if (isLoading) return <div>Loading events...</div>;
-
-  return (
-    <div>
-      <h1>Events</h1>
-      {eventsResponse?.data?.map(event => (
-        <div key={event.id}>
-          <h2>{event.name}</h2>
-          <p>{event.description}</p>
-          <p>Price: {ethers.utils.formatEther(event.price)} ETH</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-```
-
----
-
-## 🔐 Security & Error Handling
-
-### Rate Limiting
-```typescript
-const rateLimits = {
-  authenticated: {
-    requests: 1000,
-    window: '1 hour',
-    burst: 100
-  },
-  unauthenticated: {
-    requests: 100,
-    window: '1 hour',
-    burst: 20
-  },
-  strict: {
-    requests: 10,
-    window: '1 minute',
-    burst: 3
-  }
-};
-```
-
-### Error Response Format
-```typescript
-interface ApiError {
-  success: false;
-  error: {
-    code: string;
-    message: string;
-    details?: any;
-  };
-  meta?: {
-    requestId: string;
-    timestamp: number;
-  };
-}
-```
-
-### Common Error Codes
-```typescript
-const errorCodes = {
-  // Authentication errors
-  UNAUTHORIZED: 'Authentication required',
-  FORBIDDEN: 'Insufficient permissions',
-  TOKEN_EXPIRED: 'JWT token has expired',
-  INVALID_SIGNATURE: 'Invalid wallet signature',
-
-  // Validation errors
-  VALIDATION_ERROR: 'Invalid input data',
-  MISSING_REQUIRED_FIELD: 'Required field is missing',
-  INVALID_FORMAT: 'Invalid data format',
-
-  // Resource errors
-  NOT_FOUND: 'Resource not found',
-  ALREADY_EXISTS: 'Resource already exists',
-  CONFLICT: 'Operation conflicts with current state',
-
-  // Rate limiting
-  RATE_LIMIT_EXCEEDED: 'Too many requests. Please try again later',
-
-  // Server errors
-  INTERNAL_ERROR: 'Internal server error',
-  DATABASE_ERROR: 'Database operation failed',
-  EXTERNAL_SERVICE_ERROR: 'External service unavailable'
-};
-```
-
-### Error Handling Best Practices
-```typescript
-const handleApiError = (error: ApiError) => {
-  switch (error.error.code) {
-    case 'RATE_LIMIT_EXCEEDED':
-      // Implement exponential backoff
-      const retryAfter = error.error.details?.retryAfter || 60;
-      setTimeout(() => retryRequest(), retryAfter * 1000);
-      break;
-
-    case 'TOKEN_EXPIRED':
-      // Refresh token and retry
-      refreshToken().then(() => retryRequest());
-      break;
-
-    case 'VALIDATION_ERROR':
-      // Show validation errors to user
-      showValidationErrors(error.error.details);
-      break;
-
-    default:
-      // Log and show generic error
-      console.error('API Error:', error);
-      showGenericError();
-  }
-};
-```
-
----
-
-## 📊 Monitoring & Analytics
-
-### API Metrics
-```typescript
-const apiMetrics = {
-  // Request metrics
-  totalRequests: 15420,
-  successRate: 0.987,
-  averageResponseTime: 145, // ms
-
-  // Endpoint usage
-  topEndpoints: [
-    { path: '/api/events', calls: 4520 },
-    { path: '/api/tickets', calls: 3210 },
-    { path: '/api/auth/login', calls: 2890 }
-  ],
-
-  // Error tracking
-  errorRate: 0.013,
-  topErrors: [
-    { code: 'RATE_LIMIT_EXCEEDED', count: 45 },
-    { code: 'VALIDATION_ERROR', count: 32 },
-    { code: 'NOT_FOUND', count: 28 }
-  ]
-};
-```
-
-### Performance Benchmarks
-```yaml
-API Response Times:
-  - Simple queries: <50ms
-  - Complex queries: <200ms
-  - Database writes: <300ms
-
-Throughput:
-  - Read operations: 1000+ req/min
-  - Write operations: 500+ req/min
-  - Concurrent connections: 1000+
-
-Reliability:
-  - Uptime: 99.9%
-  - Error rate: <1%
-  - Data consistency: 100%
-```
-
----
-
-## 🚨 Troubleshooting
-
-### Common Issues & Solutions
-
-#### Authentication Problems
-```typescript
-// Problem: 401 Unauthorized
-const solutions = {
-  checkToken: 'Verify JWT token is valid and not expired',
-  checkSignature: 'Ensure wallet signature is correct',
-  checkPermissions: 'Verify user has required role for endpoint'
-};
-```
-
-#### Database Connection Issues
-```typescript
-// Problem: Database connection failed
-const solutions = {
-  checkConnectionString: 'Verify DATABASE_URL is correct',
-  checkNetwork: 'Ensure database server is accessible',
-  checkCredentials: 'Verify database credentials',
-  checkPoolSize: 'Adjust connection pool size if needed'
-};
-```
-
-#### Rate Limiting Issues
-```typescript
-// Problem: 429 Too Many Requests
-const solutions = {
-  implementBackoff: 'Use exponential backoff for retries',
-  batchRequests: 'Combine multiple requests into batches',
-  cacheResults: 'Cache frequently accessed data',
-  upgradePlan: 'Consider higher rate limit tiers'
-};
-```
-
-#### Validation Errors
-```typescript
-// Problem: 400 Bad Request
-const solutions = {
-  checkSchema: 'Verify request matches API schema',
-  validateInputs: 'Use client-side validation before sending',
-  checkTypes: 'Ensure correct data types for all fields'
-};
-```
-
-### Debug Tools
-```bash
-# Test API connectivity
-curl -X GET "https://api.echain.events/health"
-
-# Test authentication
-curl -X POST "https://api.echain.events/api/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{"address":"0x...","signature":"0x..."}'
-
-# Test events endpoint
-curl -X GET "https://api.echain.events/api/events" \
-  -H "Authorization: Bearer YOUR_TOKEN"
-
-# Check rate limiting headers
-curl -I "https://api.echain.events/api/events"
-```
-
----
-
-## 📞 Support & Resources
-
-### API Resources
-- **[Prisma Documentation](https://www.prisma.io/docs)**: Database ORM documentation
-- **[Express.js Guide](https://expressjs.com/)**: Web framework documentation
-- **[Zod Validation](https://zod.dev/)**: Schema validation library
-- **[JWT.io](https://jwt.io/)**: JWT token debugger
-
-### Developer Tools
-- **API Explorer**: Interactive API testing interface
-- **Database Studio**: Prisma Studio for database management
-- **Rate Limit Monitor**: Real-time rate limiting dashboard
-- **Error Logs**: Centralized error tracking and debugging
-
-### Community Support
-- **GitHub Issues**: Report bugs and request features
-- **Discord Community**: Get help from other developers
-- **Technical Blog**: Tutorials and best practices
-
----
-
-**This comprehensive API documentation provides everything needed to integrate with the Echain platform, from basic CRUD operations to advanced analytics and real-time features. The API is designed for reliability, performance, and developer experience.**
-
-<div align="center">
-
-[![Try API](https://img.shields.io/badge/Try_API-Live_Demo-00D4FF?style=for-the-badge)](https://api.echain.events/health)
-[![SDK](https://img.shields.io/badge/SDK-Download-10B981?style=for-the-badge)](https://github.com/Emertechs-Labs/echain)
-[![Docs](https://img.shields.io/badge/Full_Docs-View-6366F1?style=for-the-badge)](https://docs.echain.events)
+[🏗️ Architecture](#-api-architecture) • [🚀 Quick Start](#-quick-start) • [📋 Endpoints](#-api-endpoints) • [🔄 Real-time](#-real-time-events) • [🛠️ SDK](#-sdk-integration)
 
 </div>
 
@@ -1084,9 +46,8 @@ graph TB
 
     subgraph "Blockchain Networks"
         I[Base Sepolia RPC]
-        J[Polkadot Rococo RPC]
-        K[Cardano Preview RPC]
-        L[Cross-chain Bridges]
+        J[Hedera Testnet RPC]
+        K[Network Bridges]
     end
 
     subgraph "Smart Contracts"
@@ -1142,13 +103,11 @@ graph TB
 ### Base Configuration
 ```yaml
 Base RPC: https://sepolia.base.org
-Polkadot RPC: wss://rococo-contracts-rpc.polkadot.io
-Cardano RPC: https://preview-api.cardano.moonsonglabs.com
+Hedera SDK: https://github.com/hashgraph/hedera-sdk-js
 Protocol: HTTPS + WSS (WebSocket)
 Rate Limits:
   - Base: 100 requests/minute
-  - Polkadot: 100 requests/minute
-  - Cardano: 100 requests/minute
+  - Hedera: 100 requests/minute
 ```
 
 ### Authentication Methods
@@ -1162,21 +121,25 @@ const authMethods = {
     chainId: 84532,
     wallet: 'MetaMask' // or other Web3 wallet
   },
-  polkadot: {
-    rpcUrl: 'wss://rococo-contracts-rpc.polkadot.io',
-    wallet: 'Polkadot.js'
-  },
-  cardano: {
-    rpcUrl: 'https://preview-api.cardano.moonsonglabs.com',
-    wallet: 'Cardano Wallet'
+  hedera: {
+    network: 'testnet',
+    accountId: process.env.HEDERA_ACCOUNT_ID,
+    privateKey: process.env.HEDERA_PRIVATE_KEY
   }
 };
 
 // Example transaction signing
 const signTransaction = async (tx: any, network: string) => {
-  const provider = new ethers.providers.JsonRpcProvider(authMethods[network].rpcUrl);
-  const signer = provider.getSigner();
-  return await signer.sendTransaction(tx);
+  if (network === 'base') {
+    const provider = new ethers.providers.JsonRpcProvider(authMethods.base.rpcUrl);
+    const signer = provider.getSigner();
+    return await signer.sendTransaction(tx);
+  } else if (network === 'hedera') {
+    // Hedera SDK transaction signing
+    const client = Client.forTestnet();
+    client.setOperator(authMethods.hedera.accountId, authMethods.hedera.privateKey);
+    return await tx.execute(client);
+  }
 };
 ```
 
@@ -1265,8 +228,7 @@ interface ApiResponse {
 ```bash
 # Current production RPC endpoints
 BASE_RPC_URL="https://sepolia.base.org"
-POLKADOT_RPC_URL="wss://rococo-contracts-rpc.polkadot.io"
-CARDANO_RPC_URL="https://preview-api.cardano.moonsonglabs.com"
+HEDERA_NETWORK="testnet"
 
 # Optional: API key for enhanced features (legacy support)
 DAPP_API_KEY="your-wallet-private-key-or-api-key"
@@ -1972,8 +934,7 @@ DELETE /marketplace/listings/{listingId}
 // Establish direct RPC WebSocket connections
 const wsConnections = {
   base: new WebSocket('wss://sepolia.base.org/ws'),
-  polkadot: new WebSocket('wss://rococo-contracts-rpc.polkadot.io'),
-  cardano: new WebSocket('wss://preview-api.cardano.moonsonglabs.com/ws')
+  hedera: new WebSocket('wss://testnet.mirrornode.hedera.com/api/v1/ws') // Hedera mirror node WebSocket
 };
 
 // Base WebSocket connection
@@ -2032,21 +993,16 @@ const subscribeToEvents = () => {
     }]
   }));
 
-  // Polkadot event subscription
-  polkadotApi.query.system.events((events) => {
-    events.forEach((record) => {
-      const { event } = record;
-      if (event.section === 'contracts' && event.method === 'ContractEmitted') {
-        handlePolkadotEvent(event);
-      }
-    });
-  });
-
-  // Cardano event monitoring (via polling or WebSocket)
-  setInterval(async () => {
-    const latestBlock = await cardanoLucid.provider.getLatestBlock();
-    // Check for new transactions/events
-  }, 10000);
+  // Hedera event monitoring via mirror nodes
+  const hederaWs = wsConnections.hedera;
+  hederaWs.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.events) {
+      data.events.forEach((hederaEvent: any) => {
+        handleHederaEvent(hederaEvent);
+      });
+    }
+  };
 };
 ```
 
@@ -2139,11 +1095,10 @@ const subscribeToEvents = () => {
 
 ### TypeScript/JavaScript SDK
 ```typescript
-// Multi-chain SDK integration
+// Base and Hedera SDK integration
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { baseSepolia } from 'viem/chains';
-import { ApiPromise, WsProvider } from '@polkadot/api';
-import { Blockfrost, Lucid } from 'lucid-cardano';
+import { Client, ContractExecuteTransaction, ContractCallQuery } from '@hashgraph/sdk';
 
 // Base/Ethereum integration
 const baseClient = createPublicClient({
@@ -2156,27 +1111,18 @@ const baseWallet = createWalletClient({
   transport: http('https://sepolia.base.org')
 });
 
-// Polkadot/Substrate integration
-const polkadotApi = await ApiPromise.create({
-  provider: new WsProvider('wss://rococo-contracts-rpc.polkadot.io')
-});
-
-// Cardano integration
-const cardanoLucid = await Lucid.new(
-  new Blockfrost('https://cardano-preview.blockfrost.io/api/v0', 'previewApiKey'),
-  'Preview'
-);
+// Hedera integration
+const hederaClient = Client.forTestnet();
+hederaClient.setOperator(process.env.HEDERA_ACCOUNT_ID!, process.env.HEDERA_PRIVATE_KEY!);
 
 // Type-safe contract interactions
 export class EchainAPI {
   private baseClient: any;
-  private polkadotApi: ApiPromise;
-  private cardanoLucid: Lucid;
+  private hederaClient: Client;
 
   constructor() {
     this.baseClient = baseClient;
-    this.polkadotApi = polkadotApi;
-    this.cardanoLucid = cardanoLucid;
+    this.hederaClient = hederaClient;
   }
 
   // Get active events from Base
@@ -2202,16 +1148,29 @@ export class EchainAPI {
     });
     return hash;
   }
+
+  // Hedera contract interaction
+  async createEventHedera(name: string, price: number, maxTickets: number) {
+    const transaction = new ContractExecuteTransaction()
+      .setContractId(hederaEventFactoryId)
+      .setGas(100000)
+      .setFunction('createEvent', new ContractFunctionParameters()
+        .addString(name)
+        .addUint256(price)
+        .addUint256(maxTickets)
+      );
+
+    const txResponse = await transaction.execute(this.hederaClient);
+    return await txResponse.getReceipt(this.hederaClient);
+  }
 }
 ```
 
 ### React Hooks Integration
 ```typescript
-// Custom hooks for multi-chain React applications
+// Custom hooks for Base and Hedera React applications
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usePublicClient, useWalletClient, useAccount } from 'wagmi';
-import { usePolkadotExtension } from '@polkadot/react-hooks';
-import { useLucid } from 'lucid-cardano';
 
 export function useEvents() {
   const publicClient = usePublicClient();
@@ -2548,7 +1507,7 @@ const trackApiError = (error: ApiError, context: any) => {
 
 #### Health Check Endpoints
 ```typescript
-// Multi-chain health monitoring
+// Base and Hedera health monitoring
 const healthEndpoints = {
   // Overall platform health
   '/health': {
@@ -2559,8 +1518,7 @@ const healthEndpoints = {
       version: string,
       networks: {
         base: 'ok' | 'degraded' | 'down',
-        polkadot: 'ok' | 'degraded' | 'down',
-        cardano: 'ok' | 'degraded' | 'down'
+        hedera: 'ok' | 'degraded' | 'down'
       }
     }
   },
@@ -2575,16 +1533,10 @@ const healthEndpoints = {
         blockNumber: 12345678,
         lastCheck: 1735689600
       },
-      polkadot: {
+      hedera: {
         status: 'ok',
-        wsConnected: true,
-        blockNumber: 9876543,
-        lastCheck: 1735689600
-      },
-      cardano: {
-        status: 'ok',
-        apiConnected: true,
-        slotNumber: 45678912,
+        mirrorNodeLatency: 89,
+        consensusTimestamp: '1735689600.123456789',
         lastCheck: 1735689600
       }
     }
@@ -2721,11 +1673,9 @@ wscat -c "wss://sepolia.base.org/ws"
 
 ### API Resources
 - **[Base Network Docs](https://docs.base.org/)**: Base network documentation and RPC details
-- **[Polkadot Docs](https://wiki.polkadot.network/)**: Polkadot/Substrate development guides
-- **[Cardano Docs](https://docs.cardano.org/)**: Cardano blockchain integration guides
+- **[Hedera SDK Docs](https://docs.hedera.com/guides/sdks)**: Hedera SDK documentation and integration guides
 - **[viem Documentation](https://viem.sh/)**: Ethereum RPC client library
-- **[@polkadot/api](https://polkadot.js.org/docs/api/)**: Polkadot/Substrate API reference
-- **[Lucid Cardano](https://lucid.spacebudz.io/)**: Cardano development framework
+- **[@hashgraph/sdk](https://github.com/hashgraph/hedera-sdk-js)**: Hedera JavaScript SDK reference
 
 ### Developer Tools
 - **RPC Explorers**: Direct blockchain explorers for each network
@@ -2736,7 +1686,7 @@ wscat -c "wss://sepolia.base.org/ws"
 ### Community Support
 - **GitHub Issues**: Report bugs and request features
 - **Discord Community**: Get help from other developers
-- **Technical Blog**: Tutorials and best practices for multi-chain development
+- **Technical Blog**: Tutorials and best practices for Base and Hedera development
 
 ---
 
@@ -2930,4 +1880,4 @@ function EventPage({ eventId }: { eventId: string }) {
 }
 ```
 
-This API documentation provides comprehensive coverage of all platform capabilities with direct multi-chain RPC integration across Base, Polkadot, and Cardano networks.
+This API documentation provides comprehensive coverage of all platform capabilities with direct RPC integration across Base and Hedera networks.

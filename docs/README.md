@@ -28,7 +28,14 @@ Echain is a comprehensive multi-chain blockchain-based event management platform
 - **⚡ Real-time Updates**: WebSocket streaming for live event data
 - **🛡️ Enterprise Security**: OpenZeppelin audited contracts with circuit breakers
 
-**Current Status**: 🚧 Enhanced MVP in Development - Beta Testing on Testnet
+**Current Status**: 🚀 Production-Ready MVP with Security Enhancements - October 2025
+
+### 🆕 Recent Updates (October 2025)
+- ✅ **Security Enhancements**: Resolved critical dependency vulnerabilities (bigint-buffer, fast-redact, hono, undici)
+- ✅ **Repository Migration**: Moved to Emertechs-Labs organization with updated repo name (e-chain)
+- ✅ **Dependency Updates**: Upgraded packages for better security and compatibility
+- ✅ **Multi-Chain Readiness**: Enhanced Base network integration with wallet optimizations
+- ✅ **Documentation Updates**: Comprehensive docs refresh to reflect current project state
 
 ### 📋 Deployed Contract Addresses (Base Testnet)
 
@@ -308,7 +315,7 @@ graph TD
 - **[Cardano Explorer](https://cardanoscan.io/)**: Cardano blockchain explorer
 
 ### **Community**
-- **[GitHub Repository](https://github.com/emertechs-Labs/echain)**: Source code and issue tracking
+- **[GitHub Repository](https://github.com/Emertechs-Labs/e-chain)**: Source code and issue tracking
 - **[Live Demo](https://echain-eight.vercel.app)**: Production application
 - **[Facebook](https://www.facebook.com/share/1JQeq5La3v/)**: Community updates and discussions
 - **[Instagram](https://www.instagram.com/eventsonchain)**: Visual content and event highlights
@@ -335,8 +342,8 @@ We welcome contributions from the community! See our [Contributing Guide](../CON
 
 ### **Development Setup**
 ```bash
-git clone https://github.com/emertechs-Labs/echain.git
-cd echain
+git clone https://github.com/Emertechs-Labs/e-chain.git
+cd e-chain
 npm install
 cd blockchain && npm install
 cd ../frontend && npm install
@@ -347,7 +354,7 @@ npm run dev
 
 <div align="center">
 
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=flat-square&logo=github)](https://github.com/emertechs-Labs/echain)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=flat-square&logo=github)](https://github.com/Emertechs-Labs/e-chain)
 [![Facebook](https://img.shields.io/badge/Facebook-Community-1877F2?style=flat-square&logo=facebook)](https://www.facebook.com/share/1JQeq5La3v/)
 [![Instagram](https://img.shields.io/badge/Instagram-Follow-E4405F?style=flat-square&logo=instagram)](https://www.instagram.com/eventsonchain)
 [![WhatsApp](https://img.shields.io/badge/WhatsApp-Chat-25D366?style=flat-square&logo=whatsapp)](https://chat.whatsapp.com/KKZ6Z9SOUfHIKwFVWzWI6t)

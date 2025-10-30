@@ -20,7 +20,7 @@
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.1",
     "@radix-ui/react-slot": "^1.2.3",
-    "@rainbow-me/rainbowkit": "^2.1.0",
+    "@rainbow-me/rainbowkit": "^2.0.8",
     "@tanstack/react-query": "^5.83.0",
     "@types/qrcode": "^1.5.5",
     "@vercel/analytics": "^1.5.0",
@@ -43,11 +43,11 @@
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "viem": "^2.17.0",
-    "wagmi": "^2.12.0"
+    "wagmi": "^1.4.13"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^2.1.4",
-    "@polymathuniversata/echain-wallet": "^1.0.3",
+    "@polymathuniversata/echain-wallet": "^1.0.2",
     "@types/better-sqlite3": "^7.6.13",
     "@types/google.maps": "^3.58.1",
     "@types/minimatch": "^6.0.0",

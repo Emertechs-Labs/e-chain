@@ -22,6 +22,7 @@ export const config = getDefaultConfig({
   projectId: process.env.NEXT_PUBLIC_RAINBOWKIT_PROJECT_ID || 'your-project-id',
   chains: [baseSepoliaWithRPC],
   ssr: true,
+  pollingInterval: 4000, // Add polling interval for faster updates
 });
 
 export { baseSepolia as defaultChain };

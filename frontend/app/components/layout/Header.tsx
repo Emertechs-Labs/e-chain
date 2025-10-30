@@ -52,7 +52,7 @@ export default function Header() {
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
               <Image
-                src="/logo.jpeg"
+                src="/placeholder.svg"
                 alt="Echain Logo"
                 width={32}
                 height={32}

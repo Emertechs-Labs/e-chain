@@ -27,9 +27,9 @@ interface WalletConfig {
 class BaseWalletManager {
   private reconnectTimeout: NodeJS.Timeout | null = null;
   private config: WalletConfig = {
-    autoReconnect: true,
-    maxReconnectAttempts: 5,
-    reconnectDelay: 2000
+    autoReconnect: false, // Disabled by default to avoid interference
+    maxReconnectAttempts: 3, // Reduced
+    reconnectDelay: 1000 // Reduced
   };
   private connectionState: WalletState = {
     isConnected: false,

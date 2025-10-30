@@ -52,7 +52,11 @@ class BaseRPCManager {
   private connectionPool: Map<string, { client: PublicClient; lastUsed: number; inUse: boolean }> = new Map();
 
   constructor() {
+    // Start health checks but don't block initial connections
     this.startHealthChecks();
+    // Mark the first endpoint as healthy initially to avoid delays
+    this.endpoints[0].isHealthy = true;
+    this.endpoints[0].responseTime = 100; // Assume reasonable response time
   }
 
   // Get the best available RPC endpoint based on health and performance
@@ -84,9 +88,9 @@ class BaseRPCManager {
     const client: any = createPublicClient({
       chain: baseSepolia,
       transport: http(endpoint.http, {
-        timeout: 10000,
-        retryCount: 2,
-        retryDelay: 1000
+        timeout: 5000, // Reduced from 10000
+        retryCount: 1, // Reduced from 2
+        retryDelay: 500 // Reduced from 1000
       })
     });
 
@@ -106,9 +110,9 @@ class BaseRPCManager {
     const client: any = createWalletClient({
       chain: baseSepolia,
       transport: http(endpoint.http, {
-        timeout: 15000,
-        retryCount: 3,
-        retryDelay: 1000
+        timeout: 8000, // Reduced from 15000
+        retryCount: 1, // Reduced from 3
+        retryDelay: 500 // Reduced from 1000
       })
     });
 

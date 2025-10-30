@@ -37,7 +37,7 @@ export function useWalletConnection() {
 
       const targetConnector = connectorId
         ? connectors.find(c => c.id === connectorId)
-        : connectors.find(c => c.name === 'MetaMask') || connectors[0];
+        : connectors[0]; // Use first available connector immediately
 
       if (!targetConnector) {
         setConnectionError('No wallet connector found');

@@ -55,6 +55,12 @@ export function ipfsToHttp(ipfsUri: string, gatewayIndex = 0): string {
 
   // Use the specified gateway
   const gateway = IPFS_GATEWAYS[gatewayIndex] || IPFS_GATEWAYS[0];
+
+  // If it's already an HTTP URL, return it directly on the first attempt
+  if (gatewayIndex === 0 && (ipfsUri.startsWith('http://') || ipfsUri.startsWith('https://'))) {
+    return ipfsUri;
+  }
+
   return `${gateway}${hash}`;
 }
 
@@ -90,33 +96,29 @@ export async function fetchMetadataFromIPFS(
 
   console.log(`[fetchMetadataFromIPFS] Fetching metadata from URI: ${metadataURI}`);
 
-  // Check if it's a blob storage URL (Vercel Blob)
-  if (metadataURI.includes('blob.vercel-storage.com') || metadataURI.includes('public.blob.vercel-storage.com')) {
+  // Check if it's already an HTTP URL (including blob storage)
+  if (metadataURI.startsWith('http://') || metadataURI.startsWith('https://')) {
     try {
-      console.log(`[fetchMetadataFromIPFS] Fetching from blob storage: ${metadataURI}`);
+      console.log(`[fetchMetadataFromIPFS] Fetching directly from URL: ${metadataURI}`);
       const response = await fetch(metadataURI, {
         headers: {
           'Accept': 'application/json',
-          'Cache-Control': 'no-cache', // Ensure fresh data
+          'Cache-Control': 'no-cache',
           'User-Agent': 'Mozilla/5.0 (compatible; Echain/1.0)',
         },
         mode: 'cors',
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (response.ok) {
+        const metadata = await response.json();
+        console.log(`[fetchMetadataFromIPFS] Successfully fetched metadata directly:`, metadata);
+        localStorage.setItem(cacheKey, JSON.stringify({ data: metadata, timestamp: Date.now() }));
+        return metadata as EventMetadata;
+      } else {
+        console.warn(`[fetchMetadataFromIPFS] Direct fetch failed with status ${response.status}, falling back to gateways if applicable`);
       }
-
-      const metadata = await response.json();
-      console.log(`[fetchMetadataFromIPFS] Successfully fetched metadata from blob storage:`, metadata);
-
-      // Cache the result
-      localStorage.setItem(cacheKey, JSON.stringify({ data: metadata, timestamp: Date.now() }));
-
-      return metadata as EventMetadata;
     } catch (error) {
-      console.error(`[fetchMetadataFromIPFS] Blob storage fetch failed:`, error);
-      return null;
+      console.warn(`[fetchMetadataFromIPFS] Direct fetch failed:`, error);
     }
   }
 
@@ -161,15 +163,15 @@ export async function fetchMetadataFromIPFS(
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const isCorsError = errorMessage.includes('CORS') ||
-                         errorMessage.includes('Access-Control') ||
-                         errorMessage.includes('preflight') ||
-                         errorMessage.includes('blocked by CORS') ||
-                         errorMessage.includes('No \'Access-Control-Allow-Origin\'');
+        errorMessage.includes('Access-Control') ||
+        errorMessage.includes('preflight') ||
+        errorMessage.includes('blocked by CORS') ||
+        errorMessage.includes('No \'Access-Control-Allow-Origin\'');
       const isNetworkError = errorMessage.includes('fetch') ||
-                            errorMessage.includes('network') ||
-                            errorMessage.includes('Failed to fetch') ||
-                            errorMessage.includes('ERR_FAILED') ||
-                            errorMessage.includes('ERR_NETWORK');
+        errorMessage.includes('network') ||
+        errorMessage.includes('Failed to fetch') ||
+        errorMessage.includes('ERR_FAILED') ||
+        errorMessage.includes('ERR_NETWORK');
 
       console.warn(`[fetchMetadataFromIPFS] Gateway ${i + 1} (${IPFS_GATEWAYS[i]}) failed:`, {
         error: errorMessage,
@@ -388,13 +390,12 @@ export function generateDefaultMetadata(event: Event): EventMetadata {
   ];
 
   const defaultVenues = [
-    "San Francisco, CA",
-    "New York, NY",
-    "Los Angeles, CA",
-    "Austin, TX",
-    "Miami, FL",
-    "Denver, CO",
-    "Seattle, WA"
+    "Location Pending",
+    "Venue to be Announced",
+    "Virtual/Online",
+    "Global Event",
+    "Regional Hub",
+    "Community Space"
   ];
 
   const defaultCategories = [
@@ -438,7 +439,7 @@ export async function enrichEventsWithMetadata(events: Event[]): Promise<Event[]
 
   for (let i = 0; i < events.length; i += batchSize) {
     const batch = events.slice(i, i + batchSize);
-    console.log(`[enrichEventsWithMetadata] Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(events.length/batchSize)} (${batch.length} events)`);
+    console.log(`[enrichEventsWithMetadata] Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(events.length / batchSize)} (${batch.length} events)`);
 
     const enrichedBatch = await Promise.all(
       batch.map(event => enrichEventWithMetadata(event))

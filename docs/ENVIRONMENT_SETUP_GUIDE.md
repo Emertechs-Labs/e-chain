@@ -56,6 +56,7 @@ Complete these steps in order:
 | `NEXTAUTH_SECRET` | 🔴 Setup Required | Generate | Critical |
 | `JWT_SECRET` | 🔴 Setup Required | Generate | Critical |
 | `NEXT_PUBLIC_SENTRY_DSN` | 🔴 Setup Required | Sentry | Critical |
+| `NEXT_PUBLIC_PINATA_JWT` | 🔴 Setup Required | Pinata | Critical |
 | `NEXT_PUBLIC_CHAINSTACK_RPC_URL` | 🟡 Optional | Chainstack | Recommended |
 | `RESEND_API_KEY` | 🟡 Optional | Resend | Recommended |
 | `GOOGLE_CLIENT_ID` | 🟡 Optional | Google | Optional |
@@ -227,10 +228,34 @@ Generate secure random keys for authentication.
    ```
 
 **Cost:** Free tier (5,000 events/month)
+---
+
+### **7. IPFS Storage Setup (Pinata)** ⏱️ 5 minutes - REQUIRED
+
+**Pinata** is used for storing event images and metadata on IPFS.
+
+1. **Create Account:**
+   - Visit: https://pinata.cloud/
+   - Sign up for a free account
+
+2. **Generate API Key:**
+   - Go to "API Keys"
+   - Create a new key (Recommended: Admin permissions)
+   - Copy the **JWT**, **API Key**, and **API Secret**
+
+3. **Update Environment:**
+   ```bash
+   NEXT_PUBLIC_PINATA_JWT=your_pinata_jwt_here
+   NEXT_PUBLIC_PINATA_GATEWAY_URL=https://gateway.pinata.cloud
+   PINATA_API_KEY=your_pinata_api_key_here
+   PINATA_API_SECRET=your_pinata_api_secret_here
+   ```
+
+**Cost:** Free tier available (1GB storage)
 
 ---
 
-### **7. Premium RPC Setup** ⏱️ 10 minutes - OPTIONAL
+### **8. Premium RPC Setup** ⏱️ 10 minutes - OPTIONAL
 
 Add premium RPC providers for better performance.
 
